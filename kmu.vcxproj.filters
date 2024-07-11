@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="kmu\src\kmu.c">
+      <Filter>kmu</Filter>
+    </ClCompile>
+    <ClCompile Include="pkcs11\src\p11.c">
+      <Filter>pkcs11</Filter>
+    </ClCompile>
+    <ClCompile Include="kmu\src\cmd.c">
+      <Filter>kmu</Filter>
+    </ClCompile>
+    <ClCompile Include="kmu\src\parser.c">
+      <Filter>kmu</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\asn1.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\file.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\str.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="pkcs11\src\p11util.c">
+      <Filter>pkcs11</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\base64.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\pkcs8.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="kmu\src\cmdarg.c">
+      <Filter>kmu</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\console.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\tr31.c">
+      <Filter>util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="kmu\inc\kmu.h">
+      <Filter>kmu</Filter>
+    </ClInclude>
+    <ClInclude Include="pkcs11\inc\p11.h">
+      <Filter>pkcs11</Filter>
+    </ClInclude>
+    <ClInclude Include="kmu\inc\cmd.h">
+      <Filter>kmu</Filter>
+    </ClInclude>
+    <ClInclude Include="kmu\inc\parser.h">
+      <Filter>kmu</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\asn1.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\file.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\str.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="pkcs11\inc\p11util.h">
+      <Filter>pkcs11</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\base64.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\pkcs8.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="ressource\resource.h">
+      <Filter>ressource</Filter>
+    </ClInclude>
+    <ClInclude Include="kmu\inc\cmdarg.h">
+      <Filter>kmu</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\console.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\tr31.h">
+      <Filter>util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="kmu">
+      <UniqueIdentifier>{be422628-fafd-4f2f-8e80-f9bdab3bbbb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pkcs11">
+      <UniqueIdentifier>{ffdd5508-04ae-4514-a555-44578574d54d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{ce4f560e-8465-4e59-b741-bbed7e06c7d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ressource">
+      <UniqueIdentifier>{7703a3be-665b-4673-8d99-97ae48041dda}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ressource\kmu.rc">
+      <Filter>ressource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,194 @@
+
+
+#list all objects
+list -slot=0 -password=00000000
+list -slot=0 -password=00000000 -cu=true
+
+# computekcv
+kmu computekcv -slot 2 -password 00000000 -handle 1158 -method pci
+kmu computekcv -slot 2 -password 00000000 -handle 1158 -method pkcs11
+kmu computekcv -slot 2 -password 00000000 -handle 1158 -method gp
+
+
+# Generate Key
+//des
+generatekey -slot=3 -password 00000000 -keytype=des -keysize 8 -label=kmu-des -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+generatekey -slot=3 -password 00000000 -keytype=des -keysize 16 -label=kmu-des -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+generatekey -slot=3 -password 00000000 -keytype=des -keysize 24 -label=kmu-des -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+//aes
+generatekey -slot=3 -password 00000000 -keytype=aes -keysize 32 -label=testkmu-aes256 -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+generatekey -slot=3 -password 00000000 -keytype=aes -keysize 16 -label=testkmu-aes-128 -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
+//hmac
+generatekey -slot=3 -password 00000000 -keytype=hmac -keysize 8 -label=kmu-hmac -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+//rsa
+generatekey -slot=3 -password 00000000 -keytype=rsa -keysize 2048 -labelpublic=kmu-rsa-public -labelprivate=kmu-rsa-private -publicexponent=65537 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt true -sign=true -decrypt true -verify true -mech=pkcs
+generatekey -slot=3 -password 00000000 -keytype=rsa -keysize 4096 -labelpublic=kmu-rsa-prime-public -labelprivate=kmu-rsa-prime-private -publicexponent=65537 -extractable=1 -modifiable=true -mech=prime
+generatekey -slot=3 -password 00000000 -keytype=rsa -keysize 3072 -labelpublic=kmu-rsa_aux-public -labelprivate=kmu-rsa-aux-private -publicexponent=65537 -extractable=1 -modifiable=true -mech=aux
+generatekey -slot=3 -password 00000000 -keytype=rsa -keysize 8192 -labelpublic=kmu-rsa-public_8k -labelprivate=kmu-rsa-private_8k -publicexponent=65537 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt true -sign=true -decrypt true -verify true -mech=prime
+generatekey -slot=1 -password 00000000 -keytype=rsa -keysize 2048 -labelpublic=kmu-rsa-4k-public -labelprivate=kmu-rsa-4k--private -publicexponent=65537 -mech=prime -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt true -sign=true -decrypt true -verify true -derive=true -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
+//ecdsa
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-public -labelprivate=kmu-ecdsa-private -curve=secp256r1 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt true -sign=true -decrypt true -verify true
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-public -labelprivate=kmu-ecdsa-private -curve=secp256r1 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt true -sign=true -decrypt true -verify true
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-bp256r1-public -labelprivate=kmu-ecdsa--bp256r1-private -curve=brainpoolP256r1 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt false -verify true
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-cn163v1-public -labelprivate=kmu-ecdsa--cn163v1-private -curve=c2pnb163v1
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-sect571k1-public -labelprivate=kmu-ecdsa--sect571k1-private -curve=sect571k1 -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-prime239v3-public -labelprivate=kmu-ecdsa--prime239v3-private -curve=prime239v3 -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-secp112r1-public -labelprivate=kmu-ecdsa--secp112r1-private -curve=secp112r1
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-sect233k1-public -labelprivate=kmu-ecdsa--sect233k1-private -curve=sect233k1
+generatekey -slot=3 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-c2pnb368w1-public -labelprivate=kmu-ecdsa--c2pnb368w1-private -curve=c2pnb368w1 -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
+generatekey -slot=1 -password 00000000 -keytype=ecdsa -labelpublic=kmu-ecdsa-sect233r1-public -labelprivate=kmu-ecdsa--sect233r1-private -curve=sect233r1 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt true -sign=true -decrypt true -verify true -derive=true -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
+//sm2
+generatekey -slot=3 -password 00000000 -keytype=sm2 -labelpublic=kmu-sm2-public -labelprivate=kmu-sm2-private -curve=sm2 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true
+//sm4
+generatekey -slot=3 -password 00000000 -keytype=sm4 -label=kmu-sm4 -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+montgomery
+generatekey -slot=3 -password 00000000 -keytype=montgomery -curve=x25519 -labelpublic=kmu-montgomery-public -labelprivate=kmu-montgomery-private -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true
+generatekey -slot=3 -password 00000000 -keytype=eddsa -labelpublic=kmu-eddsa-public -labelprivate=kmu-eddsa-private -curve=ed25519 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -token=false
+generatekey -slot=3 -password 00000000 -keytype=eddsa -label=eddsakey -curve=ed25519 -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -private=false
+//dh
+example of domain here
+https:2ton.com.au/safeprimes/
+https:datatracker.ietf.org/doc/html/rfc5114#section-2.1
+generatekey -slot=3 -password 00000000 -keytype=dh -labelpublic=kmu-dh-2k-public-pkcs-public -labelprivate=kmu-dh-2k-public-pkcs-private -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -mech=pkcs -prime=9952037b404a534150b034a873cb6a9e5f59844b83f098972ba34339b10a9081ac879c332656a07114e45a73b6cf14362d2ef31d949b68a19e8cb638fb0d299aeb05f76c14b31c091fccec06bf6fef0c574e65844bced8ba5e6e2ff4a30a0c44c4d52a1cb0b304ee6bb98aa6bfea0d503f563faca0dc76eaa19a6590c42a5d093be4ee14e7fb9798e78e4525b08569cadef06f712c9f1226b4f26ca59dfa3bbfc83adf485cd815683fb3a4150bca8291ad90ed0037c0e21bd810c51daf9225049013d59b31fc5954e55a9180513497d4a84fbce07899ad25b1a04ceb0920740822c95db1270e13a324620356dad118f1a6014da83bebfd66a250d0ff40342f6ffc44da38247661d0f545c6967570ff45ef60675158eec3d8c901c8f402e108f1cb13f87aa0553eb95b46849bf5194dbeb17b59626517caa8f86700096427b2ace0bd90b6a60ef6ac13dbb2276d68cde15c8783fd2f2175461a741e24c5a7397c41f027df928a2dd90d723664a5efa4bdbdef390749a23f84469162fcece06e8b  -base=03 
+generatekey -slot=3 -password 00000000 -keytype=dh -labelpublic=kmu-dh-pkcs-public -labelprivate=kmu-dh-pkcs-private -extractable=1 -modifiable=true -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -mech=pkcs -prime=d4d4ae53d8402c41cb7f9559c658cf4e1bc5bb1929b563fe6f8263bea13944c8c1942f915647f2d0788d58555e96b8fd9ce0c4e38fd4f10dffc88cff1a6c8242f7cf0dd42d8b3330cd7398b197fba962353d82a575ca4f97680f4e3c2c858fb115c99258db5168a3cc70f6a9d7f16306ef7c2e571a9c1fb82e4f88233a2a6fb82d91d329a76bdba16e0fa0a1aae190e3451a0f34a0fb7c26aa9628546d6729c1cf51e1c5ead6db7fb3165b5147a7e292324abc1952ac3f5a2aaead1ecf880f8e3587a7ed7dd007200adf51e58bca383569257995c93fecc1cb7afb3253de3a90ab51e37ec6d621b3309600fd1043edca9c19fccc54dae8dce3fbee72fb478593 -base=03
+generatekey -slot=3 -password 00000000 -keytype=dh -labelpublic=kmu-dh-2k-x942-public -labelprivate=kmu-dh-2k-x942-private -modifiable=true -extractable=1 -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -mech=x942 -prime=AD107E1E9123A9D0D660FAA79559C51FA20D64E5683B9FD1B54B1597B61D0A75E6FA141DF95A56DBAF9A3C407BA1DF15EB3D688A309C180E1DE6B85A1274A0A66D3F8152AD6AC2129037C9EDEFDA4DF8D91E8FEF55B7394B7AD5B7D0B6C12207C9F98D11ED34DBF6C6BA0B2C8BBC27BE6A00E0A0B9C49708B3BF8A317091883681286130BC8985DB1602E714415D9330278273C7DE31EFDC7310F7121FD5A07415987D9ADC0A486DCDF93ACC44328387315D75E198C641A480CD86A1B9E587E8BE60E69CC928B2B9C52172E413042E9B23F10B0E16E79763C9B53DCF4BA80A29E3FB73C16B8E75B97EF363E2FFA31F71CF9DE5384E71B81C0AC4DFFE0C10E64F -base=AC4032EF4F2D9AE39DF30B5C8FFDAC506CDEBE7B89998CAF74866A08CFE4FFE3A6824A4E10B9A6F0DD921F01A70C4AFAAB739D7700C29F52C57DB17C620A8652BE5E9001A8D66AD7C17669101999024AF4D027275AC1348BB8A762D0521BC98AE247150422EA1ED409939D54DA7460CDB5F6C6B250717CBEF180EB34118E98D119529A45D6F834566E3025E316A330EFBB77A86F0C1AB15B051AE3D428C8F8ACB70A8137150B8EEB10E183EDD19963DDD9E263E4770589EF6AA21E7F5F2FF381B539CCE3409D13CD566AFBB48D6C019181E1BCFE94B30269EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC017981BC087F2A7065B384B890D3191F2BFA -subprime=801C0D34C58D93FE997177101F80535A4738CEBCBF389A99B36371EB
+//dsa
+generatekey -slot=3 -password 00000000 -keytype=dsa -labelpublic=kmu-dsa-2k-public -labelprivate=kmu-dsa-2k-private -modifiable=true -extractable=1 -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -mech=x942 -prime=AD107E1E9123A9D0D660FAA79559C51FA20D64E5683B9FD1B54B1597B61D0A75E6FA141DF95A56DBAF9A3C407BA1DF15EB3D688A309C180E1DE6B85A1274A0A66D3F8152AD6AC2129037C9EDEFDA4DF8D91E8FEF55B7394B7AD5B7D0B6C12207C9F98D11ED34DBF6C6BA0B2C8BBC27BE6A00E0A0B9C49708B3BF8A317091883681286130BC8985DB1602E714415D9330278273C7DE31EFDC7310F7121FD5A07415987D9ADC0A486DCDF93ACC44328387315D75E198C641A480CD86A1B9E587E8BE60E69CC928B2B9C52172E413042E9B23F10B0E16E79763C9B53DCF4BA80A29E3FB73C16B8E75B97EF363E2FFA31F71CF9DE5384E71B81C0AC4DFFE0C10E64F -base=AC4032EF4F2D9AE39DF30B5C8FFDAC506CDEBE7B89998CAF74866A08CFE4FFE3A6824A4E10B9A6F0DD921F01A70C4AFAAB739D7700C29F52C57DB17C620A8652BE5E9001A8D66AD7C17669101999024AF4D027275AC1348BB8A762D0521BC98AE247150422EA1ED409939D54DA7460CDB5F6C6B250717CBEF180EB34118E98D119529A45D6F834566E3025E316A330EFBB77A86F0C1AB15B051AE3D428C8F8ACB70A8137150B8EEB10E183EDD19963DDD9E263E4770589EF6AA21E7F5F2FF381B539CCE3409D13CD566AFBB48D6C019181E1BCFE94B30269EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC017981BC087F2A7065B384B890D3191F2BFA -subprime=801C0D34C58D93FE997177101F80535A4738CEBCBF389A99B36371EB
+
+
+# Create DO
+createdo -password 00000000 -label=kmu-do -token=true -modifiable=true -private=true -application=01020303 -value=99897898
+createdo -password 00000000 -label=kmu-do -token=true -modifiable=true -private=true
+
+# get Attributes
+getattribute -password 00000000 -handle=858
+
+# Set Attributes
+setattribute -password 00000000 -handle=858 -label=importrsakey
+setattribute -password 00000000 -handle=882 -value=40174327F7E8A90E06497941D732554B2A8538462BE4814E56D70C1C8159C140E541B2A3374E5CF9A5CC1EF83AFBE5E4B7316CF9A3DC36E569FD4BC60211FA299CA49A285E11F0E5F31C41F641AF1A1EBFC067DF37AF8176721879F43D5281D6E11AAE14867D1D22A5439F684CFE17E2F3ED3AFD2518A6928F253698DCFD8AAA5D8C406C358500F5528C910E21E86451236EBB03D17B8C96B06A680F84784CF20966511EEA2E1DAE1F9A67433C008B9651287B0FC7406780D6D9E698945B058AB1A57EE658D50C58209F669E78183F07ECA16D32A2FFF2EB6F965089944E1CD767D4339881967C6A695DE99BA5B56006F9ED4FE26DF975D885E1906BA69ACB28 -application=application
+setattribute -password 00000000 -handle=858 -private=false -sign=true -verify=true
+
+# import key
+//import rsa with aes key wrap
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa.bin -format=bin -key=426 -algo=aes_cbc_pad -label=importrsakey -modifiable=false -extractable=false
+import -slot=3 -password 00000000 -keyclass=private -keytype=rsa -inputfile=text.txt -format=text -key=426 -algo=aes_cbc_pad -label=importkey -modifiable=true -extractable=true
+//import aes with rsa key wrap
+import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=wrapped_aes.txt -format=text -key=603 -algo=rsa_oaep_sha256 -label=importaeskey -modifiable=true -extractable=true
+import ecdsa with aes key wrap
+import -slot=1 -password 00000000 -keyclass=private -keytype=ecdsa -inputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad -label=importecdsaprivate -modifiable=true -extractable=true
+//import dsa private
+import -password 00000000 -keyclass=private -keytype=dsa -inputfile=private_dsa2k.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdsa2kprivate -modifiable=true -extractable=true
+//import dh private
+import -password 00000000 -keyclass=private -keytype=dh -inputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhdpkcs2kprivate -modifiable=true -extractable=true
+import -password 00000000 -keyclass=private -keytype=dh-x9.42 -inputfile=private_dh_2k_x942.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhx9422kprivate -modifiable=true -extractable=true
+//import public key
+import -slot=1 -password 00000000 -keyclass=public -keytype=rsa -inputfile=public_rsa8k.txt -format=text -label=importrsa8k -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=ecdsa -inputfile=public_ecdsaR1.txt -format=text -label=importecdsa256R1 -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=eddsa -inputfile=public_eddsa.txt -format=text -label=importeddsa -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=sm2 -inputfile=public_sm2.txt -format=text -label=importsm2 -modifiable=true -extractable=true
+//format pkcs8
+import -slot=1 -password 00000000 -keyclass=public -keytype=ecdsa -inputfile=ecdsa256r1pub.pem -format=PKCS8 -label=importecdsa256R1pem -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=rsa -inputfile=public_rsa8k.pem -format=PKCS8 -label=importedrsa8kpem -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=eddsa -inputfile=public_eddsa.pem -format=PKCS8 -label=importededdsapem -modifiable=true -extractable=true
+import -slot=3 -password 00000000 -keyclass=public -keytype=montgomery -inputfile=public_montgomeryx25519.pem -format=PKCS8 -label=importedmontgomerypem -modifiable=true -extractable=true
+import -password 00000000 -keyclass=public -keytype=dsa -inputfile=public_dsa2k.pem -format=PKCS8 -label=importdsa2kpem -modifiable=true -extractable=true
+import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh2k.pem -format=PKCS8 -label=importeddhx9422kpem -modifiable=true -extractable=true
+import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh-pkcs.pem -format=PKCS8 -label=importeddhpkcspem -modifiable=true -extractable=true
+
+# export key
+// export rsa with aes key wrap
+export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa.bin -format=bin -key=426 -algo=aes_cbc_pad
+// export aes with aes key wrap
+export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=426 -algo=aes_cbc
+// export aes with rsa key wrap
+export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha256
+export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha384
+export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha512
+export -slot=1 -password 00000000 -handle=535 -outputfile=wrapped_aes.txt -format=text -key=602 -algo=rsa_oaep_sha256
+// export ecdsa with aes key wrap
+export -slot=1 -password 00000000 -handle=453 -outputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad
+// export dsa with aes key wrap
+export -password 00000000 -handle=862 -outputfile=private_dsa2k.txt -format=text -key=426 -algo=aes_cbc_pad
+// export dh with aes key wrap
+export -password 00000000 -handle=865 -outputfile=private_dh_2k_x942.txt -format=text -key=426 -algo=aes_cbc_pad
+export -password 00000000 -handle=867 -outputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad
+// export rsa public key
+export -slot=1 -password 00000000 -handle=418 -outputfile=public.txt -format=text
+export -slot=3 -password 00000000 -handle=621 -outputfile=public_rsa8k.txt -format=text
+// ECDSA public key
+export -slot=1 -password 00000000 -handle=619 -outputfile=public_ecdsaK1.txt -format=text
+export -slot=1 -password 00000000 -handle=448 -outputfile=public_ecdsaR1.txt -format=text
+// EDDSA public key
+export -slot=1 -password 00000000 -handle=430 -outputfile=public_eddsa.txt -format=text
+// SM2 public key
+export -slot=1 -password 00000000 -handle=423 -outputfile=public_sm2.txt -format=text
+// export pkcs8
+export -slot=3 -password 00000000 -handle=717 -outputfile=public_ecdsa_sect571k1.pem -format=PKCS8
+export -slot=3 -password 00000000 -handle=621 -outputfile=public_rsa8k.pem -format=PKCS8
+export -slot=3 -password 00000000 -handle=430 -outputfile=public_eddsa.pem -format=pkcs8
+export -slot=3 -password 00000000 -handle=423 -outputfile=public_sm2.pem -format=pkcs8
+export -slot=3 -password 00000000 -handle=448 -outputfile=public_ecdsaR1.pem -format=PKCS8
+export -slot=3 -password 00000000 -handle=776 -outputfile=public_montgomeryx25519.pem -format=PKCS8
+export -password 00000000 -handle=842 -outputfile=public_dsa2k.pem -format=PKCS8
+export -password 00000000 -handle=856 -outputfile=public_dh2k.pem -format=PKCS8
+export -password 00000000 -handle=852 -outputfile=public_dh-pkcs.pem -format=PKCS8
+
+
+# encrypt a file
+// aes
+encrypt -slot=3 -password 00000000 -inputfile=decrypt.bin -outputfile=encrypt.bin -format=bin -key=426 -algo=aes_cbc_pad
+encrypt -slot=3 -password 00000000 -inputfile=decrypt.txt -outputfile=encrypt.txt -format=txt -key=426 -algo=aes_cbc_pad
+encrypt -slot=3 -password 00000000 -inputfile=decrypt.txt -outputfile=encrypt.txt -format=txt -key=426 -algo=aes_cbc_pad -iv=000102030405060708090A0B0C0D0E0F
+encrypt -password 00000000 -inputfile=decrypt.txt -outputfile=encrypt_kwp.txt -format=txt -key=426 -algo=aes_kwp
+encrypt -password 00000000 -inputfile=decrypt.txt -outputfile=encrypt_cfb8.txt -format=txt -key=426 -algo=aes_cfb8 -iv=000102030405060708090A0B0C0D0E0F
+encrypt -password 00000000 -inputfile=decrypt.txt -outputfile=encrypt_cfb128.txt -format=txt -key=426 -algo=aes_cfb8 -iv=000102030405060708090A0B0C0D0E0F
+encrypt -password 00000000 -inputfile=decrypt.txt -outputfile=encrypt_ofb.txt -format=txt -key=426 -algo=aes_ofb -iv=000102030405060708090A0B0C0D0E0F
+// aes gcm
+encrypt -slot=3 -password 00000000 -inputfile=aes_key_clear.txt -outputfile=encrypt_gcm.txt -format=txt -key=426 -algo=aes_gcm
+encrypt -slot=3 -password 00000000 -inputfile=aes_key_clear.txt -outputfile=encrypt_gcm.txt -format=txt -key=426 -algo=aes_gcm -iv=00310000000000000000000000000000 -aad=010203040506 -atl=128
+// rsa oaep
+encrypt -slot=3 -password 00000000 -inputfile=C:\Documents\dev\kmu\aes_key_clear.txt -outputfile=C:\Documents\dev\kmu\aes_key_enc.txt -format=txt -key=602 -algo=rsa_oaep_sha256
+encrypt -slot=3 -password 00000000 -inputfile=aes_key_clear.txt -outputfile=aes_key_enc.txt -format=txt -key=602 -algo=rsa_oaep -hash=sha256
+
+# decrypt a file
+// aes cbc
+decrypt -slot=3 -password 00000000 -inputfile=encrypt.bin -outputfile=decrypt.bin -format=bin -key=426 -algo=aes_cbc_pad
+decrypt -slot=3 -password 00000000 -inputfile=file.txt -outputfile=decrypt.txt -format=text -key=426 -algo=aes_cbc_pad
+decrypt -slot=3 -password 00000000 -inputfile=file.txt -outputfile=decrypt.txt -format=text -key=426 -algo=aes_cbc_pad -iv=000102030405060708090A0B0C0D0E0F
+// aes gcm
+decrypt -slot=3 -password 00000000 -inputfile=encrypt_gcm.txt -outputfile=aes_key_decrypted_gcm.txt -format=txt -key=426 -algo=aes_gcm
+ decrypt -slot=3 -password 00000000 -inputfile=encrypt_gcm.txt -outputfile=aes_key_decrypted_gcm.txt -format=txt -key=426 -algo=aes_gcm -iv=00310000000000000000000000000000 -aad=010203040506 -atl=128
+
+// ras oaep 
+decrypt -slot=3 -password 00000000 -inputfile=aes_key_enc.txt -outputfile=aes_key_dec.txt -format=txt -key=603 -algo=rsa_oaep -hash=sha256
+
+# derive a key
+// sha256 derivation from aes key to aes ley
+derive -password 00000000 -key=751 -keytype=aes -keysize=32 -mech=sha256 -label=derived-key-sha256 -extractable=true
+derive -password 00000000 -key=751 -keytype=aes -keysize=32 -mech=sha224 -label=derived-key-sha256 -extractable=true
+derive -password 00000000 -key=751 -keytype=aes -keysize=32 -mech=sha384 -label=derived-key-sha256 -extractable=true
+derive -password 00000000 -key=751 -keytype=aes -keysize=32 -mech=sha512 -label=derived-key-sha256 -extractable=true
+// luna KDF SCP03 derivation from aes key to aes key
+derive -password 00000000 -key=426 -keytype=aes -keysize=32 -mech=luna-nist-kdf -label=derived-key-kdf-scp03 -extractable=true -kdf-type=aes-cmac -kdf-scheme=scp03 -kdf-counter=9 -kdf-label=0102 -kdf-context=FFFF
+derive -password 00000000 -key=426 -keytype=aes -keysize=32 -mech=luna-nist-kdf -label=derived-key-kdf-scp03 -extractable=true -kdf-type=aes-cmac -kdf-scheme=scp03 -kdf-counter=9
+
+# convert a file
+convert -inputfile=private_rsa.bin -inform=bin -outputfile=private_rsa.txt -outform=txt
+convert -inputfile=private_rsa.txt -inform=txt -outputfile=private_rsa1.bin -outform=bin
+
+# delete an object
+delete -password 00000000 -handle=788
+
+# digest a symetric key
+digestkey -password 00000000 -handle=426 -hash=sha1
+digestkey -password 00000000 -handle=426 -hash=sha224
+digestkey -password 00000000 -handle=426 -hash=sha256
+digestkey -password 00000000 -handle=426 -hash=sha384
+digestkey -password 00000000 -handle=426 -hash=sha512
+digestkey -password 00000000 -handle=426 -hash=sha3-224
+digestkey -password 00000000 -handle=426 -hash=sha3-256
+digestkey -password 00000000 -handle=426 -hash=sha3-384
+digestkey -password 00000000 -handle=426 -hash=sha3-512
+digestkey -password 00000000 -handle=426 -hash=toto
+digestkey -password 00000000 -handle=0 -hash=sha256
+digestkey -password 00000000 -handle=851 -hash=sha3-512

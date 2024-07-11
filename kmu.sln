@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34202.233
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kmu", "kmu.vcxproj", "{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Debug|x64.ActiveCfg = Debug|x64
+		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Debug|x64.Build.0 = Debug|x64
+		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Release|x64.ActiveCfg = Release|x64
+		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DBD1AD4C-3707-44BA-AE3C-9135CA5A340E}
+	EndGlobalSection
+EndGlobal
