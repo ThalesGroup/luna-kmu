@@ -451,7 +451,7 @@ CK_LONG cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString)
 /*
     FUNCTION:        CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR * sHexString) -id
 */
-CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR * sCkaId)
+CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId)
 {
    CK_LONG uLength;
    CK_CHAR_PTR sBuffer;
@@ -478,7 +478,7 @@ CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR * sCkaId)
       }
 
       // return buffer and length
-      *sCkaId = sBuffer;
+      memcpy(sCkaId, sBuffer, uLength);
       return uLength;
    } while (FALSE);
     
@@ -721,7 +721,17 @@ CK_CHAR_PTR  cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK
 
    if (arg != NULL)
    {
-      // return value in input argument
+      if (sBuffer != NULL)
+      {
+
+         // if the length of the string is not empty, return the string
+         uLength = (CK_ULONG)strlen(arg->s_argPart2);
+         if ((uLength != 0) && (uLength < sBufferSize))
+         {
+            strcpy(sBuffer, arg->s_argPart2);
+            return sBuffer;
+         }
+      }
       return arg->s_argPart2;
    }
    else
@@ -820,6 +830,47 @@ CK_LONG  cmdarg_GetKeySize()
    return sValue;
 }
 
+/*
+    FUNCTION:        CK_LONG  cmdarg_GetCompomentsNumber()
+*/
+CK_LONG  cmdarg_GetCompomentsNumber()
+{
+   PARSER_CURRENT_CMD_ARG* arg;
+   CK_CHAR_PTR sString = NULL;
+   CK_LONG sValue;
+   // get label
+   arg = parser_SearchArgument(ARG_TYPE_KEY_COMP);
+
+
+   do
+   {
+      // check if argment present in the command
+      if (arg == NULL)
+      {
+         break;
+      }
+      else
+      {
+         sString = arg->s_argPart2;
+      }
+
+      sValue = str_StringtoInteger(sString);
+
+      if (sValue < 2 || sValue > 16)
+      {
+         printf("The number of valid component number must be between 2 to 16. \nparameter -clearcomponents ignored ");
+         break;
+      }
+
+
+
+      return sValue;
+   } while (FALSE);
+
+   return 0;
+}
+
+   
 /*
     FUNCTION:        CK_CHAR_PTR cmdarg_GetPublicExponant()
 */

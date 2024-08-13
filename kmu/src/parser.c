@@ -136,6 +136,7 @@ void parser_ArgHelp()
 
    printf("***************** Help for command %s ****************** \n", kmu_current_cmd.s_cmdName);
 
+
    for (u32count = 0; u32count < MAX_ARGUMENT; u32count++)
    {
       // if arg is NULL stop the loop

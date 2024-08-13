@@ -1881,16 +1881,17 @@ CK_BBOOL P11_SetAttributeString(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttr
 }
 
 /*
-    FUNCTION:        CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE * sKeyGenTemplate)
+    FUNCTION:        CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 */
-CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate)
+CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 {
    CK_ULONG          u32labelsize = 0;
    CK_RV             retCode = CKR_GENERAL_ERROR;
    CK_OBJECT_HANDLE  hSymKey = 0;
    CK_MECHANISM      sKeygenMech = { 0 };
    CK_LONG           sSimTemplateSize = 16;
-   if (&sKeyGenTemplate->pKeyLabel != NULL)
+
+   if (sKeyGenTemplate->pKeyLabel != NULL)
    {
       u32labelsize = (CK_ULONG)strlen(sKeyGenTemplate->pKeyLabel);
    }
@@ -1928,7 +1929,7 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate)
    switch (sKeyGenTemplate->skeyType)
    {
    case CKK_AES:
-      if ((sKeyGenTemplate->skeySize == 16) || (sKeyGenTemplate->skeySize == 24) || (sKeyGenTemplate->skeySize == 32))
+      if ((sKeyGenTemplate->skeySize == AES_128_KEY_LENGTH) || (sKeyGenTemplate->skeySize == AES_192_KEY_LENGTH) || (sKeyGenTemplate->skeySize == AES_256_KEY_LENGTH))
       {
          // Build AES genkey mechanism
          sKeygenMech.mechanism = CKM_AES_KEY_GEN;
@@ -1988,7 +1989,17 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate)
 
    if (retCode == CKR_OK)
    {
-      printf("Key successfully generated, handle is : %i, label is : %s \n", hSymKey, sKeyGenTemplate->pKeyLabel);
+      if (bDisplay == TRUE)
+      {
+         printf("Key successfully generated, handle is : %i, label is : %s \n", hSymKey, sKeyGenTemplate->pKeyLabel);
+      }
+
+      // if the handle pointer is not null, return the key handle value
+      if (hKey != NULL)
+      {
+         *hKey = hSymKey;
+      }
+
       return CK_TRUE;
    }
 
@@ -1997,7 +2008,95 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate)
 }
 
 /*
-    FUNCTION:        CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE * sKeyGenTemplate)
+    FUNCTION:        CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel)
+*/
+CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength)
+{
+   CK_KEY_TYPE             cKeyType;
+   CK_OBJECT_CLASS         cKeyClass;
+   P11_ENCRYPT_TEMPLATE    sEncryptionTemplate = { 0 };
+   P11_UNWRAPTEMPLATE      sUnWrapTemplate = { 0 };
+   P11_ENCRYPTION_MECH     sEncryptionMech = { 0 };
+   CK_CHAR_PTR             sWrapKey = NULL;
+   CK_ULONG                sWrapKeyLength = 0;
+   CK_OBJECT_HANDLE        hKey = 0;
+   CK_OBJECT_HANDLE        hWrapKey = sKeyTemplate->hWrappingKey;
+
+   do
+   {
+
+      cKeyType = P11_GetKeyType(hWrapKey);
+      cKeyClass = P11_GetObjectClass(hWrapKey);
+
+      // only import with AES wrap key is supported
+      if (cKeyType != CKK_AES)
+      {
+         break;
+      }
+
+      // use tr31 wrapping key
+      sEncryptionTemplate.hEncyptiontKey = hWrapKey;
+      sEncryptionTemplate.sClass = cKeyClass;
+      sEncryptionTemplate.skeyType = cKeyType;
+      sEncryptionTemplate.sInputData = pbClearKey;
+      sEncryptionTemplate.sInputDataLength = lKeyLength;
+      sEncryptionMech.ckMechType = CKM_AES_KWP;
+      sEncryptionTemplate.encryption_mech = &sEncryptionMech;
+      if (P11_EncryptData(&sEncryptionTemplate, &sWrapKey, &sWrapKeyLength) == CK_FALSE)
+      {
+         break;
+      }
+      // clear the key buffer
+      memset(pbClearKey, 0, lKeyLength);
+
+      // import key in the HSM as session key
+      sKeyTemplate->wrapmech = &sEncryptionMech;
+
+      // import wrapped derived key
+      if (P11_UnwrapPrivateSecretKey(sKeyTemplate, sWrapKey, sWrapKeyLength, &hKey) == CK_FALSE)
+      {
+         break;
+      }
+
+      // release the buffer
+      free(sWrapKey);
+   } while (FALSE);
+
+   sKeyTemplate->wrapmech = NULL;
+
+   return hKey;
+}
+
+/*
+    FUNCTION:        CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel)
+*/
+CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel)
+{
+   P11_KEYGENTEMPLATE sKeyGenTemplateWrapKey = { 0 };
+   CK_OBJECT_HANDLE  hWrapKey = 0;
+
+   // generate a AES 256 session wrap key (use to encrypt clear key value)
+   sKeyGenTemplateWrapKey.bCKA_Token = bTokenKey;
+   sKeyGenTemplateWrapKey.bCKA_Sensitive = CK_TRUE;
+   sKeyGenTemplateWrapKey.bCKA_Private = CK_TRUE;
+   sKeyGenTemplateWrapKey.bCKA_Encrypt = CK_TRUE;
+   sKeyGenTemplateWrapKey.bCKA_Decrypt = CK_TRUE;
+   sKeyGenTemplateWrapKey.bCKA_Wrap = CK_TRUE;
+   sKeyGenTemplateWrapKey.bCKA_Unwrap = CK_TRUE;
+   sKeyGenTemplateWrapKey.sClass = CKO_SECRET_KEY;
+   sKeyGenTemplateWrapKey.skeyType = CKK_AES;
+   sKeyGenTemplateWrapKey.skeySize = skeySize;
+   sKeyGenTemplateWrapKey.pKeyLabel = pLabel;
+
+   P11_GenerateKey(&sKeyGenTemplateWrapKey, &hWrapKey, CK_FALSE);
+
+   return hWrapKey;
+
+}
+
+
+/*
+    FUNCTION:        CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE * sKeyTemplate)
 */
 CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
 {
@@ -2799,6 +2898,22 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
          sEncMech->usParameterLen = 0;
       }
       break;
+   case CKM_DES3_CMAC:
+   case CKM_DES_MAC:
+   case CKM_DES3_MAC:
+      // Init the IV buffer and size
+      sEncMech->pParameter = sign_mech->des_param.iv;
+      if (sEncMech->pParameter != NULL)
+      {
+         sEncMech->usParameterLen = DES_IV_LENGTH;
+      }
+      else
+      {
+         sEncMech->usParameterLen = 0;
+      }
+      break;
+
+
    default:
       printf("P11_BuildCKSignMecanism : Invalid Mecanism : %i", sign_mech->ckMechType);
       return CK_FALSE;
@@ -3051,14 +3166,17 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        uInputLengh = AES_BLOCK_LENGTH;
        break;
     case CKK_DES:
+       ckMechTypeMac = CKM_DES_MAC;
+       ckMechTypeEnc = CKM_DES_ECB;
+       uInputLengh = DES_BLOCK_LENGTH;
     case CKK_DES2:
     case CKK_DES3:
-       ckMechTypeMac = CKM_DES3_CMAC;
-       ckMechTypeEnc = CKM_DES_ECB;
+       ckMechTypeMac = CKM_DES3_MAC;
+       ckMechTypeEnc = CKM_DES3_ECB;
        uInputLengh = DES_BLOCK_LENGTH;
        break;
     default:
-       printf("error : unsuported key type : %s\n", P11Util_DisplayKeyTypeName(skeyType));
+       printf("P11_ComputeKCV error : unsuported key type : %s\n", P11Util_DisplayKeyTypeName(skeyType));
        return CK_FALSE;
     }
 
@@ -3086,7 +3204,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        sSignatureTemplate.sInputData = sInputData;
        sSignatureTemplate.sInputDataLength = uInputLengh;
        sSignMech.aes_param.iv = NULL;
-       sSignMech.ckMechType = CKM_AES_CMAC;
+       sSignMech.ckMechType = ckMechTypeMac;
 
        sSignatureTemplate.sign_mech = &sSignMech;
 
@@ -3095,7 +3213,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        {
           if (P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_TRUE) == CK_FALSE)
           {
-             printf("error : Sign attribute is not set\n ");
+             printf("P11_ComputeKCV error : Sign attribute is not set\n ");
              break;
           }
           bRestoreAttribute = CK_TRUE;
@@ -3122,7 +3240,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        {
           if (P11_SetAttributeBoolean(hKey, CKA_ENCRYPT, CK_TRUE) == CK_FALSE)
           {
-             printf("error : Encrypt attribute is not set\n ");
+             printf("P11_ComputeKCV error : Encrypt attribute is not set\n ");
              break;
           }
           bRestoreAttribute = CK_TRUE;
@@ -3135,7 +3253,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        sEncryptionTemplate.sInputData = sInputData;
        sEncryptionTemplate.sInputDataLength = uInputLengh;
        sEncMech.aes_param.iv = NULL;
-       sEncMech.ckMechType = CKM_AES_ECB;
+       sEncMech.ckMechType = ckMechTypeEnc;
        sEncryptionTemplate.encryption_mech = &sEncMech;
 
        P11_EncryptData(&sEncryptionTemplate, pKcvBuffer, &sSigbDataLengh);
@@ -3149,9 +3267,35 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        return CK_TRUE;
 
     default:
-       printf("error : unknown KCV method\n ");
+       printf("P11_ComputeKCV error : unknown KCV method\n ");
        break;
     }
 
    return CK_FALSE;
 }
+
+/*
+    FUNCTION:         CK_BBOOL P11_GenerateRandom(CK_BYTE_PTR pbBuffer, CK_ULONG uLength)
+*/
+ CK_BBOOL P11_GenerateRandom(CK_BYTE_PTR pbBuffer, CK_ULONG uLength)
+ {
+    CK_RV             retCode = CKR_DEVICE_ERROR;
+    do
+    {
+       // generate random from HSM
+       retCode = P11Functions->C_GenerateRandom(hSession, pbBuffer, uLength);
+
+       if (retCode != CKR_OK)
+       {
+          break;
+       }
+
+       // no error
+       return CK_TRUE;
+
+    } while (FALSE);
+    
+    // print error code
+    printf("C_GenerateRandom error code : %s \n", P11Util_DisplayErrorName(retCode));
+    return CK_FALSE;
+ }

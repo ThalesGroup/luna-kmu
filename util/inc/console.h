@@ -34,6 +34,7 @@ extern "C" {
 
 
    _EXT  CK_ULONG       Console_RequestInteger();
+   _EXT  CK_ULONG       Console_RequestHexString();
    _EXT  CK_LONG        Console_RequestString();
    _EXT  CK_CHAR_PTR    Console_GetBuffer();
    _EXT  CK_ULONG       Console_RequestPassword();
@@ -69,6 +70,7 @@ extern "C" {
    _EXT  void           Console_KeyBoardInsert();
    _EXT  void           Console_HistoryMove(CK_BYTE bDirection);
    _EXT  void           Console_KeyBoardDelete();
+   _EXT  void           Console_Clear();
 
 
 #undef _EXT

@@ -31,6 +31,7 @@ extern "C" {
    extern const char strBackSlashString[2];
 
    _EXT  void           str_DisplayByteArraytoString(CK_CHAR_PTR Name, CK_CHAR_PTR ByteArray, CK_LONG Length);
+   _EXT  void           str_DisplayByteArraytoStringWithSpace(CK_CHAR_PTR ByteArray, CK_LONG Length, CK_LONG Space);
    _EXT  CK_CHAR_PTR    str_ByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length);
    _EXT  CK_LONG        str_StringtoInteger(CK_CHAR_PTR sKeyType);
    _EXT  CK_LONG_64     str_StringtoUnsignedInteger(CK_CHAR_PTR sKeyType);
@@ -40,6 +41,8 @@ extern "C" {
    _EXT  CK_CHAR_PTR    str_RemoveLeadingSpace(CK_CHAR_PTR ByteArray);
    _EXT  CK_ULONG       str_ComparePartialString(CK_CHAR_PTR sString1, CK_CHAR_PTR sString2);
    _EXT  CK_CHAR_PTR    str_tolower(CK_CHAR_PTR sString);
+   _EXT  void           str_ByteArrayXOR(CK_CHAR_PTR ByteArray1, CK_CHAR_PTR ByteArray2, CK_ULONG uLength);
+   _EXT  void           str_ByteArrayComputeParityBit(CK_CHAR_PTR ByteArray, CK_LONG uLength);
 #undef _EXT
 
 #endif // _STR_H_

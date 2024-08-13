@@ -67,7 +67,7 @@ const STRING_ARRAY CMD_EXPORT = "export";
 const STRING_ARRAY CMD_EXPORT_HELP = "This command exports a key to a file";
 
 const STRING_ARRAY CMD_IMPORT = "import";
-const STRING_ARRAY CMD_IMPORT_HELP = "This command imports a key from a file";
+const STRING_ARRAY CMD_IMPORT_HELP = "This command imports a key from a file or from key components";
 
 const STRING_ARRAY CMD_ENCRYPT = "encrypt";
 const STRING_ARRAY CMD_ENCRYPT_HELP = "This command encrypts a file";
@@ -135,6 +135,7 @@ const STRING_ARRAY ARG_IMPORTKEYTYPE_HELP = "Key type value\n\t\t\t\t\t-Supporte
 const STRING_ARRAY ARG_KEYSIZE = "-keysize";
 const STRING_ARRAY ARG_KEYSIZE_HELP = "key size\n\t\t\t\t\t-Value in byte for DES(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC(1 to 512 bytes) keys\n\t\t\t\t\t-Modulus size in bits for RSA keys\n\t\t\t\t\t-Not required for other key types";
 const STRING_ARRAY ARG_DERIVEKEY_SIZE_HELP = "derived key size\n\t\t\t\t\t-Value in byte for DES key(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES key(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC or generic key(1 to 512 bytes)";
+const STRING_ARRAY ARG_IMPORTKEY_SIZE_HELP = "Optional. Key size when importing key in compoments\n\t\t\t\t\t-Value in byte for AES key(16, 24 or 32 bytes)\n\t\t\t\t\t-no required when importing wrapped key or other type of keys";
 
 const STRING_ARRAY ARG_KEYCLASS = "-keyclass";
 const STRING_ARRAY ARG_KEYCLASS_HELP = "Key class\n\t\t\t\t\t-Supported value: private, public or secret";
@@ -249,7 +250,9 @@ const STRING_ARRAY ARG_KDF_CONTEXT_HELP = "Luna Key Derivation Function context 
 const STRING_ARRAY ARG_KCV_METHOD = "-method";
 const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method \n\t\t\t\t\t-Supported value: pkcs11, pci(banking), gp (global platform)";
 
-// list -slot=1 -password 1234567
+const STRING_ARRAY ARG_KCV_COMP = "-clearcomponents";
+const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and calculate KCV for each component with PCI method \n\t\t\t\t\t-Number of compoments for symetric keys between 2 to 16";
+
 
 #define CMD_HELP_VALUE              (const CK_CHAR_PTR)CMD_HELP, (const P_fCMD)&parser_CommandHelp, (const CK_CHAR_PTR)CMD_HELP_HELP, \
                                     {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
@@ -290,6 +293,7 @@ const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method \n\t\t\t\t\t-Su
                                     (const CK_CHAR_PTR)ARG_DH_BASE, ARG_TYPE_DH_BASE, (const CK_CHAR_PTR)ARG_DH_BASE_HELP,\
                                     (const CK_CHAR_PTR)ARG_DH_PRIME, ARG_TYPE_DH_PRIME, (const CK_CHAR_PTR)ARG_DH_PRIME_HELP,\
                                     (const CK_CHAR_PTR)ARG_DH_SUBPRIME, ARG_TYPE_DH_SUBPRIME, (const CK_CHAR_PTR)ARG_DH_SUBPRIME_HELP,\
+                                    (const CK_CHAR_PTR)ARG_KCV_COMP, ARG_TYPE_KEY_COMP, (const CK_CHAR_PTR)ARG_KCV_COMP_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT, ARG_TYPE_CKA_ENCRYPT, (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_DECRYPT, ARG_TYPE_CKA_DECRYPT, (const CK_CHAR_PTR)ARG_ATTR_DECRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SIGN, ARG_TYPE_CKA_SIGN, (const CK_CHAR_PTR)ARG_ATTR_SIGN_HELP,\
@@ -368,6 +372,7 @@ const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method \n\t\t\t\t\t-Su
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_LABEL,	ARG_TYPE_CKA_LABEL, (const CK_CHAR_PTR)ARG_LABEL_HELP,\
                                     (const CK_CHAR_PTR)ARG_KEYTYPE, ARG_TYPE_KEYTYPE, (const CK_CHAR_PTR)ARG_IMPORTKEYTYPE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_KEYSIZE, ARG_TYPE_KEYSIZE, (const CK_CHAR_PTR)ARG_IMPORTKEY_SIZE_HELP,\
                                     (const CK_CHAR_PTR)ARG_KEYCLASS, ARG_TYPE_KEYCLASS, (const CK_CHAR_PTR)ARG_KEYCLASS_HELP,\
                                     (const CK_CHAR_PTR)ARG_UNWRAPKEY, ARG_TYPE_HANDLE_UNWRAPKEY, (const CK_CHAR_PTR)ARG_UNWRAPKEY_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
@@ -377,6 +382,7 @@ const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method \n\t\t\t\t\t-Su
                                     (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA, ARG_TYPE_GCM_AUTH_DATA, (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA_HELP, \
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
+                                    (const CK_CHAR_PTR)ARG_KCV_COMP, ARG_TYPE_KEY_COMP, (const CK_CHAR_PTR)ARG_KCV_COMP_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT, ARG_TYPE_CKA_ENCRYPT, (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_DECRYPT, ARG_TYPE_CKA_DECRYPT, (const CK_CHAR_PTR)ARG_ATTR_DECRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SIGN, ARG_TYPE_CKA_SIGN, (const CK_CHAR_PTR)ARG_ATTR_SIGN_HELP,\
@@ -598,6 +604,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_KDF_CONTEXT,
    (CK_CHAR_PTR)ARG_KCV_METHOD,
    (CK_CHAR_PTR)ARG_CU,
+   (CK_CHAR_PTR)ARG_KCV_COMP,
 };
 
 #define MAX_CONSOLE_ARG_LIST      (1+ (MAX_ARGUMENT *2))
