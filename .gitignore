@@ -92,3 +92,4 @@ Sonarqube
 /.vs/kmu/v17/ipch/AutoPCH/19f119eb89a1a6e4/TR31.ipch
 /.vs/kmu/v17/ipch/AutoPCH/50721b46094f77b7/P11.ipch
 /.vs/kmu/v17/DocumentLayout.backup.json
+*.ipch
