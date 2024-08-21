@@ -451,9 +451,9 @@ CK_LONG cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString)
 /*
     FUNCTION:        CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR * sHexString) -id
 */
-CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId)
+CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize)
 {
-   CK_LONG uLength;
+   CK_ULONG uLength;
    CK_CHAR_PTR sBuffer;
 
    do
@@ -474,6 +474,12 @@ CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId)
       if (uLength == 0)
       {
          printf("wrong CKA_ID value, not hexadecimal: -id=%s \n", sBuffer);
+         break;
+      }
+
+      if (uLength > sBufferSize)
+      {
+         printf("wrong CKA_ID value, too big: maximum length is %i \n", sBufferSize);
          break;
       }
 

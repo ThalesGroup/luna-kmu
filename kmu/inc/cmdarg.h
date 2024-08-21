@@ -144,7 +144,7 @@ extern "C" {
    _EXT  CK_LONG_64              cmdarg_GetKdfCounter();
    _EXT  CK_LONG                 cmdarg_SearchTypeInteger(CK_BYTE bArgType);
    _EXT  CK_LONG                 cmdarg_SearchTypeUnsignedInteger(CK_BYTE bArgType);
-   _EXT  CK_LONG                 cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId);
+   _EXT  CK_LONG                 cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize);
    _EXT  BYTE                    cmdarg_GetKCVMethod();
    _EXT  CK_BBOOL                cmdarg_isCryptoUserLoginRequested();
    _EXT  CK_LONG                 cmdarg_GetCompomentsNumber();

@@ -40,7 +40,7 @@ CK_CHAR  cmd_Label[MAX_LABEL_SIZE];
 CK_CHAR  cmd_Label_public[MAX_LABEL_SIZE];
 CK_CHAR  cmd_Label_private[MAX_LABEL_SIZE];
 
-#define  MAX_CKA_ID_SIZE 255
+#define  MAX_CKA_ID_SIZE 4096
 CK_CHAR  cmd_cka_ID[MAX_CKA_ID_SIZE];
 
 #define MAX_FILE_NAME_SIZE       260
@@ -258,7 +258,7 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
 
       // Get CKA id
       sKeyGenTemplate.pCKA_ID = cmd_cka_ID;
-      sKeyGenTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sKeyGenTemplate.pCKA_ID);
+      sKeyGenTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sKeyGenTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
       if (sKeyGenTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
       {
          break;
@@ -677,7 +677,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       
       // Get CKA id
       sUnwrapTemplate.pCKA_ID = cmd_cka_ID;
-      sUnwrapTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sUnwrapTemplate.pCKA_ID);
+      sUnwrapTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sUnwrapTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
       if (sUnwrapTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
       {
          break;
@@ -1180,7 +1180,7 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
 
       // Get CKA id
       sDeriveTemplate.pCKA_ID = cmd_cka_ID;
-      sDeriveTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sDeriveTemplate.pCKA_ID);
+      sDeriveTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sDeriveTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
       if (sDeriveTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
       {
          break;
