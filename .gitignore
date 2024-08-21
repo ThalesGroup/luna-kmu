@@ -93,3 +93,4 @@ Sonarqube
 /.vs/kmu/v17/ipch/AutoPCH/50721b46094f77b7/P11.ipch
 /.vs/kmu/v17/DocumentLayout.backup.json
 *.ipch
+*.vsidx
