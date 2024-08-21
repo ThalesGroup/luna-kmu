@@ -35,10 +35,18 @@ void* LibHandle = NULL;
 
 const char p11_libvar[] = "ChrystokiConfigurationPath";
 #ifdef _WIN32
+#ifdef _KMU_DEBUG
+const char p11_luna_library[] = "cklog201.dll";
+#else
 const char p11_luna_library[] = "cryptoki.dll";
+#endif
 const char p11_entension[] = ".dll";
 #else
+#ifdef _KMU_DEBUG
+const char p11_luna_library[] = "libcklog2.so";
+#else
 const char p11_luna_library[] = "libCryptoki2_64.so";
+#endif
 const char p11_entension[] = ".so";
 #endif
 
