@@ -1903,7 +1903,7 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
    printf("The command will request to clear the console after the generation of each component\n");
    printf("Start the generation of the first key compoment enter (Y/N): ");
 
-   if ((Console_RequestString() != 1) || (Console_GetBuffer()[0] != 'Y'))
+   if (!((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y'))))
    {
       printf("Generation aborted\n");
       return CK_FALSE;;
@@ -1998,7 +1998,7 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
          }
 
          printf("Do you want to clear the console now (Y/N) : ");
-         if ((Console_RequestString() == 1) && (Console_GetBuffer()[0] == 'Y'))
+         if ((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y')))
          {
             // clear console
             Console_Clear();
@@ -2085,7 +2085,7 @@ CK_BBOOL cmd_ImportSecretKeyWithComponent(P11_UNWRAPTEMPLATE* sImportTemplate, C
    printf("The command will request to clear the console after importing each component\n");
    printf("Start to import the first key compoment enter (Y/N): ");
 
-   if ((Console_RequestString() != 1) || (Console_GetBuffer()[0] != 'Y'))
+   if (!((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y'))))
    {
       printf("Generation aborted\n");
       return CK_FALSE;;
@@ -2121,7 +2121,7 @@ CK_BBOOL cmd_ImportSecretKeyWithComponent(P11_UNWRAPTEMPLATE* sImportTemplate, C
          printf("Enter component %i : ", sLoop);
 
          // request component
-         uLength = Console_RequestHexString();
+         uLength = Console_RequestHexString(CK_TRUE);
          if (uLength == 0)
          {
             printf("\nwrong string value, not hexadecimal\n");
@@ -2201,8 +2201,8 @@ CK_BBOOL cmd_ImportSecretKeyWithComponent(P11_UNWRAPTEMPLATE* sImportTemplate, C
             break;
          }
 
-         printf("Continue ? (Y/N) : ");
-         if (!((Console_RequestString() == 1) && (Console_GetBuffer()[0] == 'Y')))
+         printf("KCV matches, Continue ? (Y/N) : ");
+         if (!((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y'))))
          {
             printf("Command aborted : KCV doesn't match \n");
             bError = CK_TRUE;
@@ -2211,7 +2211,7 @@ CK_BBOOL cmd_ImportSecretKeyWithComponent(P11_UNWRAPTEMPLATE* sImportTemplate, C
 
 
          printf("Do you want to clear the console now (Y) : ");
-         if ((Console_RequestString() == 1) && (Console_GetBuffer()[0] == 'Y'))
+         if ((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y')))
          {
             // clear console
             Console_Clear();

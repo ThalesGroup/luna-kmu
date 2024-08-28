@@ -299,6 +299,51 @@ CK_CHAR_PTR str_RemoveLeadingSpace(CK_CHAR_PTR ByteArray)
    // Check if next character is a space
 
 }
+
+/*
+    FUNCTION:        CK_CHAR_PTR str_DeleteSpace(CK_CHAR_PTR ByteArray)
+*/
+CK_ULONG str_DeleteSpace(CK_CHAR_PTR ByteArray)
+{
+   CK_ULONG uOffset = 0;
+   CK_ULONG uLength;
+
+   if (ByteArray == NULL)
+   {
+      return 0;
+   }
+
+   // get string length
+   uLength = (CK_ULONG)strlen(ByteArray);
+
+   if (uLength == 0)
+   {
+      return 0;
+   }
+
+   // Loop on the buffer
+   do
+   {
+      // check if value at offset is a space
+      if (ByteArray[uOffset] == strSpace)
+      {
+         // shift rigth the buffer
+         memcpy(&ByteArray[uOffset], &ByteArray[uOffset + 1], (size_t)(uLength - uOffset));
+
+         // decrement buffer length
+         uLength--;
+      }
+      else
+      {
+         // increment offset
+         uOffset++;
+      }
+   } while (uOffset < uLength);
+
+
+   return uLength;
+}
+
 /*
     FUNCTION:        CK_ULONG str_ComparePartialString(CK_CHAR_PTR sString1, CK_CHAR_PTR sString2)
 */

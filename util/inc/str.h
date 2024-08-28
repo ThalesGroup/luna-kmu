@@ -39,6 +39,7 @@ extern "C" {
    _EXT  void           str_TruncateString(CK_CHAR_PTR ByteArray, CK_LONG uLength);
    _EXT  CK_CHAR_PTR    str_RemoveQuotes(CK_CHAR_PTR ByteArray, CK_ULONG uLength);
    _EXT  CK_CHAR_PTR    str_RemoveLeadingSpace(CK_CHAR_PTR ByteArray);
+   _EXT  CK_ULONG       str_DeleteSpace(CK_CHAR_PTR ByteArray);
    _EXT  CK_ULONG       str_ComparePartialString(CK_CHAR_PTR sString1, CK_CHAR_PTR sString2);
    _EXT  CK_CHAR_PTR    str_tolower(CK_CHAR_PTR sString);
    _EXT  void           str_ByteArrayXOR(CK_CHAR_PTR ByteArray1, CK_CHAR_PTR ByteArray2, CK_ULONG uLength);

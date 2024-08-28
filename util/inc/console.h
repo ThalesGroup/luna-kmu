@@ -34,7 +34,7 @@ extern "C" {
 
 
    _EXT  CK_ULONG       Console_RequestInteger();
-   _EXT  CK_ULONG       Console_RequestHexString();
+   _EXT  CK_ULONG       Console_RequestHexString(CK_BBOOL bAllowSpace);
    _EXT  CK_LONG        Console_RequestString();
    _EXT  CK_CHAR_PTR    Console_GetBuffer();
    _EXT  CK_ULONG       Console_RequestPassword();

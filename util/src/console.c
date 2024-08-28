@@ -204,9 +204,9 @@ CK_ULONG Console_RequestInteger()
 }
 
 /*
-    FUNCTION:        CK_ULONG Console_RequestHexString()
+    FUNCTION:        CK_ULONG Console_RequestHexString(CK_BBOOL bAllowSpace)
 */
-CK_ULONG Console_RequestHexString()
+CK_ULONG Console_RequestHexString(CK_BBOOL bAllowSpace)
 {
    do
    {
@@ -214,6 +214,12 @@ CK_ULONG Console_RequestHexString()
       if (Console_RequestString() < 0)
       {
          break;
+      }
+
+      // if space are allowed in the sring, delete all the space first
+      if (bAllowSpace == CK_TRUE)
+      {
+         str_DeleteSpace(pConsoleBuffer);
       }
 
       // convert to hex binary string

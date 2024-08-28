@@ -227,10 +227,10 @@ const STRING_ARRAY ARG_ATTR_ID = "-id";
 const STRING_ARRAY ARG_ATTR_ID_HELP = "pkcs11 attribute CKA_ID as hexadecimal string\n\t\t\t\t\t-Optional Default value empty";
 
 const STRING_ARRAY ARG_ATTR_APPLICATION = "-application";
-const STRING_ARRAY ARG_ATTR_APPLICATION_HELP = "pkcs11 attribute CKA_APPLICATION as hexadecimal string\n\t\t\t\t\t-Optional Default value empty";
+const STRING_ARRAY ARG_ATTR_APPLICATION_HELP = "pkcs11 attribute CKA_APPLICATION as string\n\t\t\t\t\t-Optional Default value empty";
 
 const STRING_ARRAY ARG_ATTR_VALUE = "-value";
-const STRING_ARRAY ARG_ATTR_VALUE_HELP = "pkcs11 attribute CKA_VALUE as string\n\t\t\t\t\t-Optional Default value empty";
+const STRING_ARRAY ARG_ATTR_VALUE_HELP = "pkcs11 attribute CKA_VALUE as hexadecimal string\n\t\t\t\t\t-Optional Default value empty";
 
 const STRING_ARRAY ARG_KDF_TYPE = "-kdf-type";
 const STRING_ARRAY ARG_KDF_TYPE_HELP = "Luna Key Derivation Function type\n\t\t\t\t\t-Mandatory if mecasnim is luna-kdf or luna-nist-kdf. Supported value:\n\t\t\t\t\t-aes-cmac\n\t\t\t\t\t-tdes-cmac\n\t\t\t\t\t-hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512";
