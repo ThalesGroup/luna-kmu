@@ -94,3 +94,5 @@ Sonarqube
 /.vs/kmu/v17/DocumentLayout.backup.json
 *.ipch
 *.vsidx
+/x64/Release/kmu.tlog/unsuccessfulbuild
+/ressource/kmu.aps
