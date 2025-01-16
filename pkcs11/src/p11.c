@@ -385,17 +385,11 @@ CK_BBOOL P11_LoadSfntExtensionFunctions()
 */
 CK_LONG P11_ListStot()
 {
-   // CK_SLOT_ID pSlotList[10] = {0};
-
    CK_RV retCode = CKR_OK;
    unsigned char bloop;
    CK_TOKEN_INFO sTokenInfo = { 0 };
    CK_SLOT_INFO sSlotInfo = { 0 };
-   CK_BBOOL bFound = CK_FALSE;
-   /*
-   CK_MECHANISM_TYPE_PTR pMechanismList;
-   CK_MECHANISM_INFO info;
-   */
+
    do
    {
       if (P11Functions == NULL)
@@ -403,6 +397,7 @@ CK_LONG P11_ListStot()
          break;
       }
 
+      // Get slot list number
       retCode = P11Functions->C_GetSlotList(CK_TRUE, NULL, &uSlotCount);
       if (retCode != CKR_OK)
          break;
@@ -410,23 +405,15 @@ CK_LONG P11_ListStot()
       if (uSlotCount == 0)
          break;
 
+      // alloc buffer in memory of the size of the slot count
       pSlotList = (CK_SLOT_ID_PTR)calloc(uSlotCount, sizeof(CK_SLOT_ID));
       if (pSlotList == NULL)
          break;
 
+      // get the slot list
       retCode = P11Functions->C_GetSlotList(CK_TRUE, pSlotList, &uSlotCount);
       if (retCode != CKR_OK)
          break;
-      /*
-      retCode = P11Functions->C_GetMechanismList(u32_SlotID, NULL_PTR, &uSlotCount);
-
-      pMechanismList = (CK_MECHANISM_TYPE_PTR)malloc(uSlotCount * sizeof(CK_MECHANISM_TYPE));
-
-      retCode = P11Functions->C_GetMechanismList(u32_SlotID, pMechanismList, &uSlotCount);
-
-      retCode = P11Functions->C_GetMechanismInfo(u32_SlotID, CKM_SHA3_256, &info);
-      */
-
 
       printf("Slot list : \n");
 
@@ -435,27 +422,27 @@ CK_LONG P11_ListStot()
       for (bloop = 0; bloop < uSlotCount; bloop++)
       {
 
-         //retCode = P11Functions->C_GetSlotInfo(pList[0], &sSlotInfo);
-
+         // get token info on the slot
          retCode = P11Functions->C_GetTokenInfo(pList[0], &sTokenInfo);
 
-         // truncate return string
-         //sTokenInfo.label[31] = 0;
-         //sSlotInfo.slotDescription[0x10] = 0;
-
-
-            // list partition info
-         str_TruncateString(sSlotInfo.slotDescription, sizeof(sSlotInfo.slotDescription));
+         // truncate string
          str_TruncateString(sTokenInfo.label, sizeof(sTokenInfo.label));
-         printf("[%X] %s : %s\n", pList[0], sSlotInfo.slotDescription, sTokenInfo.label);
-         /*
-         memset(sTokenInfo.label, 0x00, 32);
-         memset(sSlotInfo.slotDescription, 0x00, 64);
 
-         */
-         bFound = CK_TRUE;
-         //printf("Missing option : -slot\n");
-         //break;
+         // prinft the slot number in decimal
+         printf("[%d]", pList[0]);
+
+         // add space depending of slot size value for allignement in the console
+         if (pList[0] < 10)
+         {
+            printf("  ");
+         }
+         else if (pList[0] < 100)
+         {
+            printf(" ");
+         }
+         // print label value
+         printf(": % s\n", sTokenInfo.label);
+
          pList++;
       }
 
@@ -487,7 +474,6 @@ CK_SLOT_ID P11_SelectStot(CK_SLOT_ID u32_SlotList)
 
       if(pSlotList == NULL)
       { 
-
          retCode = P11Functions->C_GetSlotList(CK_TRUE, NULL, &uSlotCount);
          if (retCode != CKR_OK)
             break;
@@ -1310,9 +1296,25 @@ void P11_DisplayDataObject(CK_OBJECT_HANDLE Handle)
    retCode = P11Functions->C_GetAttributeValue(hSession, Handle, &DataObject[0], DIM(DataObject));
 
    // Set the end of string to the end of buffer
-   pTempBuffer[DataObject[0].usValueLen] = 0;
-   printf("Application=%s\n", pTempBuffer);
-   str_DisplayByteArraytoString("Value=", &pTempBuffer[TEMP_BUFFER_OFFSET_CERT_2], DataObject[1].usValueLen);
+   if (DataObject[0].usValueLen >= MAX_CERTIFICATE_SIZE)
+   {
+      printf("Application= Cannot print value, size too big, you can use readattribute command instead\n");
+   }
+   else
+   {
+      pTempBuffer[DataObject[0].usValueLen] = 0;
+      printf("Application=%s\n", pTempBuffer);
+   }
+
+   if (DataObject[1].usValueLen >= MAX_CERTIFICATE_SIZE)
+   {
+      printf("Value= Cannot print value, size too big, you can use readattribute command instead\n");
+   }
+   else
+   {
+      str_DisplayByteArraytoString("Value=", &pTempBuffer[TEMP_BUFFER_OFFSET_CERT_2], DataObject[1].usValueLen);
+   }
+
 }
 
 /*
@@ -1743,7 +1745,16 @@ CK_BBOOL P11_GetAttributes(CK_OBJECT_HANDLE Handle)
          pTempBuffer[0] = 0;
          retCode = P11Functions->C_GetAttributeValue(hSession, Handle, sAttributeGenericKey, DIM(sAttributeGenericKey));
          printf("KeyType=%s (0x%08X)\n", P11Util_DisplayKeyTypeName(skeyType), skeyType);
-         str_DisplayByteArraytoString("id=", pTempBuffer, sAttributeGenericKey[5].usValueLen);
+
+         // check if buffer too big
+         if (sAttributeGenericKey[5].usValueLen >= MAX_CERTIFICATE_SIZE)
+         {
+            printf("id= Cannot print value, size too big, you can use readattribute command instead\n");
+         }
+         else
+         {
+            str_DisplayByteArraytoString("id=", pTempBuffer, sAttributeGenericKey[5].usValueLen);
+         }
          P11Util_DisplayDate("StartDate=", &StartDate, sAttributeGenericKey[1].usValueLen);
          P11Util_DisplayDate("EndDate=", &EndDate, sAttributeGenericKey[2].usValueLen);
          printf("Local=%s\n", P11Util_DisplayBooleanName(bCKA_Local));
@@ -1785,6 +1796,58 @@ CK_BBOOL P11_GetAttributes(CK_OBJECT_HANDLE Handle)
 
 
 /*
+    FUNCTION:        CK_BBOOL P11_GetAttributesArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR * pArray, CK_ULONG_PTR pArrayLength)
+*/
+CK_BBOOL P11_GetAttributesArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR * pArray, CK_ULONG_PTR pArrayLength)
+{
+   CK_RV                retCode = CKR_GENERAL_ERROR;
+   CK_ULONG             uExpectedAttrSize = 0;
+   CK_ATTRIBUTE sAttribute[] = {
+         {cAttribute,  NULL, 0},
+   };
+
+   do
+   {
+      /* get attributes size */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, &sAttribute[0], 1);
+
+      if (retCode == CKR_OK)
+      {
+         // get attribute size
+         uExpectedAttrSize = sAttribute[0].usValueLen;
+
+         // Allocate Buffer of the size of data
+         *pArray = malloc(uExpectedAttrSize);
+
+         // check if allocation is ok
+         if (*pArray == NULL)
+         {
+            break;
+         }
+
+         sAttribute[0].pValue = *pArray;
+
+         retCode = P11Functions->C_GetAttributeValue(hSession, Handle, &sAttribute[0], 1);
+
+         if (retCode == CKR_OK)
+         {
+            // set the output size
+            *pArrayLength = uExpectedAttrSize;
+            return CK_TRUE;
+         }
+
+         // free memory
+         free(*pArray);
+      }
+
+   } while (FALSE);
+
+   printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        CK_BBOOL P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_BBOOL bValue)
 */
 CK_BBOOL P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_BBOOL bValue)
@@ -1796,19 +1859,14 @@ CK_BBOOL P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAtt
 
    do
    {
-      // printf("Updating attribute %s ... ", P11Util_DisplayAttributeName(cAttribute));
-
       // Set attribute value
       retCode = P11Functions->C_SetAttributeValue(hSession, Handle, sAttribute, 1);
 
       if (retCode == CKR_OK)
       {
-         // display attribute updated and value
-         //printf("Success. Value = %s\n", P11Util_DisplayBooleanName(bValue));
          return CK_TRUE;
       }
-
-       printf("Failed. Error code : %s \n", P11Util_DisplayErrorName(retCode));
+       printf("C_SetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
 
    } while (FALSE);
 
@@ -1839,13 +1897,12 @@ CK_BBOOL P11_SetAttributeArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttri
 
       if (retCode == CKR_OK)
       {
-         // display attribute updated and value
-         printf("Success. Value = ");
-         str_DisplayByteArraytoString("", sStringValue, uStringLength);
+         // display attribute updated
+         printf("Success.\n");
          return CK_TRUE;
       }
 
-      printf("Failed. Error code : %s \n", P11Util_DisplayErrorName(retCode));
+      printf("Error \nC_SetAttributeValue Error code : %s \n", P11Util_DisplayErrorName(retCode));
 
    } while (FALSE);
 
@@ -1881,7 +1938,7 @@ CK_BBOOL P11_SetAttributeString(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttr
          return CK_TRUE;
       }
 
-      printf("Failed. Error code : %s \n", P11Util_DisplayErrorName(retCode));
+      printf("Error \nC_SetAttributeValue Error code : %s \n", P11Util_DisplayErrorName(retCode));
 
    } while (FALSE);
 

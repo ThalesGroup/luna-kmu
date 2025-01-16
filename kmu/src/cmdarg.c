@@ -1676,6 +1676,40 @@ BYTE cmdarg_GetKCVMethod()
 }
 
 /*
+    FUNCTION:        CK_ATTRIBUTE_TYPE cmdarg_AttributeType()
+*/
+CK_ATTRIBUTE_TYPE cmdarg_AttributeType()
+{
+   PARSER_CURRENT_CMD_ARG* arg = NULL;
+   CK_CHAR_PTR          sString;
+
+   // Get argument -attribute
+   arg = parser_SearchArgument(ARG_TYPE_ATTR_NAME);
+
+   if (arg == NULL)
+   {
+      // request the user to enter a attribute name
+      P11Util_DisplaySupportedAttribute();
+      printf("Enter Attribute Name : ");
+      if (Console_RequestString() < 0)
+      {
+         return 0;
+      }
+      sString = Console_GetBuffer();
+   }
+   else
+   {
+      sString = arg->s_argPart2;
+   }
+
+   // Uppercase to lowercase
+   sString = str_tolower(sString);
+
+   // convert the attribute type
+   return P11Util_GetAttributeType(sString);
+}
+
+/*
     FUNCTION:        CK_LONG cmdarg_GetKDFHexString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK_ULONG sBufferSize)
 */
 /*

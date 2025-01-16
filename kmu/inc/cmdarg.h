@@ -85,6 +85,7 @@ extern "C" {
 #define ARG_TYPE_METHOD_KCV         58
 #define ARG_TYPE_CRYPTO_USER        59
 #define ARG_TYPE_KEY_COMP           60
+#define ARG_TYPE_ATTR_NAME          61
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -146,6 +147,7 @@ extern "C" {
    _EXT  CK_LONG                 cmdarg_SearchTypeUnsignedInteger(CK_BYTE bArgType);
    _EXT  CK_LONG                 cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize);
    _EXT  BYTE                    cmdarg_GetKCVMethod();
+   _EXT  CK_ATTRIBUTE_TYPE       cmdarg_AttributeType();
    _EXT  CK_BBOOL                cmdarg_isCryptoUserLoginRequested();
    _EXT  CK_LONG                 cmdarg_GetCompomentsNumber();
 

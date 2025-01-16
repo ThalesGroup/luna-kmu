@@ -620,6 +620,19 @@ const P11_KCV_TYPE kcv_type[] = {
 };
 
 
+const CK_CHAR ARG_CKA_APPLICATION[] = "application";
+const CK_CHAR ARG_CKA_ID[] = "id";
+const CK_CHAR ARG_CKA_VALUE[] = "value";
+
+#define SIZE_ATTR_TYPE_TABLE     DIM(attr_type)
+const P11_ATTR_TYPE attr_type[] = {
+   {(CK_CHAR_PTR)&ARG_CKA_APPLICATION,    CKA_APPLICATION},
+   {(CK_CHAR_PTR)&ARG_CKA_ID,             CKA_ID},
+   {(CK_CHAR_PTR)&ARG_CKA_VALUE,          CKA_VALUE},
+
+};
+
+
 /******************** pkcs11 error *********************/
 typedef struct pkcs11_error
 {
@@ -1512,4 +1525,42 @@ BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sKCV)
    };
 
    return 0;
+}
+
+/*
+    FUNCTION:        CK_ATTRIBUTE_TYPE P11Util_GetAttributeType(CK_CHAR_PTR sAttribute)
+*/
+CK_ATTRIBUTE_TYPE P11Util_GetAttributeType(CK_CHAR_PTR sAttribute)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_ATTR_TYPE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (strcmp(attr_type[u8Loop].sAttributeType, sAttribute) == 0)
+      {
+
+         return attr_type[u8Loop].cAttributeType;
+
+      }
+   };
+
+   return -1;
+}
+
+/*
+    FUNCTION:        void P11Util_DisplaySupportedAttribute()
+*/
+void P11Util_DisplaySupportedAttribute()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported Attribute name : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_ATTR_TYPE_TABLE; u8Loop++)
+   {
+
+      printf("-> %s\n", attr_type[u8Loop].sAttributeType);
+
+   }
 }

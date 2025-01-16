@@ -428,3 +428,21 @@ void str_ByteArrayComputeParityBit(CK_CHAR_PTR ByteArray, CK_LONG uLength)
       }
    }
 }
+
+/*
+    FUNCTION:        CK_BBOOL str_CheckASCII(CK_CHAR_PTR ByteArray, CK_ULONG uLength)
+*/
+CK_BBOOL str_CheckASCII(CK_CHAR_PTR ByteArray, CK_ULONG uLength)
+{
+   // loop on all the byte array
+   for (CK_ULONG uLoop = 0; uLoop < uLength; uLoop++) {
+
+      // check it is in the range 0x20 to 0x7F (ascii text utf8)
+      if (ByteArray[uLoop] < 0x20 || ByteArray[uLoop] > 0x7F)
+      {
+         return CK_FALSE;
+      }
+   }
+
+   return CK_TRUE;
+}

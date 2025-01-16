@@ -103,14 +103,14 @@ CK_BBOOL parser_CommandHelp()
       // print the command name
       printf("%s \t\t", parserCommand[u32count].s_cmdName);
 
-      // if command name is shorter than 6, add an extra tag
+      // if command name is shorter than 7, add an extra tag
       if (strlen(parserCommand[u32count].s_cmdName) < 7)
       {
          printf("\t");
       }
 
-      // if command name is shorter than 6, add an extra tag
-      if (strlen(parserCommand[u32count].s_cmdName) < 14)
+      // if command name is shorter than 15, add an extra tag
+      if (strlen(parserCommand[u32count].s_cmdName) < 15)
       {
          printf("\t");
       }

@@ -139,6 +139,12 @@ extern "C" {
       CK_BYTE           cKCVMethod;
    }P11_KCV_TYPE;
 
+   typedef struct p11_attr_type
+   {
+      CK_CHAR_PTR          sAttributeType;
+      CK_ATTRIBUTE_TYPE    cAttributeType;
+   }P11_ATTR_TYPE;
+
    typedef struct p11_kdf_scheme
    {
       CK_CHAR_PTR                   sKdfScheme;
@@ -404,6 +410,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_FindAllObjects();
    _EXT  CK_BBOOL             P11_DeleteObject(CK_OBJECT_HANDLE Handle);
    _EXT  CK_BBOOL             P11_GetAttributes(CK_OBJECT_HANDLE Handle);
+   _EXT  CK_BBOOL             P11_GetAttributesArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR * pArray, CK_ULONG_PTR pArrayLength);
    _EXT  CK_BBOOL             P11_SetAttributeString(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE ctype, CK_CHAR_PTR sStringValue);
    _EXT  CK_BBOOL             P11_SetAttributeArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR sStringValue, CK_ULONG uStringLength);
    _EXT  CK_BBOOL             P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_BBOOL bValue);

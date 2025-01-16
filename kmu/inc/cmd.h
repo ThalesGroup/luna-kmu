@@ -30,6 +30,8 @@ extern "C" {
    _EXT  CK_BBOOL    cmd_kmu_list_SLot(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_getattribute(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_setattribute(CK_BBOOL bIsConsole);
+   _EXT  CK_BBOOL    cmd_kmu_readattribute(CK_BBOOL bIsConsole);
+   _EXT  CK_BBOOL    cmd_kmu_writeattribute(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_generateKey(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_createDO(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_import(CK_BBOOL bIsConsole);
@@ -41,10 +43,10 @@ extern "C" {
    _EXT  CK_BBOOL    cmd_kmu_delete(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_digestKey(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_compute_KCV(CK_BBOOL bIsConsole);
-   _EXT  CK_BYTE     cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
-   _EXT  CK_BYTE     cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
-   _EXT  CK_BYTE     cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
 
+   _EXT  CK_BYTE     cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
+   _EXT  CK_BYTE     cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
+   _EXT  CK_BYTE     cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
    _EXT  CK_BBOOL    cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE* sWrapTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat);
    _EXT  CK_BBOOL    cmd_UnwrapPrivateSecretkey(P11_UNWRAPTEMPLATE* sUnwrapTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat);
    _EXT  CK_BBOOL    cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat);

@@ -46,6 +46,7 @@ extern "C" {
    _EXT  CK_CHAR_PTR                P11Util_DisplayErrorName(CK_ULONG uErrorCode);
    _EXT  CK_CHAR_PTR                P11Util_DisplayAttributeName(CK_ATTRIBUTE_TYPE ckAttribute);
    _EXT  BYTE                       P11Util_GetKCVMethod(CK_CHAR_PTR sKCV);
+   _EXT  CK_ATTRIBUTE_TYPE          P11Util_GetAttributeType(CK_CHAR_PTR sAttribute);
 
    _EXT  void                       P11Util_DisplaySupportedKeyType(CK_ULONG uFlag);
    _EXT  void                       P11Util_DisplaySupportedPublicExp();
@@ -57,8 +58,10 @@ extern "C" {
    _EXT  void                       P11Util_DisplayKdfScheme();
    _EXT  void                       P11Util_DisplaySupportedClass();
    _EXT  void                       P11Util_DisplaySupportedDHGenMechParam();
-   _EXT  void                       P11Util_DisplaySupportedHash(CK_ULONG uFlag);;
+   _EXT  void                       P11Util_DisplaySupportedHash(CK_ULONG uFlag);
    _EXT  void                       P11Util_DisplaySupportedKCVMethod();
+   _EXT  void                       P11Util_DisplaySupportedAttribute();
+
 
 #undef _EXT
 

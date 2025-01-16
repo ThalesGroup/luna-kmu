@@ -540,6 +540,187 @@ CK_BBOOL cmd_kmu_getattribute(CK_BBOOL bIsConsole)
 
    return CK_FALSE;
 }
+/*
+readattribute -handle=336 -outputfile=output.bin -attribute=value
+*/
+
+/*
+    FUNCTION:        CK_BBOOL cmd_kmu_readattribute(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_readattribute(CK_BBOOL bIsConsole)
+{
+   CK_OBJECT_HANDLE  hHandle = 0;
+   CK_CHAR_PTR       sFilePath = NULL;
+   CK_ATTRIBUTE_TYPE cAttribute;
+   CK_CHAR_PTR       sFileArray = NULL;
+   CK_ULONG          sFileLength = 0;
+   CK_BBOOL          bIsBinary = CK_FALSE;
+   CK_ULONG          uWrittenSize = 0;
+
+   do
+   {
+      // check if loggued to the slot
+      if (cmd_IsLoggedIn() == CK_FALSE)
+      {
+         break;
+      }
+
+      // get handle
+      hHandle = cmdarg_GetHandleValue(ARG_TYPE_HANDLE);
+      if (hHandle == CK_NULL_ELEMENT)
+      {
+         printf("wrong argument : -handle \n");
+         break;
+      }
+
+      // search for object handle
+      if (P11_FindObject(hHandle) == CK_FALSE)
+      {
+         printf("object with handle %i not found.\n", hHandle);
+         break;
+      }
+
+      // get output file path
+      sFilePath = cmdarg_GetOutputFilePath(cmd_OutputFile, MAX_FILE_NAME_SIZE);
+      if (sFilePath == NULL)
+      {
+         printf("wrong or missing argument : -outputfile \n");
+         break;
+      }
+
+      // getattribute type
+      cAttribute = cmdarg_AttributeType();
+
+      // read attributes
+      if (P11_GetAttributesArray(hHandle, cAttribute, &sFileArray, &sFileLength) == CK_TRUE)
+      {
+         // check attribute type and set binary flag
+         switch (cAttribute)
+         {
+         case CKA_ID:
+         case CKA_VALUE:
+            bIsBinary = CK_TRUE;
+            break;
+         }
+
+         // write the file
+         uWrittenSize = File_Write(sFilePath, sFileArray, sFileLength, bIsBinary);
+
+         // free memory
+         free(sFileArray);
+
+         // Check of file is written
+         if (uWrittenSize > 0)
+         {
+            printf("\n");
+            printf("Successfull: %i bytes written in file : %s \n", uWrittenSize, sFilePath);
+            return CK_TRUE;
+         }
+
+         printf("Error: Cannot write file : %s \n", sFilePath);
+      }
+
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+/*
+writeattribute -handle=336 -inputfile=id.bin -attribute=value
+writeattribute -handle=336 -inputfile=id.bin -attribute=application
+writeattribute -handle=336 -inputfile=id.bin -attribute=application
+writeattribute -handle=336 -inputfile=application.txt -attribute=application
+*/
+/*
+    FUNCTION:        CK_BBOOL cmd_kmu_writeattribute(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_writeattribute(CK_BBOOL bIsConsole)
+{
+   CK_OBJECT_HANDLE  hHandle = 0;
+   CK_CHAR_PTR       sFilePath = NULL;
+   CK_ATTRIBUTE_TYPE cAttribute;
+   CK_CHAR_PTR       sFileArray = NULL;
+   CK_ULONG          sFileLength = 0;
+   CK_BBOOL          bResult = CK_FALSE;
+   CK_BBOOL          bValidFormat = CK_FALSE;
+
+   do
+   {
+      // check if loggued to the slot
+      if (cmd_IsLoggedIn() == CK_FALSE)
+      {
+         return CK_FALSE;
+      }
+
+      // get handle
+      hHandle = cmdarg_GetHandleValue(ARG_TYPE_HANDLE);
+      if (hHandle == CK_NULL_ELEMENT)
+      {
+         printf("wrong argument : -handle \n");
+         return CK_FALSE;
+      }
+
+      // search for object handle
+      if (P11_FindObject(hHandle) == CK_FALSE)
+      {
+         printf("object with handle %i not found.\n", hHandle);
+         return CK_FALSE;
+      }
+
+      // get output file path
+      sFilePath = cmdarg_GetInputFilePath(cmd_InputFile, MAX_FILE_NAME_SIZE);
+      if (sFilePath == NULL)
+      {
+         printf("wrong or missing argument : -inputfile \n");
+         return CK_FALSE;
+      }
+
+      // getattribute type
+      cAttribute = cmdarg_AttributeType();
+
+      switch (cAttribute)
+      {
+      case CKA_ID:
+      case CKA_VALUE:
+         // read the file as binary
+         sFileLength = File_Read(sFilePath, &sFileArray, CK_TRUE);
+         bValidFormat = CK_TRUE;
+         break;
+      case CKA_APPLICATION:
+         // read the file as non binary
+         sFileLength = File_Read(sFilePath, &sFileArray, CK_FALSE);
+         
+         // check format ascii
+         bValidFormat = str_CheckASCII(sFileArray, sFileLength);
+         break;
+      default:
+         printf("invalid attribute name:\n");
+         return CK_FALSE;
+      }
+
+      // check file
+      if (sFileLength == 0)
+      {
+         printf("cannot read file : %s \n", sFilePath);
+         break;
+      }
+
+      // check format
+      if (bValidFormat == CK_FALSE)
+      {
+         printf("Invalid file format\n");
+         break;
+      }
+
+      // set attribute in object
+      bResult = P11_SetAttributeArray(hHandle, cAttribute, sFileArray, sFileLength);
+
+   } while (FALSE);
+
+   // release memory
+   free(sFileArray);
+
+   return bResult;
+}
 
 /*
     FUNCTION:        CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
@@ -585,25 +766,25 @@ CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
       case CKO_PRIVATE_KEY:
 
          // update key attributes
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_SIGN, CKA_SIGN);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_VERIFY, CKA_VERIFY);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_WRAP, CKA_WRAP);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_UNWRAP, CKA_UNWRAP);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCRYPT, CKA_ENCRYPT);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECRYPT, CKA_DECRYPT);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_DERIVE, CKA_DERIVE);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_EXTRACTABLE, CKA_EXTRACTABLE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_SIGN, CKA_SIGN);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_VERIFY, CKA_VERIFY);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_WRAP, CKA_WRAP);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_UNWRAP, CKA_UNWRAP);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCRYPT, CKA_ENCRYPT);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECRYPT, CKA_DECRYPT);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DERIVE, CKA_DERIVE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_EXTRACTABLE, CKA_EXTRACTABLE);
 
          // update id
-         bUpdateNumber += cmd_kmu_setattributeArray(hHandle, ARG_TYPE_CKA_ID, CKA_ID);
+         bUpdateNumber += cmd_setattributeArray(hHandle, ARG_TYPE_CKA_ID, CKA_ID);
 
          break;
       case CKO_DATA:
 
          // update value
-         bUpdateNumber += cmd_kmu_setattributeArray(hHandle, ARG_TYPE_CKA_VALUE, CKA_VALUE);
+         bUpdateNumber += cmd_setattributeArray(hHandle, ARG_TYPE_CKA_VALUE, CKA_VALUE);
          // update application
-         bUpdateNumber += cmd_kmu_setattributeString(hHandle, ARG_TYPE_CKA_APPLICATION, CKA_APPLICATION);
+         bUpdateNumber += cmd_setattributeString(hHandle, ARG_TYPE_CKA_APPLICATION, CKA_APPLICATION);
 
          break;
       default:
@@ -612,11 +793,11 @@ CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
       }
 
       // update generic object attribute
-      bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_PRIVATE, CKA_PRIVATE);
-      bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_MODIFIABLE, CKA_MODIFIABLE);
+      bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_PRIVATE, CKA_PRIVATE);
+      bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_MODIFIABLE, CKA_MODIFIABLE);
 
       // update label
-      bUpdateNumber += cmd_kmu_setattributeString(hHandle, ARG_TYPE_CKA_LABEL, CKA_LABEL);
+      bUpdateNumber += cmd_setattributeString(hHandle, ARG_TYPE_CKA_LABEL, CKA_LABEL);
 
       
       // print number of attributes updated
@@ -1822,9 +2003,9 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_BBOOL bIsPresent;
    CK_BBOOL bValue;
@@ -1846,9 +2027,9 @@ CK_BYTE cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
 
@@ -1864,9 +2045,9 @@ CK_BYTE cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_A
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
    CK_ULONG          sStringLength;
@@ -1877,6 +2058,10 @@ CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_AT
    {
       // if string as input, update the attribute
       P11_SetAttributeArray(hHandle, cAttribute, sString, sStringLength);
+
+      // display attribute updated and value
+      printf("Value = ");
+      str_DisplayByteArraytoString("", sString, sStringLength);
       return 1;
    }
 

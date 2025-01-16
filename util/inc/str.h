@@ -44,6 +44,7 @@ extern "C" {
    _EXT  CK_CHAR_PTR    str_tolower(CK_CHAR_PTR sString);
    _EXT  void           str_ByteArrayXOR(CK_CHAR_PTR ByteArray1, CK_CHAR_PTR ByteArray2, CK_ULONG uLength);
    _EXT  void           str_ByteArrayComputeParityBit(CK_CHAR_PTR ByteArray, CK_LONG uLength);
+   _EXT  CK_BBOOL       str_CheckASCII(CK_CHAR_PTR ByteArray, CK_ULONG uLength);
 #undef _EXT
 
 #endif // _STR_H_

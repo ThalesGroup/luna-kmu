@@ -63,6 +63,12 @@ const STRING_ARRAY CMD_GET_ATTRIBUTE_HELP = "This command displays object attrib
 const STRING_ARRAY CMD_SET_ATTRIBUTE = "setattribute";
 const STRING_ARRAY CMD_SET_ATTRIBUTE_HELP = "This command set attributes to an object";
 
+const STRING_ARRAY CMD_WRITE_ATTRIBUTE = "writeattribute";
+const STRING_ARRAY CMD_WRITE_ATTRIBUTE_HELP = "This command write an attribute of a object read from a file";
+
+const STRING_ARRAY CMD_READ_ATTRIBUTE = "readattribute";
+const STRING_ARRAY CMD_READ_ATTRIBUTE_HELP = "This command read an attribute of a object and write in a file";
+
 const STRING_ARRAY CMD_EXPORT = "export";
 const STRING_ARRAY CMD_EXPORT_HELP = "This command exports a key to a file";
 
@@ -186,6 +192,9 @@ const STRING_ARRAY ARG_INFORMAT = "-inform";
 const STRING_ARRAY ARG_OUTFORMAT = "-outform";
 const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for private or secret key: bin, txt or text\n\t\t\t\t\t-Supported value for public key: bin, text, txt or pkcs8";
 const STRING_ARRAY ARG_FORMAT_ENCRYPT_HELP = "File format as binary or hexadecimal text \n\t\t\t\t\t-Supported value: bin, text, txt";
+
+const STRING_ARRAY ARG_ATTR_NAME = "-attribute";
+const STRING_ARRAY ARG_ATTR_NAME_HELP = "pkcs11 attribute name \n\t\t\t\t\t- 'id' as CKA_ID PKCS11 attribute \n\t\t\t\t\t- 'value' as CKA_VALUE PKCS11 attribute \n\t\t\t\t\t- 'application' as CKA_APPLICATION PKCS11 attribute (File must be a ASCCI file)";
 
 const STRING_ARRAY ARG_ATTR_TOKEN = "-token";
 const STRING_ARRAY ARG_ATTR_TOKEN_HELP = "pkcs11 attribute CKA_TOKEN \n\t\t\t\t\t-Supported value: true, false, 0, 1 \n\t\t\t\t\t-Optional Default value is true";
@@ -351,6 +360,24 @@ const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and
                                     }
 
 
+#define CMD_READ_ATTRIBUTE_VALUE    (const CK_CHAR_PTR)CMD_READ_ATTRIBUTE, (const P_fCMD)&cmd_kmu_readattribute, (const CK_CHAR_PTR)CMD_READ_ATTRIBUTE_HELP, \
+                                    {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_NAME, ARG_TYPE_ATTR_NAME, (const CK_CHAR_PTR)ARG_ATTR_NAME_HELP, \
+                                    }
+
+#define CMD_WRITE_ATTRIBUTE_VALUE    (const CK_CHAR_PTR)CMD_WRITE_ATTRIBUTE, (const P_fCMD)&cmd_kmu_writeattribute, (const CK_CHAR_PTR)CMD_WRITE_ATTRIBUTE_HELP, \
+                                    {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_NAME, ARG_TYPE_ATTR_NAME, (const CK_CHAR_PTR)ARG_ATTR_NAME_HELP, \
+                                    }
+
 #define CMD_EXPORT_KEY_VALUE        (const CK_CHAR_PTR)CMD_EXPORT, (const P_fCMD)&cmd_kmu_export, (const CK_CHAR_PTR)CMD_EXPORT_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
@@ -498,6 +525,8 @@ const PARSER_COMMAND kmu_batchcmd_list[] =
    CMD_CREATE_DO_VALUE,
    CMD_GET_ATTRIBUTE_VALUE,
    CMD_SET_ATTRIBUTE_VALUE,
+   CMD_READ_ATTRIBUTE_VALUE,
+   CMD_WRITE_ATTRIBUTE_VALUE,
    CMD_EXPORT_KEY_VALUE,
    CMD_IMPORT_KEY_VALUE,
    CMD_ENCRYPT_VALUE,
@@ -521,6 +550,8 @@ const PARSER_COMMAND kmu_console_list[] =
    CMD_CREATE_DO_VALUE,
    CMD_GET_ATTRIBUTE_VALUE,
    CMD_SET_ATTRIBUTE_VALUE,
+   CMD_READ_ATTRIBUTE_VALUE,
+   CMD_WRITE_ATTRIBUTE_VALUE,
    CMD_EXPORT_KEY_VALUE,
    CMD_IMPORT_KEY_VALUE,
    CMD_ENCRYPT_VALUE,
@@ -544,6 +575,8 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)CMD_CREATE_DO,
    (CK_CHAR_PTR)CMD_GET_ATTRIBUTE,
    (CK_CHAR_PTR)CMD_SET_ATTRIBUTE,
+   (CK_CHAR_PTR)CMD_READ_ATTRIBUTE,
+   (CK_CHAR_PTR)CMD_WRITE_ATTRIBUTE,
    (CK_CHAR_PTR)CMD_EXPORT,
    (CK_CHAR_PTR)CMD_IMPORT,
    (CK_CHAR_PTR)CMD_ENCRYPT,
