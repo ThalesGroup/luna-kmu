@@ -96,3 +96,17 @@ Sonarqube
 *.vsidx
 /x64/Release/kmu.tlog/unsuccessfulbuild
 /ressource/kmu.aps
+/11292023143135.htm
+/application.txt
+/Encoding Time.csv
+/id.bin
+/OpenSC-master.zip
+/output.bin
+/output.txt
+/outputvalue.bin
+/p11util.c
+/str.c
+/tr31.c
+/tr31_output.c
+/value.bin
+/valueoutput.bin
