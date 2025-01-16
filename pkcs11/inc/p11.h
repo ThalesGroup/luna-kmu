@@ -274,6 +274,7 @@ extern "C" {
    {
       CK_OBJECT_CLASS      sClass;
       CK_KEY_TYPE          skeyType;
+      CK_LONG              skeySize;
       CK_CHAR_PTR          pKeyLabel;
       CK_BBOOL             bCKA_Token;
       CK_BBOOL             bCKA_Private;
@@ -406,8 +407,9 @@ extern "C" {
    _EXT  CK_BBOOL             P11_SetAttributeString(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE ctype, CK_CHAR_PTR sStringValue);
    _EXT  CK_BBOOL             P11_SetAttributeArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR sStringValue, CK_ULONG uStringLength);
    _EXT  CK_BBOOL             P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_BBOOL bValue);
-   _EXT  CK_BBOOL             P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate);
-   _EXT  CK_BBOOL             P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate);
+   _EXT  CK_BBOOL             P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay);
+   _EXT  CK_OBJECT_HANDLE     P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyGenTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength);
+   _EXT  CK_OBJECT_HANDLE     P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel);
    _EXT  CK_BBOOL             P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate);
    _EXT  CK_BBOOL             P11_CreateDO(P11_DOTEMPLATE* sDOTemplate);
    _EXT  CK_BBOOL             P11_WrapPrivateSecretKey(P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR   pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen);
@@ -424,6 +426,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey);
    _EXT  CK_BBOOL             P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer);
    _EXT  CK_BBOOL             P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANISM_PTR  sEncMech);
+   _EXT  CK_BBOOL             P11_GenerateRandom(CK_BYTE_PTR pbBuffer, CK_ULONG uLength);
    _EXT  void                 P11_Init();
    _EXT  CK_BBOOL             P11_LoadLibrary();
    _EXT  CK_BBOOL             P11_LoadFunctions();

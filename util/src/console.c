@@ -204,6 +204,33 @@ CK_ULONG Console_RequestInteger()
 }
 
 /*
+    FUNCTION:        CK_ULONG Console_RequestHexString(CK_BBOOL bAllowSpace)
+*/
+CK_ULONG Console_RequestHexString(CK_BBOOL bAllowSpace)
+{
+   do
+   {
+      // get string from the terminal
+      if (Console_RequestString() < 0)
+      {
+         break;
+      }
+
+      // if space are allowed in the sring, delete all the space first
+      if (bAllowSpace == CK_TRUE)
+      {
+         str_DeleteSpace(pConsoleBuffer);
+      }
+
+      // convert to hex binary string
+      return str_StringtoByteArray(pConsoleBuffer, (CK_ULONG)strlen(pConsoleBuffer));
+
+   } while (FALSE);
+
+   return 0;
+}
+
+/*
     FUNCTION:        CK_LONG Console_RequestString()
 */
 CK_LONG Console_RequestString()
@@ -1577,6 +1604,19 @@ CK_BBOOL Console_TerminalCursorIsEndOfLine()
       }
    }
    return CK_FALSE;
+#endif
+}
+
+
+/*
+    FUNCTION:        void Console_Clear()
+*/
+void Console_Clear()
+{
+#ifdef OS_WIN32
+   system("cls");
+#else
+   system("clear");
 #endif
 }
 

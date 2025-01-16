@@ -49,6 +49,27 @@ void str_DisplayByteArraytoString(CK_CHAR_PTR Name, CK_CHAR_PTR ByteArray, CK_LO
 }
 
 /*
+    FUNCTION:        void str_DisplayByteArraytoStringWithSpace(CK_CHAR_PTR ByteArray, CK_LONG Length, CK_LONG Space)
+*/
+void str_DisplayByteArraytoStringWithSpace(CK_CHAR_PTR ByteArray, CK_LONG Length, CK_LONG SpaceGranularity)
+{
+   CK_LONG loop;
+
+   for (loop = 0; loop < Length; loop++)
+   {
+      printf("%02X", ByteArray[loop]);
+
+      // add a space any multiple of space granularity required
+      if (((loop + 1) % SpaceGranularity) == 0)
+      {
+         printf(" ");
+      }
+
+   }
+   printf("\n");
+}
+
+/*
     FUNCTION:        void str_DisplayByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
 */
 CK_CHAR_PTR str_ByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
@@ -56,7 +77,7 @@ CK_CHAR_PTR str_ByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
 
    CK_LONG loop;
    // allocate a string of the double of the size of the byte array
-   CK_CHAR_PTR string = malloc(2 * Length + 1);
+   CK_CHAR_PTR string = malloc((size_t)(2 * Length + 1));
 
    do
    {
@@ -278,6 +299,51 @@ CK_CHAR_PTR str_RemoveLeadingSpace(CK_CHAR_PTR ByteArray)
    // Check if next character is a space
 
 }
+
+/*
+    FUNCTION:        CK_CHAR_PTR str_DeleteSpace(CK_CHAR_PTR ByteArray)
+*/
+CK_ULONG str_DeleteSpace(CK_CHAR_PTR ByteArray)
+{
+   CK_ULONG uOffset = 0;
+   CK_ULONG uLength;
+
+   if (ByteArray == NULL)
+   {
+      return 0;
+   }
+
+   // get string length
+   uLength = (CK_ULONG)strlen(ByteArray);
+
+   if (uLength == 0)
+   {
+      return 0;
+   }
+
+   // Loop on the buffer
+   do
+   {
+      // check if value at offset is a space
+      if (ByteArray[uOffset] == strSpace)
+      {
+         // shift rigth the buffer
+         memcpy(&ByteArray[uOffset], &ByteArray[uOffset + 1], (size_t)(uLength - uOffset));
+
+         // decrement buffer length
+         uLength--;
+      }
+      else
+      {
+         // increment offset
+         uOffset++;
+      }
+   } while (uOffset < uLength);
+
+
+   return uLength;
+}
+
 /*
     FUNCTION:        CK_ULONG str_ComparePartialString(CK_CHAR_PTR sString1, CK_CHAR_PTR sString2)
 */
@@ -317,4 +383,48 @@ CK_CHAR_PTR str_tolower(CK_CHAR_PTR sString)
    }
 
    return sString;
+}
+
+/*
+    FUNCTION:        void str_ByteArrayXOR(CK_CHAR_PTR ByteArray1, CK_CHAR_PTR ByteArray2, CK_LONG uLength)
+*/
+void str_ByteArrayXOR(CK_CHAR_PTR ByteArray1, CK_CHAR_PTR ByteArray2, CK_ULONG uLength)
+{
+   for (CK_ULONG uLoop = 0; uLoop < uLength; uLoop++) {
+
+      // Xor byte
+      ByteArray1[uLoop] ^= ByteArray2[uLoop];
+   }
+}
+
+/*
+    FUNCTION:        void str_ByteArrayComputeParityBit(CK_CHAR_PTR ByteArray, CK_LONG uLength)
+*/
+void str_ByteArrayComputeParityBit(CK_CHAR_PTR ByteArray, CK_LONG uLength)
+{
+   CK_LONG lLoop;
+   CK_LONG lLoopBit;
+   CK_BYTE bParityBit;
+
+   // this fonction is used to calculate DES key parity bit
+
+   // loop on all the key size
+   for (lLoop = 0; lLoop < uLength; lLoop++)
+   {
+      bParityBit = 0;
+
+      // calculate the parity bit for each byte of the key
+      for (lLoopBit = 0; lLoopBit < 8; lLoopBit++)
+      {
+         if ((0x01 << lLoopBit) & ByteArray[lLoop])
+         {
+            bParityBit = !bParityBit;
+         }
+      }
+      // ajust the byte if required
+      if (!bParityBit)
+      {
+         ByteArray[lLoop] ^= 0x01;
+      }
+   }
 }

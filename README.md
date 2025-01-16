@@ -15,10 +15,13 @@ KMU allows to:
 -	List objects in partitions.
 -	Display and modify object attributes.
 -	Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, SM2, SM4 or generic ones).
+- 	Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
 -	Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
 -	Export public keys in a binary file or a text file encoded using ASN1 DER and PKCS#8.
 -	Import wrapped private/secret keys from a file (currently limited to RSA OAEP, AES variant wrap algorithms).
--	Import public keys from a binary file or a text text file encoded using ASN1 DER, PKCS#8 and TR31 (partial support with AES key only).
+-   Import wrapped AES keys from a file encoded in TR31 format(partial support with AES key only as ZMK).
+- 	Import DES or AES keys as multiple clear key compoments and KCV (XOR method)
+-	Import public keys from a binary file or a text text file encoded using ASN1 DER, PKCS#8.
 -	Encrypt/decrypt from/to a file (currently limited to RSA OAEP and AES encryption algorithms).
 -	Derive key (currently limited to SHAxxx derivation mechanisms and proprietary Thales Luna key derivation functions such as CKM_NIST_PRF_KDF).
 -	Generate a digest for symetric keys.
@@ -106,7 +109,8 @@ Two argument formats are supported for each command:
 Typical examples:
 | Command | -argument=value or -argument value |
 | ------- | ---------------------------------- | 
-| List all objects in a PKCS#11 slot | list -slot=0 -password=00000000 |
+| List all objects in a PKCS#11 | slot list -slot=0 -password=00000000 |
+| List all objects in a PKCS#11 as crypto user | slot list -slot=0 -password=00000000 - cu=true|
 | Generate a AES key | generatekey -slot=0 -password=00000000 -keytype=aes -keysize 32 -label=key-aes-256 -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true |
 | Generate a RSA key | generatekey -slot=0 -password=00000000 -keytype=rsa -keysize 4096 -labelpublic=key-rsa-public -labelprivate=key-rsa-private -publicexponent=65537 -extractable=1 -modifiable=true -mech=prime |
 | Generate a ECDSA key | generatekey -slot=0 -password=00000000 -keytype=ecdsa -labelpublic=key-ecdsa-public -labelprivate=key-ecdsa-private -curve=secp256r1  |
@@ -121,6 +125,8 @@ Typical examples:
 | Import a public key | import -slot=0 -password=00000000 -keyclass=public -keytype=ecdsa -inputfile=public_ecdsa_sect571k1.pem -format=PKCS8 -label=imported-ecdsa-sect571k1 -modifiable=true -extractable=true |
 | Derive a key from a master key using SHA derivation | derive -slot=0 -password=00000000 -key=751 -keytype=aes -keysize=32 -mech=sha256 -label=derived-key-sha256 -extractable=true |
 | Derive a key from a master key using luna KDF method with SCP03 | derive -slot=0 -password=00000000 -key=426 -keytype=aes -keysize=32 -mech=luna-nist-kdf  |-label=derived-key-kdf-scp03 -extractable=true -kdf-type=aes-cmac -kdf-scheme=scp03 -kdf-counter=9 -kdf-label=0102 -kdf-context=FFFF |
+| Generate a AES key with 3 compoments and follow prompt| generatekey -slot=0 -password=00000000 -keytype=aes -keysize=32 -clearcomponents=3 -label=zmk-key-aes-256 |
+| Import a AES key with 3 compoments and follow prompt | import -slot=0 -password=00000000 -keytype=aes -keysize=32 -clearcomponents=3 -label=zmk-key-aes-256 |
 
 ## Test
 

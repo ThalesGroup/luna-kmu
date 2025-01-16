@@ -40,6 +40,9 @@ CK_CHAR  cmd_Label[MAX_LABEL_SIZE];
 CK_CHAR  cmd_Label_public[MAX_LABEL_SIZE];
 CK_CHAR  cmd_Label_private[MAX_LABEL_SIZE];
 
+#define  MAX_CKA_ID_SIZE 4096
+CK_CHAR  cmd_cka_ID[MAX_CKA_ID_SIZE];
+
 #define MAX_FILE_NAME_SIZE       260
 CK_CHAR  cmd_OutputFile[MAX_FILE_NAME_SIZE];
 CK_CHAR  cmd_InputFile[MAX_FILE_NAME_SIZE];
@@ -227,6 +230,7 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
    P11_KEYGENTEMPLATE			sKeyGenTemplate = {0};
    CK_BBOOL							bKeyGenPair = CK_FALSE;
    CK_BBOOL                   bIsSubPrime = CK_FALSE;
+   CK_LONG                    sComponentNumber;
 
    do
    {
@@ -253,7 +257,8 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
       cmdarg_GetCKAModifiable(&sKeyGenTemplate.bCKA_Modifiable);
 
       // Get CKA id
-      sKeyGenTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(&sKeyGenTemplate.pCKA_ID);
+      sKeyGenTemplate.pCKA_ID = cmd_cka_ID;
+      sKeyGenTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sKeyGenTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
       if (sKeyGenTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
       {
          break;
@@ -406,8 +411,53 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
             // put the size for SM4
             sKeyGenTemplate.skeySize = SM4_KEY_LENGTH;
          }
-         // generate key
-         return P11_GenerateKey(&sKeyGenTemplate);
+
+         // get number of compomenent
+         sComponentNumber = cmdarg_GetCompomentsNumber();
+
+         // if no compoment, just generate a key
+         if (sComponentNumber == 0)
+         {
+            // generate key
+            return P11_GenerateKey(&sKeyGenTemplate, NULL, CK_TRUE);
+         }
+         else
+         {
+
+            // check key type is DES and AES
+            switch (sKeyGenTemplate.skeyType)
+            {
+            case CKK_AES:
+               if ((sKeyGenTemplate.skeySize == AES_128_KEY_LENGTH) || (sKeyGenTemplate.skeySize == AES_192_KEY_LENGTH) || (sKeyGenTemplate.skeySize == AES_256_KEY_LENGTH))
+               {
+                  break;
+               }
+               printf("Wrong key size\n");
+               return CK_FALSE;
+            case CKK_DES:
+               if (sKeyGenTemplate.skeySize == DES_KEY_LENGTH)
+               {
+                  break;
+               }
+               if (sKeyGenTemplate.skeySize == DES2_KEY_LENGTH)
+               {
+                  sKeyGenTemplate.skeyType = CKK_DES2;
+                  break;
+               }
+               if (sKeyGenTemplate.skeySize == DES3_KEY_LENGTH)
+               {
+                  sKeyGenTemplate.skeyType = CKK_DES3;
+                  break;
+               }
+               printf("Wrong key size\n");
+               return CK_FALSE;
+            default:
+               printf("Only DES and AES key are supported for generation using compoments\n");
+               return CK_FALSE;
+            }
+
+            return cmd_GenerateSecretKeyWithComponent(&sKeyGenTemplate, sComponentNumber);
+         }
       }
    } while (FALSE);
 
@@ -601,6 +651,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
    P11_UNWRAPTEMPLATE sUnwrapTemplate = { 0 };
    CK_BYTE           FileFormat = 0;
    CK_CHAR_PTR       sFilePath;
+   CK_LONG           sComponentNumber = 0;
 
    do
    {
@@ -625,19 +676,13 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       cmdarg_GetCKAModifiable(&sUnwrapTemplate.bCKA_Modifiable);
       
       // Get CKA id
-      sUnwrapTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(&sUnwrapTemplate.pCKA_ID);
+      sUnwrapTemplate.pCKA_ID = cmd_cka_ID;
+      sUnwrapTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sUnwrapTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
       if (sUnwrapTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
       {
          break;
       }
-      
-      // get class value from arg -keyclass
-      if ((sUnwrapTemplate.sClass = cmdarg_GetKeyClass()) == CK_NULL_ELEMENT)
-      {
-         printf("wrong or missing argument : -keyclass \n");
-         break;
-      }
-
+   
       // get key type (CK_KEY_TYPE)
       if ((sUnwrapTemplate.skeyType = cmdarg_GetKeytype(CK_TRUE, KEY_TYPE_IMPORT_EXPORTKEY)) == CK_NULL_ELEMENT)
       {
@@ -649,6 +694,61 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       if ((sUnwrapTemplate.pKeyLabel = cmdarg_GetLabel(cmd_Label, MAX_LABEL_SIZE)) == NULL)
       {
          printf("Missing argument : -label \n");
+         break;
+      }
+
+      // get number of compomenent
+      sComponentNumber = cmdarg_GetCompomentsNumber();
+
+      // if compoment requested, import with component.
+      if (sComponentNumber != 0)
+      {
+         sUnwrapTemplate.sClass = CKO_SECRET_KEY;
+
+         if (sUnwrapTemplate.skeyType == CKK_AES)
+         {
+            // get key size
+            sUnwrapTemplate.skeySize = cmdarg_GetKeySize();
+
+            if (sUnwrapTemplate.skeySize == 0)
+            {
+               printf("Invalid or missing arg : -keysize\n");
+               break;;
+            }
+         }
+
+         // check key type is DES and AES
+         switch (sUnwrapTemplate.skeyType)
+         {
+         case CKK_AES:
+            if ((sUnwrapTemplate.skeySize == AES_128_KEY_LENGTH) || (sUnwrapTemplate.skeySize == AES_192_KEY_LENGTH) || (sUnwrapTemplate.skeySize == AES_256_KEY_LENGTH))
+            {
+               break;
+            }
+            printf("Wrong key size\n");
+            return CK_FALSE;
+         case CKK_DES:
+            sUnwrapTemplate.skeySize = DES_KEY_LENGTH;
+            break;
+         case CKK_DES2:
+            sUnwrapTemplate.skeySize = DES2_KEY_LENGTH;
+            break;
+         case CKK_DES3:
+            sUnwrapTemplate.skeySize = DES3_KEY_LENGTH;
+            break;
+         default:
+            printf("Only DES and AES key are supported for importing key using compoments\n");
+            return CK_FALSE;
+         }
+
+         // execute import with compoments
+         return cmd_ImportSecretKeyWithComponent(&sUnwrapTemplate, sComponentNumber);
+      }
+
+      // get class value from arg -keyclass
+      if ((sUnwrapTemplate.sClass = cmdarg_GetKeyClass()) == CK_NULL_ELEMENT)
+      {
+         printf("wrong or missing argument : -keyclass \n");
          break;
       }
 
@@ -1079,7 +1179,8 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
       cmdarg_GetCKAModifiable(&sDeriveTemplate.bCKA_Modifiable);
 
       // Get CKA id
-      sDeriveTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(&sDeriveTemplate.pCKA_ID);
+      sDeriveTemplate.pCKA_ID = cmd_cka_ID;
+      sDeriveTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sDeriveTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
       if (sDeriveTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
       {
          break;
@@ -1593,7 +1694,6 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
          break;
       }
 
-
       // if decoding is corret, create the public key object
       if (bResult == CK_TRUE)
       {
@@ -1781,4 +1881,381 @@ CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_AT
    }
 
    return 0;
+}
+
+/*
+    FUNCTION:        cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_LONG sCompomentNumber)
+*/
+CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_LONG sCompomentNumber)
+{
+   CK_LONG sLoop;
+   CK_LONG sKeyLength;
+   CK_BYTE_PTR pbCompoment;
+   CK_BYTE_PTR pbKey;
+   P11_UNWRAPTEMPLATE sKeyTemplate = {0};
+   CK_OBJECT_HANDLE  hWrapKey = 0;
+   CK_OBJECT_HANDLE  hKey = 0;
+   CK_BYTE_PTR pKcvBuffer;
+   CK_BBOOL bError = CK_FALSE;
+
+   printf("This command generates key as several compoments and subject to security issues.\n");
+   printf("This operation requires a specific security procedure to avoid key holder to see multiple key components\n");
+   printf("The command will request to clear the console after the generation of each component\n");
+   printf("Start the generation of the first key compoment enter (Y/N): ");
+
+   if (!((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y'))))
+   {
+      printf("Generation aborted\n");
+      return CK_FALSE;;
+   }
+
+   do
+   {
+
+      // generate a AES 256 session wrap key (use to encrypt clear key value)
+      hWrapKey = P11_GenerateAESWrapKey(CK_FALSE, AES_256_KEY_LENGTH, "AES_KEY_WRAP_KEY_COMP");
+
+      sKeyLength = sKeyGenTemplate->skeySize;
+
+      // allocate a buffer for compoments generation
+      pbCompoment = malloc(sKeyLength);
+
+      // allocate a buffer for key
+      pbKey = malloc(sKeyLength);
+
+      // check memory allocation
+      if (pbCompoment == NULL || pbKey == NULL || hWrapKey == 0)
+      {
+         break;
+      }
+
+      // fill the key buffer
+      memset(pbKey, 0, sKeyLength);
+   
+      for (sLoop = 1; sLoop <= sCompomentNumber; sLoop++)
+      {
+         // generate compoment X value with random from HSM
+         P11_GenerateRandom(pbCompoment, sKeyLength);
+
+         // if des key, compute parity bit, checked by hsm when unwrapping the key
+         if (sKeyGenTemplate->skeyType != CKK_AES)
+         {
+            str_ByteArrayComputeParityBit(pbCompoment, sKeyLength);
+         }
+
+         // Xor the key with component
+         str_ByteArrayXOR(pbKey, pbCompoment, sKeyLength);
+
+         // print compoment value
+         printf("Clear component %i : ", sLoop);
+         str_DisplayByteArraytoStringWithSpace(pbCompoment, sKeyLength, 2);
+
+         // load key compoment in the HSM as session key (only needed to compute KCV)
+         sKeyTemplate.sClass = sKeyGenTemplate->sClass;
+         sKeyTemplate.skeyType = sKeyGenTemplate->skeyType;
+         sKeyTemplate.skeySize = sKeyGenTemplate->skeySize;
+         sKeyTemplate.pKeyLabel = "";
+         sKeyTemplate.bCKA_Sign = CK_TRUE;
+         sKeyTemplate.bCKA_Verify = CK_TRUE;
+         sKeyTemplate.bCKA_Token = CK_FALSE;
+         sKeyTemplate.bCKA_Sensitive = CK_TRUE;
+         sKeyTemplate.bCKA_Private = CK_TRUE;
+         sKeyTemplate.hWrappingKey = hWrapKey;
+         hKey = P11_ImportClearSymetricKey(&sKeyTemplate, pbCompoment, sKeyLength);
+
+         // stop loop if error
+         if (hKey == 0)
+         {
+            bError = CK_TRUE;
+         }
+         else
+         {
+            // compute KCV for component
+            if (P11_ComputeKCV(KCV_PCI, hKey, &pKcvBuffer) == CK_TRUE)
+            {
+               printf("Key check value for component %i : ", sLoop);
+               str_DisplayByteArraytoString("", pKcvBuffer, 3);
+               printf("\n");
+
+               // free kcv buffer
+               free(pKcvBuffer);
+            }
+            else
+            {
+               bError = CK_TRUE;
+            }
+
+            // delete component key
+            P11_DeleteObject(hKey);
+            hKey = 0;
+
+         }
+
+         // check if an error happens during the process and stop
+         if (bError == CK_TRUE)
+         {
+            break;
+         }
+
+         printf("Do you want to clear the console now (Y/N) : ");
+         if ((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y')))
+         {
+            // clear console
+            Console_Clear();
+         }
+      }
+
+      // import the key if no error
+      if (bError != CK_TRUE)
+      {
+
+         sKeyTemplate.sClass = sKeyGenTemplate->sClass;
+         sKeyTemplate.skeyType = sKeyGenTemplate->skeyType;
+         sKeyTemplate.bCKA_Private = sKeyGenTemplate->bCKA_Private;
+         sKeyTemplate.bCKA_Modifiable = sKeyGenTemplate->bCKA_Modifiable;
+         sKeyTemplate.bCKA_Sign = sKeyGenTemplate->bCKA_Sign;
+         sKeyTemplate.bCKA_Verify = sKeyGenTemplate->bCKA_Verify;
+         sKeyTemplate.bCKA_Unwrap = sKeyGenTemplate->bCKA_Unwrap;
+         sKeyTemplate.bCKA_Wrap = sKeyGenTemplate->bCKA_Wrap;
+         sKeyTemplate.bCKA_Encrypt = sKeyGenTemplate->bCKA_Encrypt;
+         sKeyTemplate.bCKA_Decrypt = sKeyGenTemplate->bCKA_Decrypt;
+         sKeyTemplate.bCKA_Token = sKeyGenTemplate->bCKA_Token;
+         sKeyTemplate.bCKA_Sensitive = sKeyGenTemplate->bCKA_Sensitive;
+         sKeyTemplate.bCKA_Derive = sKeyGenTemplate->bCKA_Derive;
+         sKeyTemplate.bCKA_Extractable = sKeyGenTemplate->bCKA_Extractable;
+         sKeyTemplate.pKeyLabel = sKeyGenTemplate->pKeyLabel;
+         sKeyTemplate.pCKA_ID = sKeyGenTemplate->pCKA_ID;
+         sKeyTemplate.uCKA_ID_Length = sKeyGenTemplate->uCKA_ID_Length;
+         sKeyTemplate.hWrappingKey = hWrapKey;
+
+         // import key (xor of all key components)
+         hKey = P11_ImportClearSymetricKey(&sKeyTemplate, pbKey, sKeyLength);
+         if (hKey != 0)
+         {
+            printf("Key successfully generated, handle is : %i, label is : %s \n", hKey, sKeyGenTemplate->pKeyLabel);
+
+            // compute KCV for component
+            if (P11_ComputeKCV(KCV_PCI, hKey, &pKcvBuffer) == CK_TRUE)
+            {
+               str_DisplayByteArraytoString("Key check value : ", pKcvBuffer, 3);
+               printf("\n");
+
+               // free kcv buffer
+               free(pKcvBuffer);
+            }
+         }
+      }
+   } while (FALSE);
+
+   // free memory
+   free(pbCompoment);
+   free(pbKey);
+
+   // delete temp wrap key
+   P11_DeleteObject(hWrapKey);
+   hWrapKey = 0;
+
+   if (bError != CK_TRUE)
+   {
+      return CK_TRUE;
+   }
+
+   printf("cmd_GenerateKeyByComponent error\n");
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL cmd_ImportSecretKeyWithComponent(P11_UNWRAPTEMPLATE* sImportTemplate, CK_LONG sCompomentNumber)
+*/
+CK_BBOOL cmd_ImportSecretKeyWithComponent(P11_UNWRAPTEMPLATE* sImportTemplate, CK_LONG sCompomentNumber)
+{
+   CK_LONG sLoop;
+   CK_LONG sKeyLength;
+   CK_BYTE_PTR pbCompoment;
+   CK_BYTE_PTR pbKey;
+   P11_UNWRAPTEMPLATE sKeyCompTemplate = { 0 };
+   CK_OBJECT_HANDLE  hWrapKey = 0;
+   CK_OBJECT_HANDLE  hKey = 0;
+   CK_BYTE_PTR pKcvBuffer;
+   CK_BBOOL bError = CK_FALSE;
+   CK_ULONG uLength;
+
+   printf("This command imports key as several compoments and subject to security issues.\n");
+   printf("This operation requires a specific security procedure to avoid key holder to see multiple key components\n");
+   printf("The command will request to clear the console after importing each component\n");
+   printf("Start to import the first key compoment enter (Y/N): ");
+
+   if (!((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y'))))
+   {
+      printf("Generation aborted\n");
+      return CK_FALSE;;
+   }
+
+   do
+   {
+      // generate a AES 256 session wrap key (use to encrypt clear key value)
+      hWrapKey = P11_GenerateAESWrapKey(CK_FALSE, AES_256_KEY_LENGTH, "AES_KEY_WRAP_KEY_COMP");
+
+      sKeyLength = sImportTemplate->skeySize;
+
+      // allocate a buffer for compoments
+      pbCompoment = malloc(sKeyLength);
+
+      // allocate a buffer for key
+      pbKey = malloc(sKeyLength);
+
+      // check memory allocation
+      if (pbCompoment == NULL || pbKey == NULL || hWrapKey == 0)
+      {
+         break;
+      }
+
+      // fill the key buffer
+      memset(pbKey, 0, sKeyLength);
+
+
+      for (sLoop = 1; sLoop <= sCompomentNumber; sLoop++)
+      {
+
+         // print compoment value
+         printf("Enter component %i : ", sLoop);
+
+         // request component
+         uLength = Console_RequestHexString(CK_TRUE);
+         if (uLength == 0)
+         {
+            printf("\nwrong string value, not hexadecimal\n");
+            
+            //ask again for component
+            sLoop--;
+            continue;
+         }
+
+         // check the length of component match with the key size
+         if (sKeyLength != uLength)
+         {
+            printf("The length of the compoment does not match with the key length\n");
+            //ask again for component
+            sLoop--;
+            continue;
+         }
+
+         // Copy compoment from console to pbCompoment
+         memcpy(pbCompoment, Console_GetBuffer(), uLength);
+
+         // clear component in the console buffer (2 time the size of the component array)
+         memset(Console_GetBuffer(), 0, (CK_ULONG)(uLength < 1));
+
+         // if des key, compute parity bit, checked by hsm when unwrapping the key
+         if (sImportTemplate->skeyType != CKK_AES)
+         {
+            str_ByteArrayComputeParityBit(pbCompoment, sKeyLength);
+         }
+
+         // Xor the key with component
+         str_ByteArrayXOR(pbKey, pbCompoment, sKeyLength);
+
+         // load key compoment in the HSM as session key (only needed to compute KCV)
+         sKeyCompTemplate.sClass = sImportTemplate->sClass;
+         sKeyCompTemplate.skeyType = sImportTemplate->skeyType;
+         sKeyCompTemplate.skeySize = sImportTemplate->skeySize;
+         sKeyCompTemplate.pKeyLabel = "";
+         sKeyCompTemplate.bCKA_Sign = CK_TRUE;
+         sKeyCompTemplate.bCKA_Verify = CK_TRUE;
+         sKeyCompTemplate.bCKA_Token = CK_FALSE;
+         sKeyCompTemplate.bCKA_Sensitive = CK_TRUE;
+         sKeyCompTemplate.bCKA_Private = CK_TRUE;
+         sKeyCompTemplate.hWrappingKey = hWrapKey;
+         hKey = P11_ImportClearSymetricKey(&sKeyCompTemplate, pbCompoment, sKeyLength);
+
+         // stop loop if error
+         if (hKey == 0)
+         {
+            bError = CK_TRUE;
+         }
+         else
+         {
+            // compute KCV for component
+            if (P11_ComputeKCV(KCV_PCI, hKey, &pKcvBuffer) == CK_TRUE)
+            {
+               printf("Key check value for component %i : ", sLoop);
+               str_DisplayByteArraytoString("", pKcvBuffer, 3);
+               printf("\n");
+
+               // free kcv buffer
+               free(pKcvBuffer);
+            }
+            else
+            {
+               bError = CK_TRUE;
+            }
+
+            // delete component key
+            P11_DeleteObject(hKey);
+            hKey = 0;
+         }
+
+         // check if an error happens during the process and stop
+         if (bError == CK_TRUE)
+         {
+            break;
+         }
+
+         printf("KCV matches, Continue ? (Y/N) : ");
+         if (!((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y'))))
+         {
+            printf("Command aborted : KCV doesn't match \n");
+            bError = CK_TRUE;
+            break;
+         }
+
+
+         printf("Do you want to clear the console now (Y) : ");
+         if ((Console_RequestString() == 1) && ((Console_GetBuffer()[0] == 'Y') || (Console_GetBuffer()[0] == 'y')))
+         {
+            // clear console
+            Console_Clear();
+         }
+      }
+
+      // import the key if no error
+      if (bError != CK_TRUE)
+      {
+         sImportTemplate->hWrappingKey = hWrapKey;
+
+         // import key (xor of all key components)
+         hKey = P11_ImportClearSymetricKey(sImportTemplate, pbKey, sKeyLength);
+         if (hKey != 0)
+         {
+            printf("Key successfully imported, handle is : %i, label is : %s \n", hKey, sImportTemplate->pKeyLabel);
+
+            // compute KCV for component
+            if (P11_ComputeKCV(KCV_PCI, hKey, &pKcvBuffer) == CK_TRUE)
+            {
+               str_DisplayByteArraytoString("Key check value : ", pKcvBuffer, 3);
+               printf("\n");
+
+               // free kcv buffer
+               free(pKcvBuffer);
+            }
+         }
+      }
+
+   } while (FALSE);
+
+   // free memory
+   free(pbCompoment);
+   free(pbKey);
+
+   // delete temp wrap key
+   P11_DeleteObject(hWrapKey);
+   hWrapKey = 0;
+
+   if (bError != CK_TRUE)
+   {
+      return CK_TRUE;
+   }
+
+   printf("cmd_ImportSecretKeyWithComponent error\n");
+   return CK_FALSE;
 }
