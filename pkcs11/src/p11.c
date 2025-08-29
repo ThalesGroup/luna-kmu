@@ -2073,6 +2073,85 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_P
 }
 
 /*
+    FUNCTION:        CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyTemplate, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2_param, CK_BBOOL bDisplay)
+*/
+CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2_param, CK_BBOOL bDisplay)
+{
+   CK_ULONG          u32labelsize = 0;
+   CK_RV             retCode = CKR_GENERAL_ERROR;
+   CK_OBJECT_HANDLE  hSymKey = 0;
+   CK_MECHANISM      sKeygenMech = { 0 };
+   CK_LONG           sSimTemplateSize = 16;
+
+   if (sKeyGenTemplate->pKeyLabel != NULL)
+   {
+      u32labelsize = (CK_ULONG)strlen(sKeyGenTemplate->pKeyLabel);
+   }
+
+   // init with common attribute for all symetric keys
+   CK_ATTRIBUTE SymKeyTemplate[17] = {
+   {CKA_CLASS,             &sKeyGenTemplate->sClass,           sizeof(CK_OBJECT_CLASS)},
+   {CKA_KEY_TYPE,          &sKeyGenTemplate->skeyType,         sizeof(CK_KEY_TYPE)},
+   {CKA_TOKEN,             &sKeyGenTemplate->bCKA_Token,       sizeof(CK_BBOOL)},
+   {CKA_SENSITIVE,         &sKeyGenTemplate->bCKA_Sensitive,   sizeof(CK_BBOOL)},
+   {CKA_PRIVATE,           &sKeyGenTemplate->bCKA_Private,     sizeof(CK_BBOOL)},
+   {CKA_SIGN,              &sKeyGenTemplate->bCKA_Sign,        sizeof(CK_BBOOL)},
+   {CKA_VERIFY,            &sKeyGenTemplate->bCKA_Verify,      sizeof(CK_BBOOL)},
+   {CKA_ENCRYPT,           &sKeyGenTemplate->bCKA_Encrypt,     sizeof(CK_BBOOL)},
+   {CKA_DECRYPT,           &sKeyGenTemplate->bCKA_Decrypt,     sizeof(CK_BBOOL)},
+   {CKA_WRAP,              &sKeyGenTemplate->bCKA_Wrap,        sizeof(CK_BBOOL)},
+   {CKA_UNWRAP,            &sKeyGenTemplate->bCKA_Unwrap,      sizeof(CK_BBOOL)},
+   {CKA_DERIVE,            &sKeyGenTemplate->bCKA_Derive,      sizeof(CK_BBOOL)},
+   {CKA_EXTRACTABLE,       &sKeyGenTemplate->bCKA_Extractable, sizeof(CK_BBOOL)},
+   {CKA_MODIFIABLE,        &sKeyGenTemplate->bCKA_Modifiable,  sizeof(CK_BBOOL)},
+   {CKA_VALUE_LEN,         &sKeyGenTemplate->skeySize,         sizeof(CK_LONG) },
+   {CKA_LABEL,             sKeyGenTemplate->pKeyLabel,         (CK_ULONG)u32labelsize},
+   };
+
+   // Check if CKA id is given in parameter
+   if (sKeyGenTemplate->pCKA_ID != NULL)
+   {
+      // push CKA id in PubTemplate
+      SymKeyTemplate[sSimTemplateSize].type = CKA_ID;
+      SymKeyTemplate[sSimTemplateSize].pValue = sKeyGenTemplate->pCKA_ID;
+      SymKeyTemplate[sSimTemplateSize].usValueLen = sKeyGenTemplate->uCKA_ID_Length;
+      sSimTemplateSize++;
+   }
+
+   sKeygenMech.mechanism = CKM_PKCS5_PBKD2;
+   sKeygenMech.pParameter = (CK_ATTRIBUTE_PTR)&pbkdf2_param->pbfkd2_param;
+   sKeygenMech.usParameterLen = sizeof(pbkdf2_param->pbfkd2_param);
+
+   
+   // generate key
+   retCode = P11Functions->C_GenerateKey(hSession,
+      &sKeygenMech,
+      SymKeyTemplate,
+      sSimTemplateSize,
+      &hSymKey);
+
+   if (retCode == CKR_OK)
+   {
+      if (bDisplay == TRUE)
+      {
+         printf("Key successfully generated, handle is : %i, label is : %s \n", hSymKey, sKeyGenTemplate->pKeyLabel);
+      }
+
+      // if the handle pointer is not null, return the key handle value
+      if (hKey != NULL)
+      {
+         *hKey = hSymKey;
+      }
+
+      return CK_TRUE;
+   }
+
+
+   printf("P11_GenerateKeyPbe error code : %s \n", P11Util_DisplayErrorName(retCode));
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel)
 */
 CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength)
@@ -2559,6 +2638,22 @@ CK_BBOOL P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR
       privtemplatesize++;
    }
 
+   // Check if key size is given in parameter
+   if (sUnWrapTemplate->skeySize != 0)
+   {
+      // push CKA_VALUE_LEN in sym template
+      SymKeyTemplate[symtemplatesize].type = CKA_VALUE_LEN;
+      SymKeyTemplate[symtemplatesize].pValue = &sUnWrapTemplate->skeySize;
+      SymKeyTemplate[symtemplatesize].usValueLen = sizeof(CK_LONG);
+      symtemplatesize++;
+
+      // push CKA_VALUE_LEN id in PriTemplate
+      PriTemplate[privtemplatesize].type = CKA_VALUE_LEN;
+      PriTemplate[privtemplatesize].pValue = sUnWrapTemplate->pCKA_ID;
+      PriTemplate[privtemplatesize].usValueLen = sUnWrapTemplate->uCKA_ID_Length;
+      privtemplatesize++;
+   }
+
    if (sUnWrapTemplate->sClass == CKO_PRIVATE_KEY)
    {
       if ((sUnWrapTemplate->skeyType == CKK_RSA) || (sUnWrapTemplate->skeyType == CKK_ECDSA))
@@ -2918,12 +3013,12 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_AES_CFB128:
    case CKM_AES_OFB:
    case CKM_AES_CBC_PAD_IPSEC:
-      // Init the IV buffer and size
+      // Init the sIV buffer and size
       sEncMech->pParameter = encryption_mech->aes_param.iv;
       sEncMech->usParameterLen = AES_IV_LENGTH;
       break;
    case CKM_AES_GCM:
-      // Init the IV buffer and size
+      // Init the sIV buffer and size
       sEncMech->pParameter = &encryption_mech->aes_gcm_param;
       sEncMech->usParameterLen = sizeof(CK_GCM_PARAMS);
       break;
@@ -2952,7 +3047,7 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    switch (sign_mech->ckMechType)
    {
    case CKM_AES_CMAC:
-      // Init the IV buffer and size
+      // Init the sIV buffer and size
       sEncMech->pParameter = sign_mech->aes_param.iv;
       if (sEncMech->pParameter != NULL)
       {
@@ -2966,7 +3061,7 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    case CKM_DES3_CMAC:
    case CKM_DES_MAC:
    case CKM_DES3_MAC:
-      // Init the IV buffer and size
+      // Init the sIV buffer and size
       sEncMech->pParameter = sign_mech->des_param.iv;
       if (sEncMech->pParameter != NULL)
       {

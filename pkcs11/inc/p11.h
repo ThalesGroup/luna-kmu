@@ -74,6 +74,9 @@ extern "C" {
 #define KCV_PCI                     0x02
 #define KCV_GP                      0x03
 
+#define PBFKD2_DEFAULT_ITERATION    10000       // 
+#define PBFKD2_SALT_LENGTH          16          // recommanded by NIST
+
    typedef struct ck_des_param
    {
       CK_CHAR_PTR  iv;
@@ -84,6 +87,22 @@ extern "C" {
    {
       CK_CHAR_PTR  iv;
    }CK_AES_PARAM;
+
+
+   typedef struct CK_PBFKD2_ENC_PARAMS {
+      CK_CHAR_PTR             iv;
+      CK_OBJECT_CLASS         sClass;
+      CK_KEY_TYPE             skeyType;
+      CK_MECHANISM_TYPE       ckMechSymType;
+      CK_LONG                 skeySize;
+      CK_OBJECT_HANDLE        hKey;
+      CK_PKCS5_PBKD2_PARAMS2  pbfkd2_param;
+      CK_CHAR                 sIV[AES_IV_LENGTH];
+      CK_ULONG                uIVLength;
+      CK_CHAR                 sSalt[PBFKD2_SALT_LENGTH];
+   } CK_PKCS5_PBKD2_ENC_PARAMS2;
+
+   typedef CK_PKCS5_PBKD2_ENC_PARAMS2 CK_PTR CK_PKCS5_PBKD2_ENC_PARAMS2_PTR;
 
    typedef struct p11_EncryptAlgo
    {
@@ -98,6 +117,7 @@ extern "C" {
          CK_RSA_PKCS_OAEP_PARAMS rsa_oeap_param;
          //CK_KEY_WRAP_SET_OAEP_PARAMS rsa_wrap_oeap;
          CK_RSA_AES_KEY_WRAP_PARAMS rsa_aes_wrap; // not supported by luna
+         CK_PKCS5_PBKD2_ENC_PARAMS2  pbkdf2_enc_param;
       };
    }P11_ENCRYPTION_MECH;
 
@@ -418,6 +438,7 @@ extern "C" {
    _EXT  CK_OBJECT_HANDLE     P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyGenTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength);
    _EXT  CK_OBJECT_HANDLE     P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel);
    _EXT  CK_BBOOL             P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate);
+   _EXT  CK_BBOOL             P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2_param, CK_BBOOL bDisplay);
    _EXT  CK_BBOOL             P11_CreateDO(P11_DOTEMPLATE* sDOTemplate);
    _EXT  CK_BBOOL             P11_WrapPrivateSecretKey(P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR   pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen);
    _EXT  CK_BBOOL             P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR_PTR pWrappedKey, CK_LONG pulWrappedKeyLen, CK_OBJECT_HANDLE* hKey);

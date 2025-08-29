@@ -26,6 +26,7 @@ extern "C" {
 
    _EXT  CK_ULONG       pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength);
    _EXT  CK_CHAR_PTR    pkcs8_EncodePublicKeyToPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength);
+   _EXT  CK_CHAR_PTR    pkcs8_EncodeEncryptedPrivateKeyToPem(CK_CHAR_PTR sEncryptedPrivateKey, CK_ULONG sEncryptedPrivateKeyLength);
 #undef _EXT
 
 #endif // _PKCS8_H_

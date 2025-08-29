@@ -28,12 +28,14 @@
 // constant
 const CK_CHAR STR_BEGIN_PUBLIC_KEY[] = "-----BEGIN PUBLIC KEY-----\n";
 const CK_CHAR STR_END_PUBLIC_KEY[] = "-----END PUBLIC KEY-----\n";
+const CK_CHAR STR_BEGIN_ENCRYPTED_PRIVATE_KEY[] = "-----BEGIN ENCRYPTED PRIVATE KEY-----\n";
+const CK_CHAR STR_END_ENCRYPTED_PRIVATE_KEY[] = "-----END ENCRYPTED PRIVATE KEY-----\n";
 const CK_CHAR STR_NEWLINE[] = "\n";
 
 #define PKCS8_LINE_SIZE         0x40
 
 /*
-    FUNCTION:        CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength)
+    FUNCTION:        CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sEncryptedPrivateKey, CK_ULONG sEncryptedPrivateKeyLength)
 */
 CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength)
 {
@@ -129,7 +131,7 @@ CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicK
 }
 
 /*
-    FUNCTION:        CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength)
+    FUNCTION:        CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sEncryptedPrivateKey, CK_ULONG sEncryptedPrivateKeyLength)
 */
 CK_CHAR_PTR  pkcs8_EncodePublicKeyToPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength)
 {
@@ -207,6 +209,98 @@ CK_CHAR_PTR  pkcs8_EncodePublicKeyToPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublic
       // append output pen buffer from end public key
       uSize = (CK_ULONG)strlen(STR_END_PUBLIC_KEY);
       memcpy(&sStringOutPemFile[sStringOutPemFileOffset], STR_END_PUBLIC_KEY, uSize);
+      sStringOutPemFileSize += uSize;
+      sStringOutPemFileOffset += uSize;
+      sStringOutPemFile[sStringOutPemFileOffset] = 0;
+   } while (FALSE);
+
+   // release memory
+   free(sStringEncoded64);
+
+   // return buffer
+   return sStringOutPemFile;
+}
+
+
+/*
+    FUNCTION:        CK_CHAR_PTR  pkcs8_EncodeEncryptedPrivateKeyToPem(CK_CHAR_PTR sEncryptedPrivateKey, CK_ULONG sEncryptedPrivateKeyLength)
+*/
+CK_CHAR_PTR  pkcs8_EncodeEncryptedPrivateKeyToPem(CK_CHAR_PTR sEncryptedPrivateKey, CK_ULONG sEncryptedPrivateKeyLength)
+{
+   CK_ULONG          uAllocatedBufferSize = 0;
+   CK_ULONG          uAllocatedBufferOffset = 0;
+   CK_ULONG          uLineNumber;
+   CK_CHAR_PTR       sStringOutPemFile = NULL;
+   CK_ULONG          sStringOutPemFileOffset = 0;
+   CK_ULONG          sStringOutPemFileSize = 0;
+   CK_ULONG          usPublicKeyOffset = 0;
+   CK_CHAR_PTR       sStringEncoded64;
+   CK_ULONG          sStringEncoded64Offset = 0;
+   CK_ULONG          sStringEncoded64Length = 0;
+   CK_ULONG          uSize;
+   CK_ULONG          uRemainingSize = 0;
+
+   // get the size of encoded base64 buffer
+   sStringEncoded64Length = (CK_ULONG)b64_encoded_size((size_t)sEncryptedPrivateKeyLength);
+
+   sStringEncoded64 = b64_encode(sEncryptedPrivateKey, (size_t)sEncryptedPrivateKeyLength);
+   if (sStringEncoded64 == NULL)
+   {
+      return NULL;
+   }
+
+   // calculate max number of line
+   uLineNumber = (sStringEncoded64Length / PKCS8_LINE_SIZE) + 1;
+
+   // Buffer size include string begin key + string end key + n time number of line of size \r\n
+   uAllocatedBufferSize = sStringEncoded64Length + (CK_ULONG)strlen(STR_BEGIN_ENCRYPTED_PRIVATE_KEY) + (CK_ULONG)strlen(STR_END_ENCRYPTED_PRIVATE_KEY) + (uLineNumber * (CK_ULONG)strlen(STR_NEWLINE)) + 1;
+
+   // allocate buffer
+   sStringOutPemFile = malloc(uAllocatedBufferSize);
+
+   // if null stop the function
+   if (sStringOutPemFile == NULL)
+   {
+      return NULL;
+   }
+
+   do
+   {
+      // append output pen buffer from begin public key
+      uSize = (CK_ULONG)strlen(STR_BEGIN_ENCRYPTED_PRIVATE_KEY);
+      memcpy(sStringOutPemFile, STR_BEGIN_ENCRYPTED_PRIVATE_KEY, uSize);
+      sStringOutPemFileSize += uSize;
+      sStringOutPemFileOffset += uSize;
+
+      while (sStringEncoded64Offset < sStringEncoded64Length)
+      {
+         uRemainingSize = sStringEncoded64Length - sStringEncoded64Offset;
+         // Check the number of remaining byte in the buffer
+         if (uRemainingSize >= PKCS8_LINE_SIZE)
+         {
+            // set size of line
+            uSize = PKCS8_LINE_SIZE;
+         }
+         else
+         {
+            // set the remaining size
+            uSize = uRemainingSize;
+         }
+
+         // append output pen buffer from encoded base64 buffer
+         memcpy(&sStringOutPemFile[sStringOutPemFileOffset], &sStringEncoded64[sStringEncoded64Offset], uSize);
+         sStringEncoded64Offset += uSize;
+         sStringOutPemFileOffset += uSize;
+
+         // append output pen buffer with \n
+         uSize = (CK_ULONG)strlen(STR_NEWLINE);
+         memcpy(&sStringOutPemFile[sStringOutPemFileOffset], STR_NEWLINE, uSize);
+         sStringOutPemFileOffset += uSize;
+
+      }
+      // append output pen buffer from end public key
+      uSize = (CK_ULONG)strlen(STR_END_ENCRYPTED_PRIVATE_KEY);
+      memcpy(&sStringOutPemFile[sStringOutPemFileOffset], STR_END_ENCRYPTED_PRIVATE_KEY, uSize);
       sStringOutPemFileSize += uSize;
       sStringOutPemFileOffset += uSize;
       sStringOutPemFile[sStringOutPemFileOffset] = 0;

@@ -86,6 +86,10 @@ extern "C" {
 #define ARG_TYPE_CRYPTO_USER        59
 #define ARG_TYPE_KEY_COMP           60
 #define ARG_TYPE_ATTR_NAME          61
+#define ARG_TYPE_KEY_PASSWORD       62
+#define ARG_TYPE_SALT               63
+#define ARG_TYPE_ITERATION          64
+#define ARG_TYPE_PRF                65
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -116,6 +120,7 @@ extern "C" {
 #define cmdarg_GetInputFilePath(buf, size)   cmdarg_SearchTypeString(ARG_TYPE_FILE_INPUT, buf, size)
 #define cmdarg_ArgGetIV()                    cmdarg_SearchTypeString(ARG_TYPE_IV, NULL, 0)
 #define cmdarg_GetGCMAuthData()              cmdarg_SearchTypeString(ARG_TYPE_GCM_AUTH_DATA, NULL, 0)
+#define cmdarg_ArgGetSalt()                  cmdarg_SearchTypeString(ARG_TYPE_SALT, NULL, 0)
 #define cmdarg_GetGCMAuthTagLen()            cmdarg_SearchTypeInteger(ARG_TYPE_GCM_TAG_LEN)
 #define cmdarg_GetHash()                     cmdarg_SearchHash(ARG_TYPE_HASH_KEY)
 
@@ -150,6 +155,7 @@ extern "C" {
    _EXT  CK_ATTRIBUTE_TYPE       cmdarg_AttributeType();
    _EXT  CK_BBOOL                cmdarg_isCryptoUserLoginRequested();
    _EXT  CK_LONG                 cmdarg_GetCompomentsNumber();
+   _EXT  CK_CHAR_PTR             cmdarg_GetKeyPassword();
 
 #undef _EXT
 

@@ -980,6 +980,13 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
                printf("wrong or missing argument : -algo \n");
                break;
             }
+
+            // if wrap algo is AES KW, the input key size if required
+            if (sUnwrapTemplate.wrapmech->ckMechType == CKM_AES_KW)
+            {
+               // get key size
+               sUnwrapTemplate.skeySize = cmdarg_GetKeySize();
+            }
          }
 
          return cmd_UnwrapPrivateSecretkey(&sUnwrapTemplate, sFilePath, FileFormat);
@@ -993,7 +1000,8 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
 
    return CK_FALSE;
 }
-
+// export -slot=1 -password=12345678 -handle=391 -algo=pbfkd2_aes256_cbc -format=pkcs8 -keypassword=password -outputfile=rsa-private.pem
+// export -slot=1 -password=12345678 -handle=391 -algo=pbfkd2_aes256_cbc -format=pkcs8 -keypassword=password -outputfile=rsa-private.pem -iv 536F375079BBF42A045FBDAC580B0126 -salt DCDDD846792603A4
 /*
     FUNCTION:        CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
 */
@@ -1050,7 +1058,70 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
       switch (sExportTemplate.sClass)
       {
       case CKO_PRIVATE_KEY:
+
+         // Check if key to export is extractable
+         if (P11_GetBooleanAttribute(sExportTemplate.hKeyToExport, CKA_EXTRACTABLE) == CK_FALSE)
+         {
+            printf("key with handle %i is not extractable.\n", sExportTemplate.hKeyToExport);
+            break;
+         }
+
+         // get wrap algo
+         sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
+         if (sExportTemplate.wrap_key_mech == NULL)
+         {
+            printf("wrong or missing argument : -algo \n");
+            break;
+         }
+
+         // check if format is pkcs8. 
+         // pkcs8 for private key is based on password based encryption
+         if (FileFormat == FILE_FORMAT_PKCS8)
+         {
+            sExportTemplate.hWrappingKey = sExportTemplate.wrap_key_mech->pbkdf2_enc_param.hKey;
+         }
+         else
+         {
+            // get handle for wrap key
+            sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
+            if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
+            {
+               printf("wrong argument : -key \n");
+               break;
+            }
+
+            // search for object handle
+            if (P11_FindKeyObject(sExportTemplate.hWrappingKey) == CK_FALSE)
+            {
+               printf("key with handle %i not found.\n", sExportTemplate.hWrappingKey);
+               break;
+            }
+
+            // Check if wrapping key has wrap attribute
+            if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
+            {
+               printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
+               break;
+            }
+         }
+         return cmd_WrapPrivateSecretkey(&sExportTemplate, sFilePath, FileFormat);
+
       case CKO_SECRET_KEY:
+
+         // Check if key to export is extractable
+         if (P11_GetBooleanAttribute(sExportTemplate.hKeyToExport, CKA_EXTRACTABLE) == CK_FALSE)
+         {
+            printf("key with handle %i is not extractable.\n", sExportTemplate.hKeyToExport);
+            break;
+         }
+
+         // get wrap algo
+         sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
+         if (sExportTemplate.wrap_key_mech == NULL)
+         {
+            printf("wrong or missing argument : -algo \n");
+            break;
+         }
 
          // get handle for wrap key
          sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
@@ -1071,21 +1142,6 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
          {
             printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
-            break;
-         }
-
-         // Check if key to export is extractable
-         if (P11_GetBooleanAttribute(sExportTemplate.hKeyToExport, CKA_EXTRACTABLE) == CK_FALSE)
-         {
-            printf("key with handle %i is not extractable.\n", sExportTemplate.hKeyToExport);
-            break;
-         }
-
-         // get wrap algo
-         sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
-         if (sExportTemplate.wrap_key_mech == NULL)
-         {
-            printf("wrong or missing argument : -algo \n");
             break;
          }
 
@@ -1654,7 +1710,6 @@ CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
    return CK_FALSE;
 }
 
-
 /*
     FUNCTION:        CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat)
 */
@@ -1668,7 +1723,7 @@ CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR
    do
    {
       // check format is text or binary
-      if (!((FileFormat == FILE_FORMAT_TEXT) || (FileFormat == FILE_FORMAT_BINARY)))
+      if (!((FileFormat == FILE_FORMAT_TEXT) || (FileFormat == FILE_FORMAT_BINARY) || (FileFormat == FILE_FORMAT_PKCS8)))
       {
          printf("Wrong file format");
          break;
@@ -1697,8 +1752,34 @@ CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR
          {
             CK_LONG writtenSize = 0;
 
-            // Write hex File
-            writtenSize = File_WriteHexFile(sFilePath, sWrappedkeyBuffer, AllocateSize, (CK_BBOOL)(FileFormat & MASK_BINARY));
+            if (FileFormat == FILE_FORMAT_PKCS8)
+            {
+               CK_CHAR_PTR buffer;
+               CK_BBOOL bResult;
+
+               // delete pbe wrap key, generated before
+               P11_DeleteObject(sWrapTemplate->hWrappingKey);
+
+               // create encrypted private key info
+               bResult = asn1_Build_EncryptedPrivateKeyInfoPbkdf2(&sWrapTemplate->wrap_key_mech->pbkdf2_enc_param, sWrappedkeyBuffer, AllocateSize);
+
+               if (bResult == CK_TRUE)
+               {
+                  // Encode the asn1 string to pkcs8 pem
+                  buffer = pkcs8_EncodeEncryptedPrivateKeyToPem(asn1_BuildGetBuffer(), asn1_GetBufferSize());
+
+                  // write in file as string
+                  writtenSize = File_Write(sFilePath, buffer, (CK_ULONG)strlen(buffer), CK_FALSE);
+
+                  // release allocated buffer by pkcs8_EncodePublicKeyToPem
+                  free(buffer);
+               }
+            }
+            else
+            {
+               // Write hex File
+               writtenSize = File_WriteHexFile(sFilePath, sWrappedkeyBuffer, AllocateSize, (CK_BBOOL)(FileFormat & MASK_BINARY));
+            }
 
             if (writtenSize > 0)
             {

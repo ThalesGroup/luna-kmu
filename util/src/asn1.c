@@ -43,6 +43,22 @@ const CK_CHAR OID_EDDSA_X448_DOMAIN[]     = { 0x0D, 0x04, 0x01, 0x03, 0x65, 0x6F
 const CK_CHAR OID_EDDSA_ED25519_DOMAIN[]  = { 0x06, 0x03, 0x2B, 0x65, 0x70 };
 const CK_CHAR OID_EDDSA_ED448_DOMAIN[]    = { 0x0D, 0x04, 0x01, 0x03, 0x65, 0x71 };
 
+const CK_CHAR OID_NIST_AES_128_CBC_PAD[]  = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x01, 0x02 };
+const CK_CHAR OID_NIST_AES_192_CBC_PAD[]  = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x01, 0x16 };
+const CK_CHAR OID_NIST_AES_256_CBC_PAD[]  = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x01, 0x2A };
+
+
+const CK_CHAR OID_HMAC_SHA1[]             = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x07 };
+const CK_CHAR OID_HMAC_SHA224[]           = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x08 };
+const CK_CHAR OID_HMAC_SHA256[]           = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x09 };
+const CK_CHAR OID_HMAC_SHA384[]           = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x0A };
+const CK_CHAR OID_HMAC_SHA512[]           = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x0B };
+const CK_CHAR OID_HMAC_SHA512_224[]       = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x0C };
+const CK_CHAR OID_HMAC_SHA512_256[]       = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x02, 0x0D };
+
+const CK_CHAR OID_PKCS5_PBKDF2[]          = { 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x05, 0x0C };
+const CK_CHAR OID_PKCS5_PBES2[]           = { 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x05, 0x0D };
+
 /*
    id-X25519    OBJECT IDENTIFIER ::= { 1 3 101 110 }
    id-X448      OBJECT IDENTIFIER ::= { 1 3 101 111 }
@@ -61,6 +77,7 @@ const CK_CHAR OID_EDDSA_ED448_DOMAIN[]    = { 0x0D, 0x04, 0x01, 0x03, 0x65, 0x71
 #define TAG_SEQUENCE             0x30
 #define TAG_OID                  0x06
 #define TAG_BITSTRING            0x03
+#define TAG_OCTECTSTRING         0x04
 #define TAG_INTEGER              0x02
 #define TAG_NULL                 0x05
 
@@ -412,6 +429,212 @@ CK_BBOOL asn1_Build_DHpublicKeyInfo(DH_PUBLIC_KEY* sDHPublicKey)
 }
 
 /*
+https://www.ietf.org/rfc/rfc5208.txt
+
+EncryptedPrivateKeyInfo ::= SEQUENCE {
+    encryptionAlgorithm AlgorithmIdentifier {{KeyEncryptionAlgorithms}},
+    encryptedData EncryptedData
+}
+
+https://datatracker.ietf.org/doc/html/rfc2898#appendix-A.4
+
+id-PBES2 OBJECT IDENTIFIER ::= {pkcs-5 13}
+
+   AlgorithmIdentifier { ALGORITHM-IDENTIFIER:InfoObjectSet } ::=
+     SEQUENCE {
+       algorithm ALGORITHM-IDENTIFIER.&id({InfoObjectSet}),
+       parameters ALGORITHM-IDENTIFIER.&Type({InfoObjectSet}
+       {@algorithm}) OPTIONAL
+   }
+
+
+parameters = PBES2-params ::= SEQUENCE {
+       keyDerivationFunc AlgorithmIdentifier {{PBES2-KDFs}},
+       encryptionScheme AlgorithmIdentifier {{PBES2-Encs}} }
+
+
+       id-PBKDF2 OBJECT IDENTIFIER ::= {pkcs-5 12}
+
+keyDerivationFunc=
+   PBKDF2Algorithms ALGORITHM-IDENTIFIER ::= {
+      {PBKDF2-params IDENTIFIED BY id-PBKDF2},
+      ...
+   }
+
+
+      PBKDF2-params ::= SEQUENCE {
+       salt CHOICE {
+           specified OCTET STRING,
+           otherSource AlgorithmIdentifier {{PBKDF2-SaltSources}}
+       },
+       iterationCount INTEGER (1..MAX),
+       keyLength INTEGER (1..MAX) OPTIONAL,
+       prf AlgorithmIdentifier {{PBKDF2-PRFs}} DEFAULT
+       algid-hmacWithSHA1 }
+
+
+ prf =          
+ PBKDF2-PRFs ALGORITHM-IDENTIFIER ::= {
+     {NULL IDENTIFIED BY id-hmacWithSHA1},
+     {NULL IDENTIFIED BY id-hmacWithSHA224},
+     {NULL IDENTIFIED BY id-hmacWithSHA256},
+     {NULL IDENTIFIED BY id-hmacWithSHA384},
+     {NULL IDENTIFIED BY id-hmacWithSHA512},
+     {NULL IDENTIFIED BY id-hmacWithSHA512-224},
+     {NULL IDENTIFIED BY id-hmacWithSHA512-256},
+     ...
+   }
+
+
+https://www.rfc-editor.org/rfc/rfc8018.html#appendix-C
+
+encryptionScheme = 
+
+   SupportingAlgorithms ALGORITHM-IDENTIFIER ::= {
+      {NULL IDENTIFIED BY id-hmacWithSHA1}                   |
+      {OCTET STRING (SIZE(8)) IDENTIFIED BY desCBC}          |
+      {OCTET STRING (SIZE(8)) IDENTIFIED BY des-EDE3-CBC}    |
+      {RC2-CBC-Parameter IDENTIFIED BY rc2CBC}               |
+      {RC5-CBC-Parameters IDENTIFIED BY rc5-CBC-PAD},        |
+      {OCTET STRING (SIZE(16)) IDENTIFIED BY aes128-CBC-PAD} |
+      {OCTET STRING (SIZE(16)) IDENTIFIED BY aes192-CBC-PAD} |
+      {OCTET STRING (SIZE(16)) IDENTIFIED BY aes256-CBC-PAD},
+       ...
+   }
+
+The AES object identifier is defined in Appendix C.
+
+   The parameters field associated with this OID in an
+   AlgorithmIdentifier shall have type OCTET STRING (SIZE(16)),
+   specifying the initialization vector for CBC mode.
+
+   AES-CBC-ALGORITHM-IDENTIFIER ::= SEQUENCE {
+       ALGORITHM-IDENTIFIER,
+       iv OCTET STRING (SIZE(16))
+   }
+
+*/
+
+/*
+    FUNCTION:        CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen)
+*/
+CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen)
+{
+   CK_ULONG uTlvEncryptedDataSize = 0;
+   CK_ULONG uTlvEncryptedAlgoSize = 0;
+   CK_ULONG uTlvSize = 0;
+   CK_ULONG uSize = 0;
+
+   // init asn1builder
+   asn1_Build_Init();
+
+   // new branch (encryptedData)
+   // Tag octect string for encrypted private key
+   uTlvEncryptedDataSize = asn1_Build_tlv(TAG_OCTECTSTRING, pWrappedKey, pulWrappedKeyLen);
+
+   // new branch (encryptionScheme AES-CBC-ALGORITHM-IDENTIFIER)
+   // Puth IV in tag octect string
+   uTlvSize = asn1_Build_tlv(TAG_OCTECTSTRING, sPbkd2_param->iv, sPbkd2_param->uIVLength);
+
+   // Puth OID
+   switch (sPbkd2_param->ckMechSymType)
+   {
+      case CKM_AES_CBC_PAD:
+         if (sPbkd2_param->skeySize == AES_128_KEY_LENGTH)
+         {
+            uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_NIST_AES_128_CBC_PAD, sizeof(OID_NIST_AES_128_CBC_PAD));
+         }
+         else if (sPbkd2_param->skeySize == AES_192_KEY_LENGTH)
+         {
+            uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_NIST_AES_192_CBC_PAD, sizeof(OID_NIST_AES_192_CBC_PAD));
+         }
+         else if (sPbkd2_param->skeySize == AES_256_KEY_LENGTH)
+         {
+            uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_NIST_AES_256_CBC_PAD, sizeof(OID_NIST_AES_256_CBC_PAD));
+         }
+         else
+         {
+            return CK_FALSE;
+         }
+         break;
+      default:
+         return CK_FALSE;
+   }
+
+   // encapsulate in tag sequence
+   uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+   uTlvEncryptedAlgoSize = uTlvSize;
+
+   // new branch (keyDerivationFunc PBKDF2Algorithms)
+   uTlvSize = 0;
+
+   switch (sPbkd2_param->pbfkd2_param.prf)
+   {
+   case CKP_PKCS5_PBKD2_HMAC_SHA1:
+      break;
+   case CKP_PKCS5_PBKD2_HMAC_SHA224:
+      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA224, sizeof(OID_HMAC_SHA224));
+      break;
+   case CKP_PKCS5_PBKD2_HMAC_SHA256:
+      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA256, sizeof(OID_HMAC_SHA256));
+      break;
+   case CKP_PKCS5_PBKD2_HMAC_SHA384:
+      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA384, sizeof(OID_HMAC_SHA384));
+      break;
+   case CKP_PKCS5_PBKD2_HMAC_SHA512:
+      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512, sizeof(OID_HMAC_SHA512));
+      break;
+   case CKP_PKCS5_PBKD2_HMAC_SHA512_224:
+      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512_224, sizeof(OID_HMAC_SHA512_224));
+      break;
+   case CKP_PKCS5_PBKD2_HMAC_SHA512_256:
+      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512_256, sizeof(OID_HMAC_SHA512_256));
+      break;
+   default:
+      return CK_FALSE;
+   }
+   if (sPbkd2_param->pbfkd2_param.prf != CKP_PKCS5_PBKD2_HMAC_SHA1)
+   {
+      uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+   }
+
+   // Push ierations
+   uTlvSize += asn1_Build_tlv_Long(TAG_INTEGER, sPbkd2_param->pbfkd2_param.iterations);
+
+   // Push salt value
+   uTlvSize += asn1_Build_tlv(TAG_OCTECTSTRING, sPbkd2_param->pbfkd2_param.pSaltSourceData, sPbkd2_param->pbfkd2_param.ulSaltSourceDataLen);
+   
+   // encapsulate in sequence
+   uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+
+   // push oid pbkdf2
+   uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_PKCS5_PBKDF2, sizeof(OID_PKCS5_PBKDF2));
+
+   // encapsulate in sequence
+   uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+
+   // encapsulate in sequence (keyDerivationFunc + encryptionScheme)
+   uTlvEncryptedAlgoSize = uTlvEncryptedAlgoSize + uTlvSize + asn1_Build_tl(TAG_SEQUENCE, uTlvSize + uTlvEncryptedAlgoSize);
+
+   // push oid pbes2
+   uTlvEncryptedAlgoSize += asn1_Build_t((CK_CHAR_PTR)OID_PKCS5_PBES2, sizeof(OID_PKCS5_PBES2));
+
+   // encapsulate in tag sequence
+   uTlvEncryptedAlgoSize += asn1_Build_tl(TAG_SEQUENCE, uTlvEncryptedAlgoSize);
+
+   // encapsulate in sequence (encryptionAlgorithm + encryptedData)
+   asn1_Build_tl(TAG_SEQUENCE, uTlvEncryptedAlgoSize + uTlvEncryptedDataSize);
+
+   return CK_TRUE;
+}
+
+/*
     FUNCTION:        CK_BBOOL asn1_Build_Init(CK_LONG uSize)
 */
 CK_BBOOL asn1_Build_Init()
@@ -505,6 +728,50 @@ CK_ULONG asn1_Build_tlv(CK_BYTE tag,CK_CHAR_PTR data, CK_ULONG size)
    // copy the data to the end of the buffer
    memcpy(&asn1_BuildBuffer[asn1_BuildBufferoffset - size], data, size);
    asn1_BuildBufferoffset -= size;
+
+   asn1_Build_tl(tag, size);
+
+   // return uSize of this TLV
+   return (asn1_BuildBufferSize - uCurrentTlvSize);
+}
+
+/*
+    FUNCTION:        CK_ULONG asn1_Build_tlv_Long(CK_BYTE tag, CK_ULONG Value)
+*/
+CK_ULONG asn1_Build_tlv_Long(CK_BYTE tag, CK_ULONG Value)
+{
+   CK_ULONG size = 0;
+   CK_ULONG uCurrentTlvSize = asn1_BuildBufferSize;
+
+   if (Value < 0xFF)
+   {
+      size = 1;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)Value;
+   }
+   else if (Value < 0xFFFF)
+   {
+      size = 2;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)Value;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)(Value >> 8);
+   }
+   else if (Value < 0xFFFFFF)
+   {
+      size = 3;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)Value;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)(Value >> 8);
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)(Value >> 16);
+   }
+   else
+   {
+      size = 4;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)Value;
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)(Value >> 8);
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)(Value >> 16);
+      asn1_BuildBuffer[--asn1_BuildBufferoffset] = (CK_BYTE)(Value >> 24);
+   }
+
+
+   asn1_BuildBufferSize += size;
 
    asn1_Build_tl(tag, size);
 

@@ -150,10 +150,10 @@ const STRING_ARRAY ARG_PUBLIC_EXP = "-publicexponent";
 const STRING_ARRAY ARG_PUBLIC_EXP_HELP = "Public exponent value to be used for generation of RSA key pairs\n\t\t\t\t\t-Supported value: 3, 17, 10001, 65537 ";
 
 const STRING_ARRAY ARG_ALGO = "-algo";
-const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep";
+const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbfkd2_aes128_cbc, pbfkd2_aes192_cbc, pbfkd2_aes256_cbc (password base encryption requires pkcs8 format)";
 
 const STRING_ARRAY ARG_IV = "-iv";
-const STRING_ARRAY ARG_IV_HELP = "Symmetric encryption algorithm IV as hexadecimal string\n\t\t\t\t\t-Optional. A default IV is used if absent\n\t\t\t\t\t-AES CBC, CFB, OFB : 16 bytes, default IV: '31323334353637383132333435363738'\n\t\t\t\t\t-AES GCM : 12 bytes or more, default IV: '00310000000000000000000000000000'";
+const STRING_ARRAY ARG_IV_HELP = "Symmetric encryption algorithm IV as hexadecimal string\n\t\t\t\t\t-Optional. A default IV is used if absent\n\t\t\t\t\t-AES CBC, CFB, OFB : 16 bytes, default IV: '31323334353637383132333435363738'\n\t\t\t\t\t-AES GCM : 12 bytes or more, default IV: '00310000000000000000000000000000'\n\t\t\t\t\t-PBKDF2 with AES CBC : 16 bytes, default IV is random";
 
 const STRING_ARRAY ARG_ADDITONAL_AUTH_DATA = "-aad";
 const STRING_ARRAY ARG_ADDITONAL_AUTH_DATA_HELP = "Additional Authentication Data as hexadecimal string\n\t\t\t\t\t-Optional. Empty as default\n\t\t\t\t\t-AES GCM : minimum 1 byte";
@@ -190,7 +190,7 @@ const STRING_ARRAY ARG_FILE_HELP = "Input file path\n\t\t\t\t\t-It can be relati
 const STRING_ARRAY ARG_FORMAT = "-format";
 const STRING_ARRAY ARG_INFORMAT = "-inform";
 const STRING_ARRAY ARG_OUTFORMAT = "-outform";
-const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for private or secret key: bin, txt or text\n\t\t\t\t\t-Supported value for public key: bin, text, txt or pkcs8";
+const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key: bin, txt or text\n\t\t\t\t\t-Supported value for public key: bin, text, txt or pkcs8, \n\t\t\t\t\t-Supported value for private key: bin, txt, text or pkcs8(requires pkfkd2 encryption)";
 const STRING_ARRAY ARG_FORMAT_ENCRYPT_HELP = "File format as binary or hexadecimal text \n\t\t\t\t\t-Supported value: bin, text, txt";
 
 const STRING_ARRAY ARG_ATTR_NAME = "-attribute";
@@ -261,6 +261,18 @@ const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method \n\t\t\t\t\t-Su
 
 const STRING_ARRAY ARG_KCV_COMP = "-clearcomponents";
 const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and calculate KCV for each component with PCI method \n\t\t\t\t\t-Number of compoments for symetric keys between 2 to 16";
+
+const STRING_ARRAY ARG_KEYPASSWORD_COMP = "-keypassword";
+const STRING_ARRAY ARG_KEYPASSWORD_COMP_HELP = "password of the key for PBKDF2 key generation. \n\t\t\t\t\t-Mandatory if using pbfkd2.";
+
+const STRING_ARRAY ARG_SALT_COMP = "-salt";
+const STRING_ARRAY ARG_SALT_COMP_HELP = "salt value for PBKDF2 key generation. \n\t\t\t\t\t-Optional. If empty, the salt is randomly generated with 16 bytes length ";
+
+const STRING_ARRAY ARG_ITERATION_COMP = "-iteration";
+const STRING_ARRAY ARG_ITERATION_COMP_HELP = "number if iteration value for PBKDF2 key generation. \n\t\t\t\t\t-Optional. If empty, the number of iteration is 10000 ";
+
+const STRING_ARRAY ARG_PRF_COMP = "-prf";
+const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password based encryption function. \n\t\t\t\t\t-Optional. hmac-sha1, If empty, the default prf algo is hmac-sha1 ";
 
 
 #define CMD_HELP_VALUE              (const CK_CHAR_PTR)CMD_HELP, (const P_fCMD)&parser_CommandHelp, (const CK_CHAR_PTR)CMD_HELP_HELP, \
@@ -391,7 +403,12 @@ const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and
                                     (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA, ARG_TYPE_GCM_AUTH_DATA, (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA_HELP, \
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
+                                    (const CK_CHAR_PTR)ARG_KEYPASSWORD_COMP, ARG_TYPE_KEY_PASSWORD, (const CK_CHAR_PTR)ARG_KEYPASSWORD_COMP_HELP, \
+                                    (const CK_CHAR_PTR)ARG_SALT_COMP, ARG_TYPE_SALT, (const CK_CHAR_PTR)ARG_SALT_COMP_HELP, \
+                                    (const CK_CHAR_PTR)ARG_ITERATION_COMP, ARG_TYPE_ITERATION, (const CK_CHAR_PTR)ARG_ITERATION_COMP_HELP, \
+                                    (const CK_CHAR_PTR)ARG_PRF_COMP, ARG_TYPE_PRF, (const CK_CHAR_PTR)ARG_PRF_COMP_HELP, \
 }
+
 
 #define CMD_IMPORT_KEY_VALUE        (const CK_CHAR_PTR)CMD_IMPORT, (const P_fCMD)&cmd_kmu_import, (const CK_CHAR_PTR)CMD_IMPORT_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
@@ -685,7 +702,7 @@ int main(int argc, // Number of strings in array argv
    char* argv[],      // Array of command-line argument strings
    char** envp)
 {
-   printf("Key Management Utility (64-bit). Copyright ©(c) 2024 Thales Group. All rights reserved.\n");
+   printf("Key Management Utility (64-bit). Copyright ©(c) 2025 Thales Group. All rights reserved.\n");
    printf("This tool is a cryptography key utility compatible with PKCS#11 device such as luna hsm and is only for test purposes and shall not be distributed.\n\n");
 
    // Init console
