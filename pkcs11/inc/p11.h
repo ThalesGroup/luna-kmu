@@ -73,6 +73,7 @@ extern "C" {
 #define KCV_PKCS11                  0x01
 #define KCV_PCI                     0x02
 #define KCV_GP                      0x03
+#define KCV_HMAC_256                0x04
 
 #define PBFKD2_DEFAULT_ITERATION    10000       // 
 #define PBFKD2_SALT_LENGTH          16          // recommanded by NIST
@@ -130,6 +131,7 @@ extern "C" {
       {
          CK_DES_PARAM   des_param;
          CK_AES_PARAM   aes_param;
+         CK_MAC_GENERAL_PARAMS  macGeneralParams;
       };
    }P11_SIGN_MECH;
 

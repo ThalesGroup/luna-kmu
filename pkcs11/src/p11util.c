@@ -619,12 +619,14 @@ const P11_HASH_MECH hash_algo[] = {
 const CK_CHAR ARG_KCV_METHOD_PKCS11[] = "pkcs11";
 const CK_CHAR ARG_KCV_METHOD_PCI[] = "pci";
 const CK_CHAR ARG_KCV_METHOD_GP[] = "gp";
+const CK_CHAR ARG_KCV_METHOD_HMAC_SHA2_56[] = "hmac-sha-256";
 
 #define SIZE_KCV_TYPE_TABLE     DIM(kcv_type)
 const P11_KCV_TYPE kcv_type[] = {
    {(CK_CHAR_PTR)&ARG_KCV_METHOD_PKCS11,           KCV_PKCS11},
    {(CK_CHAR_PTR)&ARG_KCV_METHOD_PCI,              KCV_PCI},
    {(CK_CHAR_PTR)&ARG_KCV_METHOD_GP,               KCV_GP},
+   {(CK_CHAR_PTR)&ARG_KCV_METHOD_HMAC_SHA2_56,     KCV_HMAC_256},
 
 };
 

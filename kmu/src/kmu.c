@@ -257,7 +257,7 @@ const STRING_ARRAY ARG_KDF_CONTEXT = "-kdf-context";
 const STRING_ARRAY ARG_KDF_CONTEXT_HELP = "Luna Key Derivation Function context as hex string. \n\t\t\t\t\t-Optional. If empty, context is set as empty string";
 
 const STRING_ARRAY ARG_KCV_METHOD = "-method";
-const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method \n\t\t\t\t\t-Supported value: pkcs11, pci(banking), gp (global platform)";
+const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method, supported value: \n\t\t\t\t\t-pkcs11\n\t\t\t\t\t\t-DES keys: 3 first bytes of ECB encryption of one block set to 00..00\n\t\t\t\t\t\t-AES keys: 3 first bytes of ECB encryption of one block set to 00..00 \n\t\t\t\t\t-pci(banking) \n\t\t\t\t\t\t-DES keys : 3 first bytes of MAC signature of one block set to 00..00 \n\t\t\t\t\t\t-AES keys : 3 first bytes of MAC signature of one block set to 00..00  \n\t\t\t\t\t-gp (global platform)\n\t\t\t\t\t\t-DES keys : 3 first bytes MAC signature of one block set to 00..00\n\t\t\t\t\t\t-AES keys: 3 first bytes of CMAC signature of one block set to 01..01\n\t\t\t\t\t-hmac-sha-256\n\t\t\t\t\t\t-HMAC, GENERIC keys: : 3 first bytes of HMAC signature of a null block";
 
 const STRING_ARRAY ARG_KCV_COMP = "-clearcomponents";
 const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and calculate KCV for each component with PCI method \n\t\t\t\t\t-Number of compoments for symetric keys between 2 to 16";

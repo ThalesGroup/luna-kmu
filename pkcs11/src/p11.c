@@ -3072,7 +3072,10 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
          sEncMech->usParameterLen = 0;
       }
       break;
-
+   case CKM_SHA256_HMAC:
+      sEncMech->pParameter = NULL;
+      sEncMech->usParameterLen = 0;
+      break;
 
    default:
       printf("P11_BuildCKSignMecanism : Invalid Mecanism : %i", sign_mech->ckMechType);
@@ -3300,11 +3303,12 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
     CK_BBOOL                  bResult;
     P11_SIGNATURE_TEMPLATE    sSignatureTemplate = { 0 };
     P11_ENCRYPT_TEMPLATE      sEncryptionTemplate = { 0 };
-    CK_OBJECT_CLASS           sClass;
-    CK_KEY_TYPE               skeyType;
-    CK_MECHANISM_TYPE         ckMechTypeMac;
-    CK_MECHANISM_TYPE         ckMechTypeEnc;
-    CK_ULONG                  uInputLengh;
+    CK_OBJECT_CLASS           sClass = 0;
+    CK_KEY_TYPE               skeyType = 0;
+    CK_MECHANISM_TYPE         ckMechTypeMac = 0;
+    CK_MECHANISM_TYPE         ckMechTypeEnc = 0;
+    CK_MECHANISM_TYPE         ckMechTypehMac = 0;
+    CK_ULONG                  uInputLengh = 0;
 
     sClass = P11_GetObjectClass(hKey);
 
@@ -3334,6 +3338,10 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        ckMechTypeMac = CKM_DES3_MAC;
        ckMechTypeEnc = CKM_DES3_ECB;
        uInputLengh = DES_BLOCK_LENGTH;
+       break;
+    case CKK_GENERIC_SECRET:
+       ckMechTypehMac = CKM_SHA256_HMAC;
+       uInputLengh = 0;
        break;
     default:
        printf("P11_ComputeKCV error : unsuported key type : %s\n", P11Util_DisplayKeyTypeName(skeyType));
@@ -3425,6 +3433,44 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        }
 
        return CK_TRUE;
+
+    case KCV_HMAC_256:
+       // use cmac signature
+       sSignatureTemplate.hSignatureKey = hKey;
+       sSignatureTemplate.sClass = sClass;
+       sSignatureTemplate.skeyType = skeyType;
+       sSignatureTemplate.sInputData = sInputData;
+       sSignatureTemplate.sInputDataLength = uInputLengh;
+       sSignMech.aes_param.iv = NULL;
+       sSignMech.ckMechType = ckMechTypehMac;
+
+       sSignatureTemplate.sign_mech = &sSignMech;
+
+       // Check if key has attribute CKA_SIGN
+       if (P11_GetBooleanAttribute(hKey, CKA_SIGN) == CK_FALSE)
+       {
+          if (P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_TRUE) == CK_FALSE)
+          {
+             printf("P11_ComputeKCV error : Sign attribute is not set\n ");
+             break;
+          }
+          bRestoreAttribute = CK_TRUE;
+       }
+
+       bResult = P11_SignData(&sSignatureTemplate, pKcvBuffer, &sSigbDataLengh);
+
+       // restore sign attribute
+       if (bRestoreAttribute == CK_TRUE)
+       {
+          P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_FALSE);
+       }
+
+       if (bResult == FALSE)
+       {
+          break;
+       }
+       return CK_TRUE;
+
 
     default:
        printf("P11_ComputeKCV error : unknown KCV method\n ");
