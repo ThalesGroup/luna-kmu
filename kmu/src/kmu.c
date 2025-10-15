@@ -96,6 +96,9 @@ const STRING_ARRAY CMD_DIGEST_KEY_HELP = "This command return a message digest o
 const STRING_ARRAY CMD_COMPUTE_KCV = "computekcv";
 const STRING_ARRAY CMD_COMPUTE_KCV_HELP = "This command calculate the KCV of a symetric key";
 
+const STRING_ARRAY CMD_REMOTE_MZMK = "remotemzmk";
+const STRING_ARRAY CMD_REMOTE_MZMK_HELP = "This command generate and store a payshield TMD remote MZMK derived from the input file containing tmd public key and return CSV file for TMD";
+
 
 /** parameters **/
 const STRING_ARRAY ARG_SLOT_ID = "-slot";
@@ -111,6 +114,7 @@ const STRING_ARRAY ARG_LABEL = "-label";
 const STRING_ARRAY ARG_LABEL_HELP = "Key label value";
 const STRING_ARRAY ARG_LABEL_GENERATEKEY_HELP = "Key label value\n\t\t\t\t\t-Mandatory for symmetric keys\n\t\t\t\t\t-Optionnal for asymmetric keys";
 const STRING_ARRAY ARG_LABEL_DERIVEKEY_HELP = "derived Key label value";
+const STRING_ARRAY ARG_LABEL_MZMK_HELP = "Key label value for the MZMK";
 
 const STRING_ARRAY ARG_HANDLE = "-handle";
 const STRING_ARRAY ARG_HANDLE_HELP = "Object handle value";
@@ -137,11 +141,14 @@ const STRING_ARRAY ARG_KEYTYPE = "-keytype";
 const STRING_ARRAY ARG_KEYTYPE_HELP = "Key type value\n\t\t\t\t\t-Supported value: des, aes, rsa, dsa, dh, ecdsa, eddsa, montgomery sm2, sm4";
 const STRING_ARRAY ARG_DERIVEKEY_TYPE_HELP = "dervive Key type value\n\t\t\t\t\t-Supported value for SHAx-xxx key derivation: des, aes, generic, hmac";
 const STRING_ARRAY ARG_IMPORTKEYTYPE_HELP = "Key type value\n\t\t\t\t\t-Supported value: des, des2, des3, aes, rsa, dsa, dh, dh-x9.42, ecdsa, eddsa, montgomery sm2, sm4";
+const STRING_ARRAY ARG_MZMK_KEYTYPE_HELP = "Key type value\n\t\t\t\t\t-Supported value: des, aes";
 
 const STRING_ARRAY ARG_KEYSIZE = "-keysize";
 const STRING_ARRAY ARG_KEYSIZE_HELP = "key size\n\t\t\t\t\t-Value in byte for DES(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC(1 to 512 bytes) keys\n\t\t\t\t\t-Modulus size in bits for RSA keys\n\t\t\t\t\t-Not required for other key types";
 const STRING_ARRAY ARG_DERIVEKEY_SIZE_HELP = "derived key size\n\t\t\t\t\t-Value in byte for DES key(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES key(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC or generic key(1 to 512 bytes)";
 const STRING_ARRAY ARG_IMPORTKEY_SIZE_HELP = "Optional. Key size when importing key in compoments\n\t\t\t\t\t-Value in byte for AES key(16, 24 or 32 bytes)\n\t\t\t\t\t-no required when importing wrapped key or other type of keys";
+const STRING_ARRAY ARG_MZMK_KEYSIZE_HELP = "key size\n\t\t\t\t\t-Value in byte for DES(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES(16, 24 or 32 bytes)";
+
 
 const STRING_ARRAY ARG_KEYCLASS = "-keyclass";
 const STRING_ARRAY ARG_KEYCLASS_HELP = "Key class\n\t\t\t\t\t-Supported value: private, public or secret";
@@ -186,6 +193,7 @@ const STRING_ARRAY ARG_DH_SUBPRIME_HELP = "DH or DSA domain sub-prime q value\n\
 const STRING_ARRAY ARG_OUTPUT_FILE = "-outputfile";
 const STRING_ARRAY ARG_INPUT_FILE = "-inputfile";
 const STRING_ARRAY ARG_FILE_HELP = "Input file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)";
+const STRING_ARRAY ARG_FILE_MZMK_HELP = "Input file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)\n\t\t\t\t\tThe output tmd file will be stored in same path as input tmd file";
 
 const STRING_ARRAY ARG_FORMAT = "-format";
 const STRING_ARRAY ARG_INFORMAT = "-inform";
@@ -533,6 +541,29 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_KCV_METHOD, ARG_TYPE_METHOD_KCV, (const CK_CHAR_PTR)ARG_KCV_METHOD_HELP ,\
                                     }
 
+#define CMD_CMD_REMOTE_MZMK_VALUE   (const CK_CHAR_PTR)CMD_REMOTE_MZMK, (const P_fCMD)&cmd_kmu_remote_mzmk, (const CK_CHAR_PTR)CMD_REMOTE_MZMK_HELP, \
+                                    {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEYTYPE, ARG_TYPE_KEYTYPE, (const CK_CHAR_PTR)ARG_MZMK_KEYTYPE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_KEYSIZE, ARG_TYPE_KEYSIZE, (const CK_CHAR_PTR)ARG_MZMK_KEYSIZE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_LABEL,	ARG_TYPE_CKA_LABEL, (const CK_CHAR_PTR)ARG_LABEL_MZMK_HELP,\
+                                    (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT, ARG_TYPE_CKA_ENCRYPT, (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DECRYPT, ARG_TYPE_CKA_DECRYPT, (const CK_CHAR_PTR)ARG_ATTR_DECRYPT_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_SIGN, ARG_TYPE_CKA_SIGN, (const CK_CHAR_PTR)ARG_ATTR_SIGN_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_VERIFY, ARG_TYPE_CKA_VERIFY, (const CK_CHAR_PTR)ARG_ATTR_VERIFY_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DERIVE, ARG_TYPE_CKA_DERIVE, (const CK_CHAR_PTR)ARG_ATTR_DERIVE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_WRAP, ARG_TYPE_CKA_WRAP, (const CK_CHAR_PTR)ARG_ATTR_WRAP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_UNWRAP, ARG_TYPE_CKA_UNWRAP, (const CK_CHAR_PTR)ARG_ATTR_UNWRAP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE, ARG_TYPE_CKA_EXTRACTABLE, (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE, ARG_TYPE_CKA_MODIFIABLE, (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_TOKEN, ARG_TYPE_CKA_TOKEN, (const CK_CHAR_PTR)ARG_ATTR_TOKEN_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_PRIVATE, ARG_TYPE_CKA_PRIVATE, (const CK_CHAR_PTR)ARG_ATTR_PRIVATE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE, ARG_TYPE_CKA_SENSITIVE, (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
+                                    }
+
 #define MAX_COMMAND_NUMBER		DIM(kmu_batchcmd_list)
 const PARSER_COMMAND kmu_batchcmd_list[] =
 {
@@ -553,6 +584,7 @@ const PARSER_COMMAND kmu_batchcmd_list[] =
    CMD_DELETE_VALUE,
    CMD_DIGEST_KEY_VALUE,
    CMD_COMPUTE_KCV_VALUE,
+   CMD_CMD_REMOTE_MZMK_VALUE,
 };
 
 #define MAX_CONSOLE_COMMAND_NUMBER		DIM(kmu_console_list)
@@ -578,6 +610,7 @@ const PARSER_COMMAND kmu_console_list[] =
    CMD_DELETE_VALUE,
    CMD_DIGEST_KEY_VALUE,
    CMD_COMPUTE_KCV_VALUE,
+   CMD_CMD_REMOTE_MZMK_VALUE,
    CMD_EXIT_VALUE,
 };
 
@@ -603,6 +636,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)CMD_DELETE,
    (CK_CHAR_PTR)CMD_DIGEST_KEY,
    (CK_CHAR_PTR)CMD_COMPUTE_KCV,
+   (CK_CHAR_PTR)CMD_REMOTE_MZMK,
    (CK_CHAR_PTR)CMD_EXIT,
    (CK_CHAR_PTR)ARG_SLOT_ID,
    (CK_CHAR_PTR)ARG_PASSWORD,

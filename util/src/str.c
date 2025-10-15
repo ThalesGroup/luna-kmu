@@ -15,6 +15,8 @@
 
 #ifdef OS_WIN32
 #include <windows.h>
+#include <shlwapi.h>
+#include <pathcch.h>
 #else
 #include <dlfcn.h>
 #endif
@@ -22,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
 #include "p11.h"
 
 
@@ -33,6 +36,8 @@ const char strEqual = '=';
 const char strDash = '-';
 
 const char strBackSlashString[2] = {'\\', 0};
+
+CK_CHAR sWorkBuffer[10];
 
 /*
     FUNCTION:        void str_DisplayByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
@@ -70,7 +75,7 @@ void str_DisplayByteArraytoStringWithSpace(CK_CHAR_PTR ByteArray, CK_LONG Length
 }
 
 /*
-    FUNCTION:        void str_DisplayByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
+    FUNCTION:        CK_CHAR_PTR str_ByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
 */
 CK_CHAR_PTR str_ByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
 {
@@ -99,6 +104,34 @@ CK_CHAR_PTR str_ByteArraytoString(CK_CHAR_PTR ByteArray, CK_LONG Length)
 
    return NULL;
 }
+
+/*
+    FUNCTION:        CK_CHAR_PTR str_BytetoAsciiString(CK_ULONG Byte)
+*/
+CK_CHAR_PTR str_BytetoAsciiString(CK_ULONG Byte)
+{
+
+   sWorkBuffer[0] = '\0';
+
+   sprintf(sWorkBuffer, "%02d", Byte);
+
+   return sWorkBuffer;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR str_WordtoAsciiString(CK_ULONG word)
+*/
+CK_CHAR_PTR str_WordtoAsciiString(CK_ULONG word)
+{
+
+   sWorkBuffer[0] = '\0';
+
+   sprintf(sWorkBuffer, "%04d", word);
+
+   return sWorkBuffer;
+}
+
+
 
 /*
     FUNCTION:        CK_LONG str_StringtoInteger(CK_CHAR_PTR sKeyType)
@@ -445,4 +478,38 @@ CK_BBOOL str_CheckASCII(CK_CHAR_PTR ByteArray, CK_ULONG uLength)
    }
 
    return CK_TRUE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL str_PathRemoveFile(CK_CHAR_PTR ByteArray, CK_ULONG uLength)
+*/
+CK_BBOOL str_PathRemoveFile(CK_CHAR_PTR ByteArray, CK_ULONG uLength)
+{
+#ifdef OS_WIN32
+   return PathRemoveFileSpecA(ByteArray);
+#else
+   return CK_FALSE;
+#endif
+}
+
+/*
+    FUNCTION:        CK_BBOOL str_PathAppendFile(CK_CHAR_PTR sPath, CK_CHAR_PTR sFile)
+*/
+CK_BBOOL str_PathAppendFile(CK_CHAR_PTR sPath, CK_CHAR_PTR sFile)
+{
+#ifdef OS_WIN32
+#pragma warning(disable : 4995)
+   return PathAppend(sPath, sFile);
+#else
+   return CK_FALSE;
+#endif
+}
+
+
+/*
+    FUNCTION:        CK_CHAR_PTR str_Append(CK_CHAR_PTR sSource, CK_CHAR_PTR sDestination)
+*/
+CK_CHAR_PTR str_Append(CK_CHAR_PTR sSource, CK_CHAR_PTR sDestination)
+{
+   return strcat(sSource, sDestination);
 }

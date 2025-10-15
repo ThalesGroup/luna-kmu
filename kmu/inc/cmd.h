@@ -43,6 +43,7 @@ extern "C" {
    _EXT  CK_BBOOL    cmd_kmu_delete(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_digestKey(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_compute_KCV(CK_BBOOL bIsConsole);
+   _EXT  CK_BBOOL    cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole);
 
    _EXT  CK_BYTE     cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);
    _EXT  CK_BYTE     cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute);

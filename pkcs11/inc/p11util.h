@@ -27,6 +27,7 @@ extern "C" {
    _EXT  CK_CHAR_PTR                P11Util_DisplayClassName(CK_OBJECT_CLASS u32Class);
    _EXT  CK_CHAR_PTR                P11Util_DisplayBooleanName(CK_BBOOL ckbool);
    _EXT  P11_ECC_OID*               P11Util_GetEcCurveOIDParam(CK_CHAR_PTR sKeyType);
+   _EXT  P11_ECC_OID*               P11Util_GetEcCurveOID(CK_CHAR_PTR sOid, CK_ULONG sOID_Size);
    _EXT  CK_MECHANISM_TYPE          P11Util_GetRSAGenMechParam(CK_CHAR_PTR sKeyType);
    _EXT  CK_MECHANISM_TYPE          P11Util_GetDHGenMechParam(CK_CHAR_PTR sKeyType);
    _EXT  P11_RSA_EXP*               P11Util_GetPublicExpParam(CK_CHAR_PTR sPublicExp);

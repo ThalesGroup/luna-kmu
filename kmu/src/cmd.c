@@ -34,6 +34,7 @@
 #include "pkcs8.h"
 #include "console.h"
 #include "tr31.h"
+#include "tmd.h"
 
 #define MAX_LABEL_SIZE        100
 CK_CHAR  cmd_Label[MAX_LABEL_SIZE];
@@ -382,7 +383,7 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
             return CK_FALSE;
          }
          // generate key pair
-         return P11_GenerateKeyPair(&sKeyGenTemplate);
+         return P11_GenerateKeyPair(&sKeyGenTemplate, NULL, NULL, CK_TRUE);
       }
       else // keygen
       {
@@ -1466,7 +1467,7 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
       }
 
       // derive the key
-      return P11_DeriveKey(&sDeriveTemplate);
+      return P11_DeriveKey(&sDeriveTemplate, NULL, CK_TRUE);
 
       return CK_TRUE;
    } while (FALSE);
@@ -1708,6 +1709,307 @@ CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
    } while (FALSE);
 
    return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
+*/
+// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes256 -keytype=aes -keysize=32
+// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes192 -keytype=aes -keysize=24
+// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes128 -keytype=aes -keysize=16
+// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-3des -keytype=des -keysize=24
+// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-2des -keytype=des -keysize=16
+// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-des -keytype=des -keysize=8
+CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
+{
+   CK_CHAR_PTR             sInputFilePath = NULL;
+   CK_CHAR_PTR             sInputFile = NULL;
+   CK_CHAR_PTR             sOutPutFile = NULL;
+   CK_CHAR_PTR             sHsmPublicKeyAsn1 = NULL;
+   CK_BYTE_PTR             pKcvBuffer = NULL;
+   CK_BYTE_PTR             pKcv = NULL;
+   EC_PUBLIC_KEY           sTmdEcPublicKey = {0};
+   EC_PUBLIC_KEY           sHsmEcPublicKey = { 0 };
+   P11_KEYGENTEMPLATE      sKeyGenTemplate = { 0 };
+   P11_DERIVETEMPLATE      sDeriveTemplate = { 0 };
+   P11_DERIVE_MECH         sDeriveMech = { 0 };
+   CK_OBJECT_HANDLE        hPrivateKey = 0;
+   CK_OBJECT_HANDLE        hPublicKey = 0;
+   CK_OBJECT_HANDLE        hMZMKKey = 0;
+   CK_ULONG                sHsmPublicKeyAsn1Length = 0;
+   CK_ULONG                sInputFileLength = 0;
+   CK_BBOOL                bResult = CK_FALSE;
+   /*
+   CK_BYTE_PTR             sShareSecret = NULL;
+   CK_CHAR_PTR             sShareSecretStr = NULL;
+   CK_ULONG                uShareSecretLength = 0;*/
+
+
+   do
+   {
+      // check if loggued to the slot
+      if (cmd_IsLoggedIn() == CK_FALSE)
+      {
+         break;
+      }
+
+      // set attribute token, private ans sensitive to true as default value
+      cmdarg_GetCKAToken(&sDeriveTemplate.bCKA_Token);
+      cmdarg_GetCKAPrivate(&sDeriveTemplate.bCKA_Private);
+      cmdarg_GetCKASensitive(&sDeriveTemplate.bCKA_Sensitive);
+
+      // Get attribute value from argument
+      cmdarg_GetCKADecrypt(&sDeriveTemplate.bCKA_Decrypt);
+      cmdarg_GetCKAEncrypt(&sDeriveTemplate.bCKA_Encrypt);
+      cmdarg_GetCKASign(&sDeriveTemplate.bCKA_Sign);
+      cmdarg_GetCKAVerify(&sDeriveTemplate.bCKA_Verify);
+      cmdarg_GetCKAWrap(&sDeriveTemplate.bCKA_Wrap);
+      cmdarg_GetCKAUnwrap(&sDeriveTemplate.bCKA_Unwrap);
+      cmdarg_GetCKADerive(&sDeriveTemplate.bCKA_Derive);
+      cmdarg_GetCKAExtractable(&sDeriveTemplate.bCKA_Extractable);
+      cmdarg_GetCKAModifiable(&sDeriveTemplate.bCKA_Modifiable);
+
+      // Get CKA id
+      sDeriveTemplate.pCKA_ID = cmd_cka_ID;
+      sDeriveTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sKeyGenTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
+      if (sDeriveTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
+      {
+         break;
+      }
+
+      // get MZMK key type 
+      if ((sDeriveTemplate.sderivedKeyType = cmdarg_GetKeytype(CK_TRUE, KEY_TYPE_MZMK)) == CK_NULL_ELEMENT)
+      {
+         printf("wrong or missing argument : -keytype \n");
+         break;
+      }
+
+      // get MZMK get size
+      if ((sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize()) == 0)
+      {
+         printf("Invalid or missing argument  : -keysize \n");
+         return CK_FALSE;
+      }
+
+      switch (sDeriveTemplate.sderivedKeyType)
+      {
+      case CKK_AES:
+
+         if ((sDeriveTemplate.sderivedKeyLength == AES_128_KEY_LENGTH) || (sDeriveTemplate.sderivedKeyLength == AES_192_KEY_LENGTH) || (sDeriveTemplate.sderivedKeyLength == AES_256_KEY_LENGTH))
+         {
+            break;
+         }
+         printf("Wrong key size\n");
+         return CK_FALSE;
+
+      case CKK_DES:
+         if (sDeriveTemplate.sderivedKeyLength == DES_KEY_LENGTH)
+         {
+            break;
+         }
+         if (sDeriveTemplate.sderivedKeyLength == DES2_KEY_LENGTH)
+         {
+            sDeriveTemplate.sderivedKeyType = CKK_DES2;
+            break;
+         }
+         if (sDeriveTemplate.sderivedKeyLength == DES3_KEY_LENGTH)
+         {
+            sDeriveTemplate.sderivedKeyType = CKK_DES3;
+            break;
+         }
+
+         printf("Wrong key size\n");
+         return CK_FALSE;
+      }
+
+      if ((sDeriveTemplate.pDerivedKeyLabel = cmdarg_GetLabel(cmd_Label, MAX_LABEL_SIZE)) == NULL)
+      {
+         printf("Missing argument : -label \n");
+         break;
+      }
+
+
+      // get output file path
+      sInputFilePath = cmdarg_GetInputFilePath(cmd_InputFile, MAX_FILE_NAME_SIZE);
+      if (sInputFilePath == NULL)
+      {
+         printf("wrong or missing argument : -outputfile \n");
+         break;
+      }
+
+      // read input file
+      if ((sInputFileLength = File_Read(sInputFilePath, &sInputFile, CK_FALSE)) == 0)
+      {
+         printf("cannot read input file : %s \n", sInputFilePath);
+         break;
+      }
+
+      // convert to byte array
+      sInputFileLength = str_StringtoByteArray(sInputFile, sInputFileLength);
+
+      // Check if EC public key and get parameters. 
+      if (asn1_Check_ECpublicKeyInfo(&sTmdEcPublicKey, sInputFile, sInputFileLength, CKK_ECDSA) == CK_FALSE)
+      {
+         break;
+      }
+
+      // create a session ECDSA public key
+      sKeyGenTemplate.skeyType = CKK_ECDSA;
+      sKeyGenTemplate.sClass = CKO_PRIVATE_KEY;
+      sKeyGenTemplate.sClassPublic = CKO_PUBLIC_KEY;
+      sKeyGenTemplate.bCKA_Token = CK_FALSE;
+      sKeyGenTemplate.bCKA_Private = CK_TRUE;
+      sKeyGenTemplate.bCKA_Sensitive = CK_TRUE;
+      sKeyGenTemplate.bCKA_Derive = CK_TRUE;
+      sKeyGenTemplate.bCKA_Modifiable = CK_TRUE;
+      sKeyGenTemplate.pCKA_ID = "";
+      sKeyGenTemplate.uCKA_ID_Length = 0;
+      sKeyGenTemplate.pECCurveOID = P11Util_GetEcCurveOID(sTmdEcPublicKey.sOid, sTmdEcPublicKey.uOidSize);
+      sKeyGenTemplate.pKeyLabelPrivate = "tmd_temp_ecc_private";
+      sKeyGenTemplate.pKeyLabelPublic = "tmd_temp_ecc_public";
+      if (P11_GenerateKeyPair(&sKeyGenTemplate, &hPrivateKey, &hPublicKey, CK_FALSE) == CK_FALSE)
+      {
+         break;
+      }
+
+      // Derive MZMK Key with ECDH and SHA256 KDF, X9.63 derivation
+      sDeriveTemplate.sDerivedClass = CKO_SECRET_KEY;
+      sDeriveTemplate.hMasterKey = hPrivateKey;
+      sDeriveTemplate.sDeriveMech = &sDeriveMech;
+      sDeriveTemplate.sDeriveMech->ckMechType = CKM_ECDH1_DERIVE;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.kdf = CKD_SHA256_KDF;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pSharedData = tmd_getShareinfo();
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.ulSharedDataLen = tmd_getShareinfoLength();
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pPublicData = sTmdEcPublicKey.sPublicPoint;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.ulPublicDataLen = sTmdEcPublicKey.uPublicPointLength;
+      if (P11_DeriveKey(&sDeriveTemplate, &hMZMKKey, CK_TRUE) == CK_FALSE)
+      {
+         break;
+      }
+
+      // compute KCV for MZMK
+      if (P11_ComputeKCV(KCV_PCI, hMZMKKey, &pKcvBuffer) == CK_FALSE)
+      {
+         break;
+      }
+
+      // display KCV
+      str_DisplayByteArraytoString("MZMK Key check value : ", pKcvBuffer, 3);  
+
+/*
+      // perform key agreement and key the shared secret
+      if (P11_KeyAgreement(hPrivateKey, sTmdEcPublicKey.sPublicPoint, sTmdEcPublicKey.uPublicPointLength, &sShareSecret, &uShareSecretLength) == CK_FALSE)
+      {
+         break;
+      }
+
+      // convert share secret to a string
+      sShareSecretStr = str_ByteArraytoString(sShareSecret, uShareSecretLength);
+
+      */
+      
+      
+      // get ECDSA public key
+      P11_GetEccPublicKey(hPublicKey, &sHsmEcPublicKey, CKK_ECDSA);
+
+      // build public key info object
+      asn1_Build_ECpublicKeyInfo(&sHsmEcPublicKey, CKK_ECDSA);
+      
+      // convert to string
+      sHsmPublicKeyAsn1 = str_ByteArraytoString(asn1_BuildGetBuffer(), asn1_GetBufferSize());
+
+
+
+     // printf("publickey =  %s", sHsmPublicKeyAsn1);
+
+      //free(sPublicKey);
+
+      // get the path from the input file
+      if (strlen(sInputFilePath) > MAX_PATH)
+      {
+         break;
+      }
+
+      // allocate buffer for output path
+      sOutPutFile = malloc(MAX_PATH);
+      if (sOutPutFile == NULL)
+      {
+         break;
+      }
+
+      // copy input path in out put and get the parent folder
+      strcpy(sOutPutFile, sInputFilePath);
+      str_PathRemoveFile(sOutPutFile, (CK_ULONG)strlen(sOutPutFile));
+
+      pKcv = str_ByteArraytoString(pKcvBuffer, 3);
+
+      // generate csv file for tmd
+      if (tmd_generateCSVFile(sHsmPublicKeyAsn1, sDeriveTemplate.sderivedKeyType, sDeriveTemplate.sderivedKeyLength, pKcv, sOutPutFile) == CK_FALSE)
+      {
+         break;
+      }
+
+      bResult = CK_TRUE;
+   } while (FALSE);
+
+
+   // free memory
+   if (sHsmPublicKeyAsn1 != NULL)
+   {
+      free(sHsmPublicKeyAsn1);
+   }
+
+   // free memory
+   if (sInputFile != NULL)
+   {
+      free(sInputFile);
+   }
+  
+   // free memory
+   if (pKcvBuffer != NULL)
+   {
+      free(pKcvBuffer);
+   }   
+
+   // free memory
+   if (pKcv != NULL)
+   {
+      free(pKcv);
+   }
+
+   // free memory
+   if (sOutPutFile != NULL)
+   {
+      free(sOutPutFile);
+   }
+
+  
+
+   /*
+   // free memory
+   if (sShareSecretStr != NULL)
+   {
+      free(sShareSecretStr);
+   }
+
+   // free memory
+   if (sShareSecret != NULL)
+   {
+      free(sShareSecret);
+   }*/
+
+   // delete key pair
+   if (hPrivateKey != 0)
+   {
+      P11_DeleteObject(hPrivateKey);
+   }
+   if (hPublicKey != 0)
+   {
+      P11_DeleteObject(hPublicKey);
+   }
+
+
+   return bResult;
 }
 
 /*

@@ -69,6 +69,7 @@ extern "C" {
 #define KEY_TYPE_DERIVEKEY          0x00000010
 #define KEY_TYPE_ENCRYPT            0x00000020
 #define KEY_TYPE_HASH               0x00000040
+#define KEY_TYPE_MZMK               0x00000080
 
 #define KCV_PKCS11                  0x01
 #define KCV_PCI                     0x02
@@ -439,12 +440,14 @@ extern "C" {
    _EXT  CK_BBOOL             P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay);
    _EXT  CK_OBJECT_HANDLE     P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyGenTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength);
    _EXT  CK_OBJECT_HANDLE     P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel);
-   _EXT  CK_BBOOL             P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate);
+   _EXT  CK_BBOOL             P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hPrivateKey, CK_OBJECT_HANDLE_PTR hPublicKey, CK_BBOOL bDisplay);
    _EXT  CK_BBOOL             P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2_param, CK_BBOOL bDisplay);
    _EXT  CK_BBOOL             P11_CreateDO(P11_DOTEMPLATE* sDOTemplate);
    _EXT  CK_BBOOL             P11_WrapPrivateSecretKey(P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR   pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen);
    _EXT  CK_BBOOL             P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR_PTR pWrappedKey, CK_LONG pulWrappedKeyLen, CK_OBJECT_HANDLE* hKey);
-   _EXT  CK_BBOOL             P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate);
+   _EXT  CK_BBOOL             P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay);
+   _EXT  CK_BBOOL             P11_DeriveKeyAndWrap(P11_DERIVETEMPLATE* sDeriveTemplate, P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR * pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen);
+   _EXT  CK_BBOOL             P11_KeyAgreement(CK_OBJECT_HANDLE hPrivateKey, CK_BYTE_PTR sPublicData, CK_ULONG sPublicDataSize, CK_BYTE_PTR* sSharedSecret, CK_ULONG_PTR sSharedSecretLength);
    _EXT  CK_BBOOL             P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLIC_KEY* sPublicKey);
    _EXT  CK_BBOOL             P11_GetRsaPublicKey(CK_OBJECT_HANDLE Handle, RSA_PUBLIC_KEY* sRsaPublicKey);
    _EXT  CK_BBOOL             P11_GetEccPublicKey(CK_OBJECT_HANDLE Handle, EC_PUBLIC_KEY* eccpublickey, CK_KEY_TYPE ckTypeEc);

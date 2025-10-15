@@ -93,9 +93,9 @@ const CK_CHAR KEY_TYPE_IDEA[] = "idea";
 
 #define SIZE_KEYGEN_SUPPORTED_TYPE_TABLE      DIM(arg_keygen_supported_type)
 const PARSER_KEY_TYPE arg_keygen_supported_type[] = {
-   {(CK_CHAR_PTR)&KEY_TYPE_AES,           CKK_AES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_AES,           CKK_AES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_MZMK},
    {(CK_CHAR_PTR)&KEY_TYPE_SM4,           CKK_SM4,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES,           CKK_DES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES,           CKK_DES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_MZMK},
    {(CK_CHAR_PTR)&KEY_TYPE_DES2,          CKK_DES2,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_DES3,          CKK_DES3,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_GENERIC,       CKK_GENERIC_SECRET,     CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
@@ -1243,6 +1243,28 @@ P11_ECC_OID* P11Util_GetEcCurveOIDParam(CK_CHAR_PTR sCurveName)
       if (strcmp(ecc_curve_oid[u8Loop].sCurveName, sCurveName) == 0)
       {
          return (P11_ECC_OID*)&ecc_curve_oid[u8Loop];
+      }
+   };
+   return NULL;
+}
+
+/*
+    FUNCTION:        P11_ECC_OID* P11Util_GetEcCurveOID(CK_CHAR_PTR sOid, CK_ULONG sOID_Size)
+*/
+P11_ECC_OID* P11Util_GetEcCurveOID(CK_CHAR_PTR sOid, CK_ULONG sOID_Size)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all curve structure
+   for (u8Loop = 0; u8Loop < SIZE_ECC_CURVE_TABLE; u8Loop++)
+   {
+      if (sOID_Size == ecc_curve_oid[u8Loop].oidLen)
+      {
+         // if curve name match, return OID
+         if (memcmp(ecc_curve_oid[u8Loop].oid, sOid, sOID_Size) == 0)
+         {
+            return (P11_ECC_OID*)&ecc_curve_oid[u8Loop];
+         }
       }
    };
    return NULL;

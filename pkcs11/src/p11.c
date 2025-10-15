@@ -2152,7 +2152,7 @@ CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HA
 }
 
 /*
-    FUNCTION:        CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel)
+    FUNCTION:        CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength)
 */
 CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength)
 {
@@ -2242,7 +2242,7 @@ CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK
 /*
     FUNCTION:        CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE * sKeyTemplate)
 */
-CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
+CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hPrivKey, CK_OBJECT_HANDLE_PTR hPubKey, CK_BBOOL bDisplay)
 {
    CK_RV             retCode = CKR_DEVICE_ERROR;
    CK_OBJECT_HANDLE  hPrivateKey = 0;
@@ -2501,7 +2501,21 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
 
    if (retCode == CKR_OK)
    {
-      printf("Key pair successfully generated, private key handle : %i, public key handle : %i \n", hPrivateKey, hPublicKey);
+      if (bDisplay == CK_TRUE)
+      {
+         printf("Key pair successfully generated, private key handle : %i, public key handle : %i \n", hPrivateKey, hPublicKey);
+      }
+
+      if (hPrivKey != NULL)
+      {
+         *hPrivKey = hPrivateKey;
+      }
+
+      if (hPubKey != NULL)
+      {
+         *hPubKey = hPublicKey;
+      }
+
       return CK_TRUE;
    }
 
@@ -3156,9 +3170,9 @@ CK_BBOOL P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSigna
 }
 
 /*
-    FUNCTION:       CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
+    FUNCTION:       CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 */
-CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
+CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 {
 
    CK_RV             retCode = CKR_DEVICE_ERROR;
@@ -3218,6 +3232,12 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
       sDeriveMech.usParameterLen = sizeof(CK_PRF_KDF_PARAMS);
       break;
 
+   case CKM_ECDH1_DERIVE:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
+      break;
+
    default:
       printf("C_DeriveKey unknown mecanism : %i \n", sDeriveTemplate->sDeriveMech->ckMechType);
       return CK_FALSE;
@@ -3234,7 +3254,16 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
    // check if successfull
    if (retCode == CKR_OK)
    {
-      printf("Key successfully derived: handle is : %i, label is : %s \n", hDerivedKey, sDeriveTemplate->pDerivedKeyLabel);
+      if (bDisplay == CK_TRUE)
+      {
+         printf("Key successfully derived: handle is : %i, label is : %s \n", hDerivedKey, sDeriveTemplate->pDerivedKeyLabel);
+      }
+
+      if (hKey != NULL)
+      {
+         *hKey = hDerivedKey;
+      }
+
       return CK_TRUE;
    }
 
@@ -3242,6 +3271,198 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
 
    return CK_FALSE;
 }
+
+/*
+    FUNCTION:       CK_BBOOL P11_DeriveKeyAndWrap(P11_DERIVETEMPLATE* sDeriveTemplate, P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen)
+*/
+CK_BBOOL P11_DeriveKeyAndWrap(P11_DERIVETEMPLATE* sDeriveTemplate, P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR * pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen)
+{
+
+   CK_RV             retCode = CKR_DEVICE_ERROR;
+   CK_MECHANISM      sDeriveMech = { 0 };
+   CK_ULONG          uTemplateSize = 16;
+   CK_OBJECT_HANDLE  hDerivedKey = 0;
+   CK_LONG AllocateSize = 0;
+
+   CK_MECHANISM      swrapMech = { 0 };
+
+
+   CK_ATTRIBUTE SymKeyTemplate[20] = {
+   {CKA_CLASS,             &sDeriveTemplate->sDerivedClass,       sizeof(CK_OBJECT_CLASS)},
+   {CKA_KEY_TYPE,          &sDeriveTemplate->sderivedKeyType,     sizeof(CK_KEY_TYPE)},
+   {CKA_VALUE_LEN,         &sDeriveTemplate->sderivedKeyLength,   sizeof(CK_LONG)},
+   {CKA_TOKEN,             &sDeriveTemplate->bCKA_Token,          sizeof(CK_BBOOL)},
+   {CKA_SENSITIVE,         &sDeriveTemplate->bCKA_Sensitive,      sizeof(CK_BBOOL)},
+   {CKA_PRIVATE,           &sDeriveTemplate->bCKA_Private,        sizeof(CK_BBOOL)},
+   {CKA_ENCRYPT,           &sDeriveTemplate->bCKA_Encrypt,        sizeof(CK_BBOOL)},
+   {CKA_DECRYPT,           &sDeriveTemplate->bCKA_Decrypt,        sizeof(CK_BBOOL)},
+   {CKA_SIGN,              &sDeriveTemplate->bCKA_Sign,           sizeof(CK_BBOOL)},
+   {CKA_VERIFY,            &sDeriveTemplate->bCKA_Verify,         sizeof(CK_BBOOL)},
+   {CKA_WRAP,              &sDeriveTemplate->bCKA_Wrap,           sizeof(CK_BBOOL)},
+   {CKA_UNWRAP,            &sDeriveTemplate->bCKA_Unwrap,         sizeof(CK_BBOOL)},
+   {CKA_DERIVE,            &sDeriveTemplate->bCKA_Derive,         sizeof(CK_BBOOL)},
+   {CKA_EXTRACTABLE,       &sDeriveTemplate->bCKA_Extractable,    sizeof(CK_BBOOL)},
+   {CKA_MODIFIABLE,        &sDeriveTemplate->bCKA_Modifiable,     sizeof(CK_BBOOL)},
+   {CKA_LABEL,             sDeriveTemplate->pDerivedKeyLabel,     (CK_ULONG)strlen(sDeriveTemplate->pDerivedKeyLabel)},
+   };
+
+   // Check if CKA id is given in paramter
+   if (sDeriveTemplate->pCKA_ID != NULL)
+   {
+      // push CKA id in PubTemplate
+      SymKeyTemplate[uTemplateSize].type = CKA_ID;
+      SymKeyTemplate[uTemplateSize].pValue = sDeriveTemplate->pCKA_ID;
+      SymKeyTemplate[uTemplateSize].usValueLen = sDeriveTemplate->uCKA_ID_Length;
+      uTemplateSize++;
+   }
+
+   // check the derived key type
+   switch (sDeriveTemplate->sDeriveMech->ckMechType)
+   {
+   case CKM_SHA1_KEY_DERIVATION:
+   case CKM_SHA224_KEY_DERIVATION:
+   case CKM_SHA256_KEY_DERIVATION:
+   case CKM_SHA384_KEY_DERIVATION:
+   case CKM_SHA512_KEY_DERIVATION:
+   case CKM_SHA3_224_KEY_DERIVE:
+   case CKM_SHA3_256_KEY_DERIVE:
+   case CKM_SHA3_384_KEY_DERIVE:
+   case CKM_SHA3_512_KEY_DERIVE:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = NULL;
+      sDeriveMech.usParameterLen = 0;
+      break;
+   case CKM_PRF_KDF:
+   case CKM_NIST_PRF_KDF:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.usParameterLen = sizeof(CK_PRF_KDF_PARAMS);
+      break;
+
+   case CKM_ECDH1_DERIVE:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
+      break;
+
+   default:
+      printf("P11_DeriveKeyAndWrap unknown mecanism : %i \n", sDeriveTemplate->sDeriveMech->ckMechType);
+      return CK_FALSE;
+   }
+
+   // 
+   AllocateSize = MAX((sDeriveTemplate->sderivedKeyLength + AES_256_KEY_LENGTH), P11_GetObjectSize(sWrapTemplate->hWrappingKey));
+   *pulWrappedKeyLen = AllocateSize;
+   // Allocate a buffer of the size of the key + extra
+   *pWrappedKey = malloc(AllocateSize);
+   if (*pWrappedKey == NULL)
+   {
+      printf("P11_DeriveKeyAndWrap general error : cannot allocate memory \n");
+      return CK_FALSE;
+   }
+
+   if (P11_BuildCKEncMecanism(sWrapTemplate->wrap_key_mech, &swrapMech) == CK_FALSE)
+   {
+      return CK_FALSE;
+   }
+
+
+   //CA_DeriveKeyAndWrap
+   // derive and wrap the key
+   retCode = SfntFunctions->CA_DeriveKeyAndWrap(hSession,
+      &sDeriveMech,
+      sDeriveTemplate->hMasterKey,
+      SymKeyTemplate,
+      uTemplateSize,
+      &swrapMech,
+      sWrapTemplate->hWrappingKey,
+      *pWrappedKey,
+      pulWrappedKeyLen);
+
+   // check if successfull
+   if (retCode == CKR_OK)
+   {
+      return CK_TRUE;
+   }
+
+   printf("P11_DeriveKeyAndWrap error code : %s \n", P11Util_DisplayErrorName(retCode));
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:       CK_BBOOL P11_KeyAgreement(CK_OBJECT_HANDLE hPrivateKey, CK_BYTE_PTR sPublicData, CK_ULONG sPublicDataSize, CK_BYTE_PTR * sSharedSecret, CK_ULONG_PTR sSharedSecretLength)
+*/
+CK_BBOOL P11_KeyAgreement(CK_OBJECT_HANDLE hPrivateKey, CK_BYTE_PTR sPublicData, CK_ULONG sPublicDataSize, CK_BYTE_PTR * sSharedSecret, CK_ULONG_PTR sSharedSecretLength)
+{
+   P11_DERIVETEMPLATE      sDeriveTemplate = { 0 };
+   P11_DERIVE_MECH         sDeriveMech = { 0 };
+   P11_WRAPTEMPLATE        sWrapTemplate = { 0 };
+   P11_ENCRYPTION_MECH     sEncMech = { 0 };
+   P11_ENCRYPT_TEMPLATE    sEncrypt = { 0 };
+   CK_BYTE_PTR             sWrappedSharedSecret = NULL;
+   CK_ULONG                lWrappedSharedSecretLength = 0;
+   CK_BBOOL                bResult = CK_FALSE;
+
+   do
+   {
+
+      // Generate the sharesecret with ECDH
+      sDeriveTemplate.sDerivedClass = CKO_SECRET_KEY;
+      sDeriveTemplate.sderivedKeyType = CKK_GENERIC_SECRET;
+      sDeriveTemplate.sderivedKeyLength = sPublicDataSize >> 1; // here shared secret length is the size of the x coordinate of the shared secret point
+      sDeriveTemplate.hMasterKey = hPrivateKey;
+      sDeriveTemplate.bCKA_Extractable = CK_TRUE;
+      sDeriveTemplate.bCKA_Token = CK_FALSE;
+      sDeriveTemplate.bCKA_Private = CK_TRUE;
+      sDeriveTemplate.bCKA_Sensitive = CK_TRUE;
+      sDeriveTemplate.pDerivedKeyLabel = "tmd_temp_sharesecret";
+      sDeriveTemplate.sDeriveMech = &sDeriveMech;
+      sDeriveTemplate.sDeriveMech->ckMechType = CKM_ECDH1_DERIVE;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.kdf = CKD_NULL;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pSharedData = NULL;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pPublicData = sPublicData;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.ulPublicDataLen = sPublicDataSize;
+
+      // generate a AES 256 session wrap key (use to encrypt clear key value)
+      sWrapTemplate.hWrappingKey = P11_GenerateAESWrapKey(CK_FALSE, AES_256_KEY_LENGTH, "AES_KEY_WRAP_KEY_KA");
+      sWrapTemplate.skeyType = CKK_AES;
+      sWrapTemplate.sClass = CKO_SECRET_KEY;
+      sWrapTemplate.wrap_key_mech = &sEncMech;
+      sWrapTemplate.wrap_key_mech->ckMechType = CKM_AES_KWP;
+
+      // Derive and wrap the share secret
+      if (P11_DeriveKeyAndWrap(&sDeriveTemplate, &sWrapTemplate, &sWrappedSharedSecret, &lWrappedSharedSecretLength) == CK_FALSE)
+      {
+         break;
+      }
+
+      // decrypt the share secret
+      sEncrypt.encryption_mech = &sEncMech;
+      sEncrypt.hEncyptiontKey = sWrapTemplate.hWrappingKey;
+      sEncrypt.sInputData = sWrappedSharedSecret;
+      sEncrypt.sInputDataLength = lWrappedSharedSecretLength;
+      if (P11_DecryptData(&sEncrypt, sSharedSecret, sSharedSecretLength) == CK_FALSE)
+      {
+         break;
+      }
+
+      bResult = CK_TRUE;
+
+   }while(FALSE);
+
+   // free memory
+   if (sWrappedSharedSecret != NULL)
+   {
+      free(sWrappedSharedSecret);
+   };
+
+   // delete wrap key
+   P11_DeleteObject(sWrapTemplate.hWrappingKey);
+
+   return bResult;
+}
+
 
 /*
     FUNCTION:       CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
@@ -3333,6 +3554,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        ckMechTypeMac = CKM_DES_MAC;
        ckMechTypeEnc = CKM_DES_ECB;
        uInputLengh = DES_BLOCK_LENGTH;
+       break;
     case CKK_DES2:
     case CKK_DES3:
        ckMechTypeMac = CKM_DES3_MAC;
@@ -3365,41 +3587,48 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        // continue with cmac
     case KCV_PCI:
 
-       // use cmac signature
-       sSignatureTemplate.hSignatureKey = hKey;
-       sSignatureTemplate.sClass = sClass;
-       sSignatureTemplate.skeyType = skeyType;
-       sSignatureTemplate.sInputData = sInputData;
-       sSignatureTemplate.sInputDataLength = uInputLengh;
-       sSignMech.aes_param.iv = NULL;
-       sSignMech.ckMechType = ckMechTypeMac;
-
-       sSignatureTemplate.sign_mech = &sSignMech;
-
-       // Check if key has attribute CKA_SIGN
-       if (P11_GetBooleanAttribute(hKey, CKA_SIGN) == CK_FALSE)
+       // in case of AES, do a signature
+       if (skeyType == CKK_AES)
        {
-          if (P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_TRUE) == CK_FALSE)
+          // use cmac signature
+          sSignatureTemplate.hSignatureKey = hKey;
+          sSignatureTemplate.sClass = sClass;
+          sSignatureTemplate.skeyType = skeyType;
+          sSignatureTemplate.sInputData = sInputData;
+          sSignatureTemplate.sInputDataLength = uInputLengh;
+          sSignMech.aes_param.iv = NULL;
+          sSignMech.ckMechType = ckMechTypeMac;
+
+          sSignatureTemplate.sign_mech = &sSignMech;
+
+          // Check if key has attribute CKA_SIGN
+          if (P11_GetBooleanAttribute(hKey, CKA_SIGN) == CK_FALSE)
           {
-             printf("P11_ComputeKCV error : Sign attribute is not set\n ");
+             if (P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_TRUE) == CK_FALSE)
+             {
+                printf("P11_ComputeKCV error : Sign attribute is not set\n ");
+                break;
+             }
+             bRestoreAttribute = CK_TRUE;
+          }
+
+          bResult = P11_SignData(&sSignatureTemplate, pKcvBuffer, &sSigbDataLengh);
+
+          // restore sign attribute
+          if (bRestoreAttribute == CK_TRUE)
+          {
+             P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_FALSE);
+          }
+
+
+          if (bResult == FALSE)
+          {
              break;
           }
-          bRestoreAttribute = CK_TRUE;
+          return CK_TRUE;
        }
 
-       bResult = P11_SignData(&sSignatureTemplate, pKcvBuffer, &sSigbDataLengh);
-
-       // restore sign attribute
-       if (bRestoreAttribute == CK_TRUE)
-       {
-          P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_FALSE);
-       }
-
-       if (bResult == FALSE)
-       {
-          break;
-       }
-       return CK_TRUE;
+       // in case on DES, continue and perform an encryption
 
     case KCV_PKCS11:
 
