@@ -1717,9 +1717,7 @@ CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
 // remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes256 -keytype=aes -keysize=32
 // remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes192 -keytype=aes -keysize=24
 // remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes128 -keytype=aes -keysize=16
-// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-3des -keytype=des -keysize=24
-// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-2des -keytype=des -keysize=16
-// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-des -keytype=des -keysize=8
+// remotemzmk -slot 2 -password 12345678 -inputfile=d:\tmd\MZMK_Init_1704000079_20251017.der -label=remote-mzmk-des -keytype=des -keysize=24
 CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
 {
    CK_CHAR_PTR             sInputFilePath = NULL;
@@ -1739,11 +1737,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
    CK_ULONG                sHsmPublicKeyAsn1Length = 0;
    CK_ULONG                sInputFileLength = 0;
    CK_BBOOL                bResult = CK_FALSE;
-   /*
-   CK_BYTE_PTR             sShareSecret = NULL;
-   CK_CHAR_PTR             sShareSecretStr = NULL;
-   CK_ULONG                uShareSecretLength = 0;*/
-
 
    do
    {
@@ -1791,6 +1784,7 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
          return CK_FALSE;
       }
 
+      // check key type and size
       switch (sDeriveTemplate.sderivedKeyType)
       {
       case CKK_AES:
@@ -1803,15 +1797,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
          return CK_FALSE;
 
       case CKK_DES:
-         if (sDeriveTemplate.sderivedKeyLength == DES_KEY_LENGTH)
-         {
-            break;
-         }
-         if (sDeriveTemplate.sderivedKeyLength == DES2_KEY_LENGTH)
-         {
-            sDeriveTemplate.sderivedKeyType = CKK_DES2;
-            break;
-         }
          if (sDeriveTemplate.sderivedKeyLength == DES3_KEY_LENGTH)
          {
             sDeriveTemplate.sderivedKeyType = CKK_DES3;
@@ -1827,7 +1812,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
          printf("Missing argument : -label \n");
          break;
       }
-
 
       // get output file path
       sInputFilePath = cmdarg_GetInputFilePath(cmd_InputFile, MAX_FILE_NAME_SIZE);
@@ -1895,19 +1879,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
 
       // display KCV
       str_DisplayByteArraytoString("MZMK Key check value : ", pKcvBuffer, 3);  
-
-/*
-      // perform key agreement and key the shared secret
-      if (P11_KeyAgreement(hPrivateKey, sTmdEcPublicKey.sPublicPoint, sTmdEcPublicKey.uPublicPointLength, &sShareSecret, &uShareSecretLength) == CK_FALSE)
-      {
-         break;
-      }
-
-      // convert share secret to a string
-      sShareSecretStr = str_ByteArraytoString(sShareSecret, uShareSecretLength);
-
-      */
-      
       
       // get ECDSA public key
       P11_GetEccPublicKey(hPublicKey, &sHsmEcPublicKey, CKK_ECDSA);
@@ -1915,14 +1886,8 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
       // build public key info object
       asn1_Build_ECpublicKeyInfo(&sHsmEcPublicKey, CKK_ECDSA);
       
-      // convert to string
+      // convert to string array
       sHsmPublicKeyAsn1 = str_ByteArraytoString(asn1_BuildGetBuffer(), asn1_GetBufferSize());
-
-
-
-     // printf("publickey =  %s", sHsmPublicKeyAsn1);
-
-      //free(sPublicKey);
 
       // get the path from the input file
       if (strlen(sInputFilePath) > MAX_PATH)
@@ -1940,7 +1905,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
       // copy input path in out put and get the parent folder
       strcpy(sOutPutFile, sInputFilePath);
       str_PathRemoveFile(sOutPutFile, (CK_ULONG)strlen(sOutPutFile));
-
       pKcv = str_ByteArraytoString(pKcvBuffer, 3);
 
       // generate csv file for tmd
@@ -1983,21 +1947,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
       free(sOutPutFile);
    }
 
-  
-
-   /*
-   // free memory
-   if (sShareSecretStr != NULL)
-   {
-      free(sShareSecretStr);
-   }
-
-   // free memory
-   if (sShareSecret != NULL)
-   {
-      free(sShareSecret);
-   }*/
-
    // delete key pair
    if (hPrivateKey != 0)
    {
@@ -2007,8 +1956,6 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
    {
       P11_DeleteObject(hPublicKey);
    }
-
-
    return bResult;
 }
 

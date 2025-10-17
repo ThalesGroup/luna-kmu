@@ -3018,6 +3018,8 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_AES_ECB:
    case CKM_AES_KWP:
    case CKM_AES_KW:
+   case CKM_DES_ECB:
+   case CKM_DES3_ECB:
       sEncMech->pParameter = NULL;
       sEncMech->usParameterLen = 0;
       break;
@@ -3031,6 +3033,15 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
       sEncMech->pParameter = encryption_mech->aes_param.iv;
       sEncMech->usParameterLen = AES_IV_LENGTH;
       break;
+   case CKM_DES_CBC:
+   case CKM_DES_CBC_PAD:
+   case CKM_DES3_CBC:
+   case CKM_DES3_CBC_PAD:
+      // Init the sIV buffer and size
+      sEncMech->pParameter = encryption_mech->des_param.iv;
+      sEncMech->usParameterLen = DES_IV_LENGTH;
+      break;
+
    case CKM_AES_GCM:
       // Init the sIV buffer and size
       sEncMech->pParameter = &encryption_mech->aes_gcm_param;

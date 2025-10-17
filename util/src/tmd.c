@@ -37,7 +37,7 @@ const CK_CHAR  sVersion[] = "1";
 const CK_CHAR  sComma[] = ",";
 const CK_CHAR  sUnderscore[] = "_";
 
-const CK_CHAR sDESTriple[] = "Triple Length";
+const CK_CHAR sDESTriple[] = "Triple Length 3DES";
 const CK_CHAR sAES_128[] = "128-bit AES";
 const CK_CHAR sAES_192[] = "192-bit AES";
 const CK_CHAR sAES_256[] = "256-bit AES";
