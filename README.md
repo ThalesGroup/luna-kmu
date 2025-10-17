@@ -11,22 +11,23 @@ It has been tested with both Luna Network HSMs and the [Luna Cloud HSM service](
 The purpose of KMU is to offer handful key management functions to import/export/derive cryptographic keys using transport keys (or "wrap keys", which can be private or secret keys) to address typical IOT and automotive use cases.
 
 KMU allows to:
--	Create data objects.
--	List objects in partitions.
--	Display and modify object attributes.
--	Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, SM2, SM4 or generic ones).
-- 	Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
--	Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
--	Export public keys in a binary file or a text file encoded using ASN1 DER and PKCS#8.
--	Import wrapped private/secret keys from a file (currently limited to RSA OAEP, AES variant wrap algorithms).
--   Import wrapped AES keys from a file encoded in TR31 format(partial support with AES key only as ZMK).
-- 	Import DES or AES keys as multiple clear key compoments and KCV (XOR method)
--	Import public keys from a binary file or a text text file encoded using ASN1 DER, PKCS#8.
--	Encrypt/decrypt from/to a file (currently limited to RSA OAEP and AES encryption algorithms).
--	Derive key (currently limited to SHAxxx derivation mechanisms and proprietary Thales Luna key derivation functions such as CKM_NIST_PRF_KDF).
--	Generate a digest for symetric keys.
--	Convert a file format to other file formats.
--	Compute KCV on a symetric key (currently limited to 3 KCV methods: PCI DSS, PKCS#11 and Global Platform).
+    Create data objects.
+    List objects in partitions.
+    Display and modify object attributes.
+    Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, SM2, SM4 or generic ones).
+    Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
+    Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
+    Export public keys in a binary file or a text file encoded using ASN1 DER and PKCS#8.
+    Import wrapped private/secret keys from a file (currently limited to RSA OAEP, AES variant wrap algorithms).
+    Import wrapped AES keys from a file encoded in TR31 format(partial support with AES key only as ZMK).
+    Import DES or AES keys as multiple clear key compoments and KCV (XOR method)
+    Import public keys from a binary file or a text text file encoded using ASN1 DER, PKCS#8.
+    Encrypt/decrypt from/to a file (currently limited to RSA OAEP and AES encryption algorithms).
+    Derive key (currently limited to SHAxxx derivation mechanisms and proprietary Thales Luna key derivation functions such as CKM_NIST_PRF_KDF).
+    Generate a digest for symetric keys.
+    Convert a file format to other file formats.
+    Compute KCV on a symetric key (currently limited to 3 KCV methods: PCI DSS, PKCS#11 and Global Platform).
+    Perform a remote MZMK setup with Thales TMD 
 
 These operations require to create partitions, register clients, initialize user roles... These tasks can be performed using:
 - The [Luna Universal Client](https://thalesdocs.com/gphsm/luna/7/docs/network/Content/Utilities/Preface.htm), and esp.
@@ -91,6 +92,7 @@ convert                         This command converts a file to a different form
 delete                          This command deletes an object
 digestkey                       This command return a message digest of secret key
 computekcv                      This command calculate the KCV of a symetric key
+remotemzmk                      This command generate and store a payshield TMD remote MZMK derived from the input file containing tmd public key and return CSV file for TMD
 exit                            Exit console
 ```
 

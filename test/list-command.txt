@@ -132,7 +132,8 @@ export -slot=3 -password 00000000 -handle=776 -outputfile=public_montgomeryx2551
 export -password 00000000 -handle=842 -outputfile=public_dsa2k.pem -format=PKCS8
 export -password 00000000 -handle=856 -outputfile=public_dh2k.pem -format=PKCS8
 export -password 00000000 -handle=852 -outputfile=public_dh-pkcs.pem -format=PKCS8
-
+// export encrypted pkcs8 with password
+export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
 
 # encrypt a file
 // aes
@@ -192,3 +193,9 @@ digestkey -password 00000000 -handle=426 -hash=sha3-512
 digestkey -password 00000000 -handle=426 -hash=toto
 digestkey -password 00000000 -handle=0 -hash=sha256
 digestkey -password 00000000 -handle=851 -hash=sha3-512
+
+#remote MZMK
+remotemzmk -password 00000000 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes256 -keytype=aes -keysize=32
+remotemzmk -password 00000000 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes192 -keytype=aes -keysize=24
+remotemzmk -password 00000000 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes128 -keytype=aes -keysize=16
+remotemzmk -password 00000000 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-3des -keytype=des -keysize=24

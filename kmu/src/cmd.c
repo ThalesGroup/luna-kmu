@@ -1714,10 +1714,6 @@ CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
 /*
     FUNCTION:        CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
 */
-// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes256 -keytype=aes -keysize=32
-// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes192 -keytype=aes -keysize=24
-// remotemzmk -slot 2 -password 12345678 -inputfile=MZMK_Init_1704000154_20251006.der -label=remote-mzmk-aes128 -keytype=aes -keysize=16
-// remotemzmk -slot 2 -password 12345678 -inputfile=d:\tmd\MZMK_Init_1704000079_20251017.der -label=remote-mzmk-des -keytype=des -keysize=24
 CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
 {
    CK_CHAR_PTR             sInputFilePath = NULL;
