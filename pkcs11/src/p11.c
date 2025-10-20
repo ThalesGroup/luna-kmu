@@ -2202,9 +2202,13 @@ CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK
          break;
       }
 
+   } while (FALSE);
+
+   if (sWrapKey != NULL)
+   {
       // release the buffer
       free(sWrapKey);
-   } while (FALSE);
+   }
 
    sKeyTemplate->wrapmech = NULL;
 

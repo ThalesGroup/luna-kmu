@@ -527,7 +527,6 @@ const P11_ENCRYPTION_MECH encryption_algo[] = {
    {KEY_TYPE_IMPORT_EXPORTKEY                   ,  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbkdf2_enc_param.ckMechSymType = CKM_AES_CBC_PAD, .pbkdf2_enc_param.skeySize = AES_128_KEY_LENGTH , .pbkdf2_enc_param.skeyType = CKK_AES, .pbkdf2_enc_param.sClass = CKO_SECRET_KEY ,.pbkdf2_enc_param.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbkdf2_enc_param.uIVLength = AES_IV_LENGTH },
    {KEY_TYPE_IMPORT_EXPORTKEY                   ,  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbkdf2_enc_param.ckMechSymType = CKM_AES_CBC_PAD, .pbkdf2_enc_param.skeySize = AES_192_KEY_LENGTH , .pbkdf2_enc_param.skeyType = CKK_AES, .pbkdf2_enc_param.sClass = CKO_SECRET_KEY ,.pbkdf2_enc_param.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbkdf2_enc_param.uIVLength = AES_IV_LENGTH },
    {KEY_TYPE_IMPORT_EXPORTKEY                   ,  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbkdf2_enc_param.ckMechSymType = CKM_AES_CBC_PAD, .pbkdf2_enc_param.skeySize = AES_256_KEY_LENGTH , .pbkdf2_enc_param.skeyType = CKK_AES, .pbkdf2_enc_param.sClass = CKO_SECRET_KEY ,.pbkdf2_enc_param.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbkdf2_enc_param.uIVLength = AES_IV_LENGTH }
-
 };
 
 

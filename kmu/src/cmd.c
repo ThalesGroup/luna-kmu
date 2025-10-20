@@ -2464,10 +2464,12 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
          // load key compoment in the HSM as session key (only needed to compute KCV)
          sKeyTemplate.sClass = sKeyGenTemplate->sClass;
          sKeyTemplate.skeyType = sKeyGenTemplate->skeyType;
-         sKeyTemplate.skeySize = sKeyGenTemplate->skeySize;
+         //sKeyTemplate.skeySize = sKeyGenTemplate->skeySize;
          sKeyTemplate.pKeyLabel = "";
          sKeyTemplate.bCKA_Sign = CK_TRUE;
          sKeyTemplate.bCKA_Verify = CK_TRUE;
+         sKeyTemplate.bCKA_Encrypt = CK_TRUE;
+         sKeyTemplate.bCKA_Decrypt = CK_TRUE;
          sKeyTemplate.bCKA_Token = CK_FALSE;
          sKeyTemplate.bCKA_Sensitive = CK_TRUE;
          sKeyTemplate.bCKA_Private = CK_TRUE;
@@ -2538,6 +2540,12 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
          sKeyTemplate.pCKA_ID = sKeyGenTemplate->pCKA_ID;
          sKeyTemplate.uCKA_ID_Length = sKeyGenTemplate->uCKA_ID_Length;
          sKeyTemplate.hWrappingKey = hWrapKey;
+
+         // if des key, compute parity bit, checked by hsm when unwrapping the key
+         if (sKeyGenTemplate->skeyType != CKK_AES)
+         {
+            str_ByteArrayComputeParityBit(pbKey, sKeyLength);
+         }
 
          // import key (xor of all key components)
          hKey = P11_ImportClearSymetricKey(&sKeyTemplate, pbKey, sKeyLength);
