@@ -57,6 +57,7 @@ CK_CHAR        LibPath[4096];
 
 // Temp buffer 
 #define MAX_COMPONENT_SIZE          1024 // max RSA 8k with ASN1 TLV
+#define MAX_COMPONENT_PQC_SIZE      4096 // max RSA 8k with ASN1 TLV
 #define MAX_CERTIFICATE_SIZE        10240
 #define TEMP_BUFFER_SIZE            (2*MAX_CERTIFICATE_SIZE)
 #define TEMP_BUFFER_OFFSET_CMP_1    0
@@ -78,6 +79,9 @@ CK_CHAR        LibPath[4096];
 #define TEMP_BUFFER_OFFSET_CERT_1    0
 #define TEMP_BUFFER_OFFSET_CERT_2    MAX_CERTIFICATE_SIZE
 
+#define TEMP_BUFFER_OFFSET_MLDSA_PARAM       0
+#define TEMP_BUFFER_OFFSET_MLDSA_PK_INFO     4
+#define TEMP_BUFFER_OFFSET_MLDSA_VALUE       (TEMP_BUFFER_OFFSET_MLDSA_PK_INFO + MAX_COMPONENT_PQC_SIZE)
 
 
 CK_CHAR           pTempBuffer[TEMP_BUFFER_SIZE];
@@ -1543,8 +1547,28 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       {
          str_DisplayByteArraytoString("SubPrime=", &pTempBuffer[TEMP_BUFFER_OFFSET_SUBPRIME], pubDHTemplate[2].usValueLen);
       }
-
       break;
+
+      // if ml dsa key
+   case CKK_ML_DSA:
+   {
+      P11_ML_DSA_KEY_SIZE* DSA_Key;
+      CK_ATTRIBUTE pubMLDSATemplate[] = {
+               {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+               {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
+      };
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
+
+      DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE*)(pubMLDSATemplate[0].pValue));
+
+      printf("KeySize=%i\n", DSA_Key->sPrivateKeySize);
+      printf("KeyParameterSet=%s\n", DSA_Key->sName);
+
+      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
+   }
+
    default:
       break;
    }
@@ -1650,6 +1674,33 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_PUBKEY], pubDHTemplate[2].usValueLen);
       break;
    }
+   // if ml dsa key
+   case CKK_ML_DSA:
+   {
+      P11_ML_DSA_KEY_SIZE * ML_DSA_Key;
+      CK_ATTRIBUTE pubMLDSATemplate[] = {
+               {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+               {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
+               {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE],      MAX_COMPONENT_PQC_SIZE},
+
+      };
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
+
+      // get parameter set
+      ML_DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE *)(pubMLDSATemplate[0].pValue));
+
+      printf("KeySize=%i\n", ML_DSA_Key->sPublicKeySize);
+      printf("KeyParameterSet=%s\n", ML_DSA_Key->sName);
+
+      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
+      printf("\n");
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLDSATemplate[2].usValueLen);
+      
+   }
+
+      break;
    default:
       break;
    }
@@ -2300,7 +2351,6 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
    switch (sKeyGenTemplate->skeyType)
    {
    case CKK_DH:
-
       // Set prime
       PubTemplate[PubTemplateSize].type = CKA_PRIME;
       PubTemplate[PubTemplateSize].pValue = sKeyGenTemplate->pDHDomain->sPrime;
@@ -2447,6 +2497,18 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
       PubTemplateSize++;
       break;
    }
+   case CKK_ML_DSA:
+
+      bSignVerify = CK_TRUE;
+      sKeygenMech.mechanism = CKM_ML_DSA_KEY_PAIR_GEN;
+
+      // Set ml dsa params
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_DSA->sML_DSA_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
+      PubTemplateSize++;
+      break;
+
 
    default:
       printf("C_GenerateKey : invalid keytype : %i", sKeyGenTemplate->skeyType);

@@ -79,6 +79,15 @@ extern "C" {
 #define PBFKD2_DEFAULT_ITERATION    10000       // 
 #define PBFKD2_SALT_LENGTH          16          // recommanded by NIST
 
+#define ML_DSA_44_PUBLIC_KEY_SIZE            1312
+#define ML_DSA_65_PUBLIC_KEY_SIZE            1952
+#define ML_DSA_87_PUBLIC_KEY_SIZE            2592
+
+#define ML_DSA_44_PRIVATE_KEY_SIZE           2420
+#define ML_DSA_65_PRIVATE_KEY_SIZE           3309
+#define ML_DSA_87_PRIVATE_KEY_SIZE           4627
+
+
    typedef struct ck_des_param
    {
       CK_CHAR_PTR  iv;
@@ -251,6 +260,13 @@ extern "C" {
       EC_PUBLIC_KEY  sEcPublicKey;
    }PUBLIC_KEY;
 
+   typedef struct p11_ml_dsa_key_size
+   {
+      CK_ULONG                               sPublicKeySize;
+      CK_ULONG                               sPrivateKeySize;
+      CK_ML_DSA_PARAMETER_SET_TYPE           sML_DSA_Parameter_Set;
+      CK_CHAR_PTR                            sName;
+   }P11_ML_DSA_KEY_SIZE;
 
 
    // key atributes template
@@ -374,6 +390,7 @@ extern "C" {
          P11_ECC_OID* pECCurveOID;
          P11_EXP_DOMAIN* pDHDomain;
          P11_EXP_DOMAIN* pDSADomain;
+         P11_ML_DSA_KEY_SIZE* pML_DSA;
       };
       CK_BBOOL             bCKA_Token;
       CK_BBOOL             bCKA_Private;

@@ -77,6 +77,7 @@ const CK_CHAR KEY_TYPE_DH[] = "dh";
 const CK_CHAR KEY_TYPE_DSA[] = "dsa";
 const CK_CHAR KEY_TYPE_X942_DH[] = "dh-x9.42";
 const CK_CHAR KEY_TYPE_GENERIC[] = "genericsecret";
+const CK_CHAR KEY_TYPE_MD_DSA[] = "ml-dsa";
 
 const CK_CHAR KEY_TYPE_KEA[] = "kea";
 const CK_CHAR KEY_TYPE_RC2[] = "rc2";
@@ -110,6 +111,7 @@ const PARSER_KEY_TYPE arg_keygen_supported_type[] = {
    {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY,      CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY_OLD,  CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_SM2,           CKK_SM2,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_DSA,        CKK_ML_DSA,             CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_KEA,           CKK_KEA,                CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_RC2,           CKK_RC2,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_RC4,           CKK_RC4,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
@@ -642,6 +644,18 @@ const P11_ATTR_TYPE attr_type[] = {
 
 };
 
+const CK_CHAR ML_DSA_ML_44[] = "ML-DSA-44";
+const CK_CHAR ML_DSA_ML_65[] = "ML-DSA-65";
+const CK_CHAR ML_DSA_ML_87[] = "ML-DSA-87";
+
+/***   ML DSA ****/
+#define SIZE_P11_ML_DSA_KEYSIZE_TABLE     DIM(ml_dsa_publickeysize)
+const P11_ML_DSA_KEY_SIZE ml_dsa_publickeysize[] = {
+   {ML_DSA_44_PUBLIC_KEY_SIZE,  ML_DSA_44_PRIVATE_KEY_SIZE,          CKP_ML_DSA_44,             (CK_CHAR_PTR)&ML_DSA_ML_44},
+   {ML_DSA_65_PUBLIC_KEY_SIZE,  ML_DSA_65_PRIVATE_KEY_SIZE,          CKP_ML_DSA_65,             (CK_CHAR_PTR)&ML_DSA_ML_65},
+   {ML_DSA_87_PUBLIC_KEY_SIZE,  ML_DSA_87_PRIVATE_KEY_SIZE,          CKP_ML_DSA_87,             (CK_CHAR_PTR)&ML_DSA_ML_87},
+
+};
 
 /******************** pkcs11 error *********************/
 typedef struct pkcs11_error
@@ -1595,4 +1609,46 @@ void P11Util_DisplaySupportedAttribute()
       printf("-> %s\n", attr_type[u8Loop].sAttributeType);
 
    }
+}
+
+/*
+    FUNCTION:        P11_ML_DSA_KEY_SIZE P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+*/
+P11_ML_DSA_KEY_SIZE * P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_P11_ML_DSA_KEYSIZE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (ml_dsa_publickeysize[u8Loop].sPublicKeySize == sPublicKeySize)
+      {
+
+         return (P11_ML_DSA_KEY_SIZE*) &ml_dsa_publickeysize[u8Loop];
+
+      }
+   };
+
+   return NULL;
+}
+
+/*
+    FUNCTION:        P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
+*/
+P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_P11_ML_DSA_KEYSIZE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (ml_dsa_publickeysize[u8Loop].sML_DSA_Parameter_Set == sParameterSet)
+      {
+
+         return (P11_ML_DSA_KEY_SIZE*)&ml_dsa_publickeysize[u8Loop];
+
+      }
+   };
+
+   return NULL;
 }

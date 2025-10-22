@@ -379,6 +379,28 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
                return CK_FALSE;
             }
             break;
+
+         case CKK_ML_DSA:
+
+            // get arg size
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize();
+
+            if (sKeyGenTemplate.skeySize == 0)
+            {
+               printf("Invalid or missing arg  : -keysize\n");
+               return CK_FALSE;
+            }
+
+            sKeyGenTemplate.pML_DSA = P11Util_GetML_DSA_ParameterFromKeySize(sKeyGenTemplate.skeySize);
+
+            if (sKeyGenTemplate.pML_DSA == NULL)
+            {
+               printf("Invalid or missing arg  : -keysize\n");
+               return CK_FALSE;
+            }
+
+            break;
+
          default:
             return CK_FALSE;
          }
@@ -2425,7 +2447,7 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
 
       // generate a AES 256 session wrap key (use to encrypt clear key value)
       hWrapKey = P11_GenerateAESWrapKey(CK_FALSE, AES_256_KEY_LENGTH, "AES_KEY_WRAP_KEY_COMP");
-
+      
       sKeyLength = sKeyGenTemplate->skeySize;
 
       // allocate a buffer for compoments generation

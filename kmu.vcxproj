@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;OS_WIN32;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\kmu\inc;.\pkcs11\inc;.\util\inc;$(ChrystokiConfigurationPath)\samples\p11sample\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\kmu\inc;.\pkcs11\inc;.\util\inc;$(ChrystokiConfigurationPath)\samples\p11sample\include;$(ChrystokiConfigurationPath)\sdk\include;$(ChrystokiConfigurationPath)\sdk\external\RSA</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,7 +163,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;OS_WIN32;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\kmu\inc;.\pkcs11\inc;.\util\inc;$(ChrystokiConfigurationPath)\samples\p11sample\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\kmu\inc;.\pkcs11\inc;.\util\inc;$(ChrystokiConfigurationPath)\samples\p11sample\include;$(ChrystokiConfigurationPath)\sdk\include;$(ChrystokiConfigurationPath)\sdk\external\RSA</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
