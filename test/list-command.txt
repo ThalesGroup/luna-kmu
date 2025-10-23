@@ -3,6 +3,7 @@
 #list all objects
 list -slot=0 -password=00000000
 list -slot=0 -password=00000000 -cu=true
+list -slot=0 -password=00000000 -cu=true -limit=10
 
 # computekcv
 kmu computekcv -slot 2 -password 00000000 -handle 1158 -method pci
@@ -54,7 +55,10 @@ generatekey -slot=3 -password 00000000 -keytype=dh -labelpublic=kmu-dh-pkcs-publ
 generatekey -slot=3 -password 00000000 -keytype=dh -labelpublic=kmu-dh-2k-x942-public -labelprivate=kmu-dh-2k-x942-private -modifiable=true -extractable=1 -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -mech=x942 -prime=AD107E1E9123A9D0D660FAA79559C51FA20D64E5683B9FD1B54B1597B61D0A75E6FA141DF95A56DBAF9A3C407BA1DF15EB3D688A309C180E1DE6B85A1274A0A66D3F8152AD6AC2129037C9EDEFDA4DF8D91E8FEF55B7394B7AD5B7D0B6C12207C9F98D11ED34DBF6C6BA0B2C8BBC27BE6A00E0A0B9C49708B3BF8A317091883681286130BC8985DB1602E714415D9330278273C7DE31EFDC7310F7121FD5A07415987D9ADC0A486DCDF93ACC44328387315D75E198C641A480CD86A1B9E587E8BE60E69CC928B2B9C52172E413042E9B23F10B0E16E79763C9B53DCF4BA80A29E3FB73C16B8E75B97EF363E2FFA31F71CF9DE5384E71B81C0AC4DFFE0C10E64F -base=AC4032EF4F2D9AE39DF30B5C8FFDAC506CDEBE7B89998CAF74866A08CFE4FFE3A6824A4E10B9A6F0DD921F01A70C4AFAAB739D7700C29F52C57DB17C620A8652BE5E9001A8D66AD7C17669101999024AF4D027275AC1348BB8A762D0521BC98AE247150422EA1ED409939D54DA7460CDB5F6C6B250717CBEF180EB34118E98D119529A45D6F834566E3025E316A330EFBB77A86F0C1AB15B051AE3D428C8F8ACB70A8137150B8EEB10E183EDD19963DDD9E263E4770589EF6AA21E7F5F2FF381B539CCE3409D13CD566AFBB48D6C019181E1BCFE94B30269EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC017981BC087F2A7065B384B890D3191F2BFA -subprime=801C0D34C58D93FE997177101F80535A4738CEBCBF389A99B36371EB
 //dsa
 generatekey -slot=3 -password 00000000 -keytype=dsa -labelpublic=kmu-dsa-2k-public -labelprivate=kmu-dsa-2k-private -modifiable=true -extractable=1 -wrap=1 -unwrap=1 -encrypt false -sign=true -decrypt true -verify true -mech=x942 -prime=AD107E1E9123A9D0D660FAA79559C51FA20D64E5683B9FD1B54B1597B61D0A75E6FA141DF95A56DBAF9A3C407BA1DF15EB3D688A309C180E1DE6B85A1274A0A66D3F8152AD6AC2129037C9EDEFDA4DF8D91E8FEF55B7394B7AD5B7D0B6C12207C9F98D11ED34DBF6C6BA0B2C8BBC27BE6A00E0A0B9C49708B3BF8A317091883681286130BC8985DB1602E714415D9330278273C7DE31EFDC7310F7121FD5A07415987D9ADC0A486DCDF93ACC44328387315D75E198C641A480CD86A1B9E587E8BE60E69CC928B2B9C52172E413042E9B23F10B0E16E79763C9B53DCF4BA80A29E3FB73C16B8E75B97EF363E2FFA31F71CF9DE5384E71B81C0AC4DFFE0C10E64F -base=AC4032EF4F2D9AE39DF30B5C8FFDAC506CDEBE7B89998CAF74866A08CFE4FFE3A6824A4E10B9A6F0DD921F01A70C4AFAAB739D7700C29F52C57DB17C620A8652BE5E9001A8D66AD7C17669101999024AF4D027275AC1348BB8A762D0521BC98AE247150422EA1ED409939D54DA7460CDB5F6C6B250717CBEF180EB34118E98D119529A45D6F834566E3025E316A330EFBB77A86F0C1AB15B051AE3D428C8F8ACB70A8137150B8EEB10E183EDD19963DDD9E263E4770589EF6AA21E7F5F2FF381B539CCE3409D13CD566AFBB48D6C019181E1BCFE94B30269EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC017981BC087F2A7065B384B890D3191F2BFA -subprime=801C0D34C58D93FE997177101F80535A4738CEBCBF389A99B36371EB
-
+// ML DSA
+generatekey -slot=3 -password 00000000 -keytype=ml-dsa -keysize=1312 -labelpublic=kmu-mldsa-44-public -labelprivate=kmu-mldsa-44-private
+generatekey -slot=3 -password 00000000 -keytype=ml-dsa -keysize=1952 -labelpublic=kmu-mldsa-65-public -labelprivate=kmu-mldsa-65-private
+generatekey -slot=3 -password 00000000 -keytype=ml-dsa -keysize=2592 -labelpublic=kmu-mldsa-87-public -labelprivate=kmu-mldsa-87-private
 
 # Create DO
 createdo -password 00000000 -label=kmu-do -token=true -modifiable=true -private=true -application=01020303 -value=99897898
@@ -81,11 +85,14 @@ import -password 00000000 -keyclass=private -keytype=dsa -inputfile=private_dsa2
 //import dh private
 import -password 00000000 -keyclass=private -keytype=dh -inputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhdpkcs2kprivate -modifiable=true -extractable=true
 import -password 00000000 -keyclass=private -keytype=dh-x9.42 -inputfile=private_dh_2k_x942.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhx9422kprivate -modifiable=true -extractable=true
+//import mldsa private
+import -password 00000000 -keyclass=private -keytype=ml-dsa -inputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmldsa85private -modifiable=true -extractable=true
 //import public key
 import -slot=1 -password 00000000 -keyclass=public -keytype=rsa -inputfile=public_rsa8k.txt -format=text -label=importrsa8k -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=ecdsa -inputfile=public_ecdsaR1.txt -format=text -label=importecdsa256R1 -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=eddsa -inputfile=public_eddsa.txt -format=text -label=importeddsa -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=sm2 -inputfile=public_sm2.txt -format=text -label=importsm2 -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=ml-dsa -inputfile=mddsa87publickey.txt -format=text -label=importmldsa85public
 //format pkcs8
 import -slot=1 -password 00000000 -keyclass=public -keytype=ecdsa -inputfile=ecdsa256r1pub.pem -format=PKCS8 -label=importecdsa256R1pem -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=rsa -inputfile=public_rsa8k.pem -format=PKCS8 -label=importedrsa8kpem -modifiable=true -extractable=true
@@ -94,6 +101,7 @@ import -slot=3 -password 00000000 -keyclass=public -keytype=montgomery -inputfil
 import -password 00000000 -keyclass=public -keytype=dsa -inputfile=public_dsa2k.pem -format=PKCS8 -label=importdsa2kpem -modifiable=true -extractable=true
 import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh2k.pem -format=PKCS8 -label=importeddhx9422kpem -modifiable=true -extractable=true
 import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh-pkcs.pem -format=PKCS8 -label=importeddhpkcspem -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=public -keytype=ml-dsa -inputfile=mddsa87publickey.pem -format=pkcs8 -label=importmldsa85pem
 
 # export key
 // export rsa with aes key wrap
@@ -112,6 +120,8 @@ export -password 00000000 -handle=862 -outputfile=private_dsa2k.txt -format=text
 // export dh with aes key wrap
 export -password 00000000 -handle=865 -outputfile=private_dh_2k_x942.txt -format=text -key=426 -algo=aes_cbc_pad
 export -password 00000000 -handle=867 -outputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad
+// export ml dsa with aes key wrap
+export -password 00000000 -handle=1122 -outputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp
 // export rsa public key
 export -slot=1 -password 00000000 -handle=418 -outputfile=public.txt -format=text
 export -slot=3 -password 00000000 -handle=621 -outputfile=public_rsa8k.txt -format=text
@@ -122,6 +132,8 @@ export -slot=1 -password 00000000 -handle=448 -outputfile=public_ecdsaR1.txt -fo
 export -slot=1 -password 00000000 -handle=430 -outputfile=public_eddsa.txt -format=text
 // SM2 public key
 export -slot=1 -password 00000000 -handle=423 -outputfile=public_sm2.txt -format=text
+// ML-DSA public key
+export -password 00000000 -handle=1098 -outputfile=mddsa87publickey.txt -format=text
 // export pkcs8
 export -slot=3 -password 00000000 -handle=717 -outputfile=public_ecdsa_sect571k1.pem -format=PKCS8
 export -slot=3 -password 00000000 -handle=621 -outputfile=public_rsa8k.pem -format=PKCS8
@@ -132,6 +144,8 @@ export -slot=3 -password 00000000 -handle=776 -outputfile=public_montgomeryx2551
 export -password 00000000 -handle=842 -outputfile=public_dsa2k.pem -format=PKCS8
 export -password 00000000 -handle=856 -outputfile=public_dh2k.pem -format=PKCS8
 export -password 00000000 -handle=852 -outputfile=public_dh-pkcs.pem -format=PKCS8
+// export pkcs8 ML DSA key
+export -password 00000000 -handle=1098 --outputfile=mddsa87publickey.pem -format=PKCS8
 // export encrypted pkcs8 with password
 export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
 

@@ -90,6 +90,7 @@ extern "C" {
 #define ARG_TYPE_SALT               63
 #define ARG_TYPE_ITERATION          64
 #define ARG_TYPE_PRF                65
+#define ARG_TYPE_LIMIT              66
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -123,6 +124,7 @@ extern "C" {
 #define cmdarg_ArgGetSalt()                  cmdarg_SearchTypeString(ARG_TYPE_SALT, NULL, 0)
 #define cmdarg_GetGCMAuthTagLen()            cmdarg_SearchTypeInteger(ARG_TYPE_GCM_TAG_LEN)
 #define cmdarg_GetHash()                     cmdarg_SearchHash(ARG_TYPE_HASH_KEY)
+#define cmdarg_Limit()                       cmdarg_SearchTypeInteger(ARG_TYPE_LIMIT)
 
    _EXT  CK_CHAR_PTR             cmdarg_GetPassword();
    _EXT  CK_SLOT_ID              cmdarg_GetSlotID();

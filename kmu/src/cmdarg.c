@@ -555,7 +555,7 @@ CK_OBJECT_HANDLE cmdarg_GetHandleValue(CK_BYTE bArgType)
       if (str_StringtoUnsignedInteger(sHandleString) == 0)
       {
          // list all objects
-         P11_FindAllObjects();
+         P11_FindAllObjects(CK_NULL_ELEMENT);
 
          // request for object value
          printf("Enter handle : ");

@@ -669,9 +669,9 @@ CK_RV P11_Logout()
 }
 
 /*
-    FUNCTION:        CK_RV P11_FindAllObjects()
+    FUNCTION:        CK_RV P11_FindAllObjects(CK_LONG uLimit)
 */
-CK_BBOOL P11_FindAllObjects()
+CK_BBOOL P11_FindAllObjects(CK_LONG uLimit)
 {
    CK_ATTRIBUTE_PTR  pTemplate = NULL;
    CK_ULONG          usTemplateLen = 0;
@@ -726,6 +726,16 @@ CK_BBOOL P11_FindAllObjects()
          pTempBuffer[sAttributeTemplate[1].usValueLen] = 0;
       }
       printf("Label=%s\n", pTempBuffer);
+
+      // check if limit the number of objects to display
+      if (uLimit != CK_NULL_ELEMENT)
+      {
+         // if reach max number of object, stop the loop
+         if (TotalObject >= (CK_ULONG)uLimit)
+         {
+            break;
+         }
+      }
 
    }
 
@@ -1235,6 +1245,43 @@ CK_BBOOL P11_GetEccPublicKey(CK_OBJECT_HANDLE Handle, EC_PUBLIC_KEY* eccpublicke
 }
 
 /*
+    FUNCTION:        CK_BBOOL P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey)
+*/
+CK_BBOOL P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey)
+{
+   CK_RV                retCode = CKR_SESSION_CLOSED;
+   CK_ATTRIBUTE pubMLDSATemplate[] = {
+      {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+      {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE],      MAX_COMPONENT_PQC_SIZE},
+   };
+
+   do
+   {
+      // call this function. Required if slot is HA, otherwise getattribute return error. 
+      retCode = P11Functions->C_FindObjectsInit(hSession, NULL, 0);
+
+      // Get object attribute (modulus and public exponant)
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
+
+      // check if error. 
+      if (retCode != CKR_OK)
+      {
+         printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+         break;
+      }
+
+      // update mldsapublickey
+      smldsapublickey->sPublicKey = &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE];
+      smldsapublickey->uPublicKeyLength = pubMLDSATemplate[1].usValueLen;
+      smldsapublickey->uML_DSA_Parameter_Set = pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM];
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        void P11_DisplayCertificate(CK_KEY_TYPE  skeyType)
 */
 void P11_DisplayCertificate(CK_OBJECT_HANDLE Handle)
@@ -1552,7 +1599,8 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       // if ml dsa key
    case CKK_ML_DSA:
    {
-      P11_ML_DSA_KEY_SIZE* DSA_Key;
+      P11_ML_DSA_KEY_SIZE* sML_DSA_Key;
+      ML_DSA_PUBLIC_KEY sML_DSA_PublicKey = {0};
       CK_ATTRIBUTE pubMLDSATemplate[] = {
                {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
                {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
@@ -1561,12 +1609,15 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       /* get and display ML DSA public key attributes */
       retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
 
-      DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE*)(pubMLDSATemplate[0].pValue));
+      sML_DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE*)(pubMLDSATemplate[0].pValue));
 
-      printf("KeySize=%i\n", DSA_Key->sPrivateKeySize);
-      printf("KeyParameterSet=%s\n", DSA_Key->sName);
+      printf("KeySize=%i\n", sML_DSA_Key->sPrivateKeySize);
+      printf("ParameterSet=%s (0x%08X)\n", sML_DSA_Key->sName, sML_DSA_Key->uML_DSA_Parameter_Set);
 
-      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
+      sML_DSA_PublicKey.uML_DSA_Parameter_Set = sML_DSA_Key->uML_DSA_Parameter_Set;
+      asn1_Check_MLDSApublicKeyInfo(&sML_DSA_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
+
+      str_DisplayByteArraytoString("PublicKey=", sML_DSA_PublicKey.sPublicKey, sML_DSA_PublicKey.uPublicKeyLength);
    }
 
    default:
@@ -1677,11 +1728,11 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
    // if ml dsa key
    case CKK_ML_DSA:
    {
-      P11_ML_DSA_KEY_SIZE * ML_DSA_Key;
+      P11_ML_DSA_KEY_SIZE * sML_DSA_Key;
       CK_ATTRIBUTE pubMLDSATemplate[] = {
                {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
-               {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
                {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE],      MAX_COMPONENT_PQC_SIZE},
+ //              {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
 
       };
 
@@ -1689,14 +1740,14 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
 
       // get parameter set
-      ML_DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE *)(pubMLDSATemplate[0].pValue));
+      sML_DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE *)(pubMLDSATemplate[0].pValue));
 
-      printf("KeySize=%i\n", ML_DSA_Key->sPublicKeySize);
-      printf("KeyParameterSet=%s\n", ML_DSA_Key->sName);
+      printf("KeySize=%i\n", sML_DSA_Key->sPublicKeySize);
+      printf("ParameterSet=%s (0x%08X)\n", sML_DSA_Key->sName, sML_DSA_Key->uML_DSA_Parameter_Set);
 
-      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
-      printf("\n");
-      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLDSATemplate[2].usValueLen);
+ //     str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[2].usValueLen);
+ //     printf("\n");
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLDSATemplate[1].usValueLen);
       
    }
 
@@ -2504,11 +2555,11 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
 
       // Set ml dsa params
       PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
-      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_DSA->sML_DSA_Parameter_Set;
+      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_DSA->uML_DSA_Parameter_Set;
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
       PubTemplateSize++;
       break;
-
+      
 
    default:
       printf("C_GenerateKey : invalid keytype : %i", sKeyGenTemplate->skeyType);
@@ -2914,6 +2965,24 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplate[PubTemplateSize].usValueLen = asn1_GetBufferSize();
       PubTemplateSize++;
       break;
+   }
+
+   case CKK_ML_DSA:
+   {
+
+      // Set modulus length in bit
+      PubTemplate[PubTemplateSize].type = CKA_VALUE;
+      PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlDsaPublicKey.sPublicKey;
+      PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sMlDsaPublicKey.uPublicKeyLength;
+      PubTemplateSize++;
+
+      // Set public exponant
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlDsaPublicKey.uML_DSA_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CKA_PARAMETER_SET);
+      PubTemplateSize++;
+      break;
+
    }
    default:
       printf("C_CreateObject : invalid keytype : %i", sImportPublicKeyTemplate->skeyType);

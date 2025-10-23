@@ -71,12 +71,26 @@ CK_BBOOL cmd_IsLoggedIn()
 */
 CK_BBOOL cmd_kmu_list(CK_BBOOL bIsConsole)
 {
+   CK_LONG uLimit = 0;
    if (cmd_IsLoggedIn() == CK_FALSE)
    {
       return CK_FALSE;
    }
 
-   return P11_FindAllObjects();
+   // get limit
+   uLimit = cmdarg_Limit();
+
+   // check if limit is set with correct integer value or absent.
+   if (uLimit < 0)
+   {
+      if (uLimit != CK_NULL_ELEMENT)
+      {
+         printf("Invalid argument value, must be an integer: -limit\n");
+         return CK_FALSE;
+      }
+   }
+
+   return P11_FindAllObjects(uLimit);
 }
 
 /*
@@ -2219,6 +2233,10 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
          // check ECpublicKeyInfo
          bResult = asn1_Check_ECpublicKeyInfo(&uPublicKey.sEcPublicKey, sPublicKey, sPblicKeyLength, sImportTemplate->skeyType);
          break;
+
+      case CKK_ML_DSA:
+         // check RSApublicKeyInfo
+         bResult = asn1_Check_MLDSApublicKeyInfo(&uPublicKey.sMlDsaPublicKey, sPublicKey, sPblicKeyLength);
       default:
          break;
       }
@@ -2304,6 +2322,18 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
 
       printf("Error: Cannot read ECC public key");
       return CK_FALSE;
+   case CKK_ML_DSA:
+      if (P11_GetMLDSAPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sMlDsaPublicKey) == CK_TRUE)
+      {
+         // build EC public key info
+         asn1_Build_MLDSApublicKeyInfo(&sPublicKey.sMlDsaPublicKey);
+         break;
+      }
+
+      printf("Error: Cannot read ML-DSA public key");
+      return CK_FALSE;
+
+
    default:
       return CK_FALSE;
    }

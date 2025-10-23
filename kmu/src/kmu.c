@@ -110,6 +110,10 @@ const STRING_ARRAY ARG_PASSWORD_HELP = "pkcs11 slot password \n\t\t\t\t\t-If the
 const STRING_ARRAY ARG_CU = "-cu";
 const STRING_ARRAY ARG_CU_HELP = "Specifies that you wish to perform the command as the partition's Crypto User. \n\t\t\t\t\t-Supported value: true, 1 \n\t\t\t\t\t-Optional Default value is absent. Crypto Officer role is used by default";
 
+const STRING_ARRAY ARG_LIMIT = "-limit";
+const STRING_ARRAY ARG_LIMIT_HELP = "Maximum number of objects to list";
+
+
 const STRING_ARRAY ARG_LABEL = "-label";
 const STRING_ARRAY ARG_LABEL_HELP = "Key label value";
 const STRING_ARRAY ARG_LABEL_GENERATEKEY_HELP = "Key label value\n\t\t\t\t\t-Mandatory for symmetric keys\n\t\t\t\t\t-Optionnal for asymmetric keys";
@@ -304,7 +308,9 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
 #define CMD_LIST_VALUE              (const CK_CHAR_PTR)CMD_LIST, (const P_fCMD)&cmd_kmu_list, (const CK_CHAR_PTR)CMD_LIST_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP,\
-                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP }
+                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP, \
+                                    (const CK_CHAR_PTR)ARG_LIMIT, ARG_TYPE_LIMIT, (const CK_CHAR_PTR)ARG_LIMIT_HELP, \
+                                    }
 
 
 #define CMD_GENERATEKEY_VALUE       (const CK_CHAR_PTR)CMD_GENERATE_KEY, (const P_fCMD)&cmd_kmu_generateKey, (const CK_CHAR_PTR)CMD_GENERATE_KEY_HELP, \
@@ -689,6 +695,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_KCV_METHOD,
    (CK_CHAR_PTR)ARG_CU,
    (CK_CHAR_PTR)ARG_KCV_COMP,
+   (CK_CHAR_PTR)ARG_LIMIT,
 };
 
 #define MAX_CONSOLE_ARG_LIST      (1+ (MAX_ARGUMENT *2))

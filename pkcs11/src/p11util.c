@@ -1642,7 +1642,7 @@ P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAM
    for (u8Loop = 0; u8Loop < SIZE_P11_ML_DSA_KEYSIZE_TABLE; u8Loop++)
    {
       // if curve name match, return OID
-      if (ml_dsa_publickeysize[u8Loop].sML_DSA_Parameter_Set == sParameterSet)
+      if (ml_dsa_publickeysize[u8Loop].uML_DSA_Parameter_Set == sParameterSet)
       {
 
          return (P11_ML_DSA_KEY_SIZE*)&ml_dsa_publickeysize[u8Loop];

@@ -252,19 +252,27 @@ extern "C" {
       CK_ULONG    uOidSize;
    }EC_PUBLIC_KEY;
 
+   typedef struct mldsapublickey
+   {
+      CK_CHAR_PTR                   sPublicKey;
+      CK_ULONG                      uPublicKeyLength;
+      CK_ML_DSA_PARAMETER_SET_TYPE  uML_DSA_Parameter_Set;
+   }ML_DSA_PUBLIC_KEY;
+
    typedef union publickey
    {
-      RSA_PUBLIC_KEY sRsaPublicKey;
-      DSA_PUBLIC_KEY sDsaPublicKey;
-      DH_PUBLIC_KEY  sDhPublicKey;
-      EC_PUBLIC_KEY  sEcPublicKey;
+      RSA_PUBLIC_KEY       sRsaPublicKey;
+      DSA_PUBLIC_KEY       sDsaPublicKey;
+      DH_PUBLIC_KEY        sDhPublicKey;
+      EC_PUBLIC_KEY        sEcPublicKey;
+      ML_DSA_PUBLIC_KEY    sMlDsaPublicKey;
    }PUBLIC_KEY;
 
    typedef struct p11_ml_dsa_key_size
    {
       CK_ULONG                               sPublicKeySize;
       CK_ULONG                               sPrivateKeySize;
-      CK_ML_DSA_PARAMETER_SET_TYPE           sML_DSA_Parameter_Set;
+      CK_ML_DSA_PARAMETER_SET_TYPE           uML_DSA_Parameter_Set;
       CK_CHAR_PTR                            sName;
    }P11_ML_DSA_KEY_SIZE;
 
@@ -447,7 +455,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_IsLoggedIn();
    _EXT  CK_LONG              P11_ListStot();
    _EXT  CK_BBOOL             P11_IsLoginPasswordRequired(void);
-   _EXT  CK_BBOOL             P11_FindAllObjects();
+   _EXT  CK_BBOOL             P11_FindAllObjects(CK_LONG uLimit);
    _EXT  CK_BBOOL             P11_DeleteObject(CK_OBJECT_HANDLE Handle);
    _EXT  CK_BBOOL             P11_GetAttributes(CK_OBJECT_HANDLE Handle);
    _EXT  CK_BBOOL             P11_GetAttributesArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR * pArray, CK_ULONG_PTR pArrayLength);
@@ -470,6 +478,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_GetEccPublicKey(CK_OBJECT_HANDLE Handle, EC_PUBLIC_KEY* eccpublickey, CK_KEY_TYPE ckTypeEc);
    _EXT  CK_BBOOL             P11_GetDsaPublicKey(CK_OBJECT_HANDLE Handle, DSA_PUBLIC_KEY* dsapublickey);
    _EXT  CK_BBOOL             P11_GetDHPublicKey(CK_OBJECT_HANDLE Handle, DH_PUBLIC_KEY* dhpublickey, CK_KEY_TYPE skeyType);
+   _EXT  CK_BBOOL             P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey);
    _EXT  CK_BBOOL             P11_EncryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pEncryptedData, CK_ULONG_PTR pEncryptedDataLength);
    _EXT  CK_BBOOL             P11_DecryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pDecryptedData, CK_ULONG_PTR pDecryptedDataLength);
    _EXT  CK_BBOOL             P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSignauture, CK_ULONG_PTR pSignautureLength);
