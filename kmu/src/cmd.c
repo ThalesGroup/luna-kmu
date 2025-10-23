@@ -313,6 +313,12 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
             // get label public
             sKeyGenTemplate.pKeyLabelPublic = cmdarg_GetLabelPublic(cmd_Label_public, MAX_LABEL_SIZE);
 
+            if ((sKeyGenTemplate.pKeyLabelPrivate == NULL) && (sKeyGenTemplate.pKeyLabelPublic == NULL))
+            {
+               printf("Missing argument : -LabelPrivate and LabelPublic \n");
+               break;
+            }
+
          }
          else
          {
@@ -325,7 +331,7 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
          {
          case CKK_RSA:
             // get arg size
-            sKeyGenTemplate.skeySize = cmdarg_GetKeySize();
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_RSA);
 
             if (sKeyGenTemplate.skeySize == 0)
             {
@@ -397,7 +403,7 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
          case CKK_ML_DSA:
 
             // get arg size
-            sKeyGenTemplate.skeySize = cmdarg_GetKeySize();
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_MLDSA);
 
             if (sKeyGenTemplate.skeySize == 0)
             {
@@ -405,11 +411,12 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
                return CK_FALSE;
             }
 
+            // get parameter set from key size
             sKeyGenTemplate.pML_DSA = P11Util_GetML_DSA_ParameterFromKeySize(sKeyGenTemplate.skeySize);
 
             if (sKeyGenTemplate.pML_DSA == NULL)
             {
-               printf("Invalid or missing arg  : -keysize\n");
+               printf("Invalid size  : -keysize\n");
                return CK_FALSE;
             }
 
@@ -435,10 +442,25 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
          switch (sKeyGenTemplate.skeyType)
          {
          case CKK_AES:
+            // for AES and hmac, key length is required
+            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES)) == 0)
+            {
+               printf("Invalid or missing argument  : -keysize \n");
+               return CK_FALSE;
+            }
+            break;
+
          case CKK_GENERIC_SECRET:   
+            // for AES and hmac, key length is required
+            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_HMAC_GEN)) == 0)
+            {
+               printf("Invalid or missing argument  : -keysize \n");
+               return CK_FALSE;
+            }
+            break;
          case CKK_DES:
             // for AES and hmac, key length is required
-            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize()) == 0)
+            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_DES)) == 0)
             {
                printf("Invalid or missing argument  : -keysize \n");
                return CK_FALSE;
@@ -926,7 +948,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
          if (sUnwrapTemplate.skeyType == CKK_AES)
          {
             // get key size
-            sUnwrapTemplate.skeySize = cmdarg_GetKeySize();
+            sUnwrapTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES);
 
             if (sUnwrapTemplate.skeySize == 0)
             {
@@ -1022,7 +1044,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
             if (sUnwrapTemplate.wrapmech->ckMechType == CKM_AES_KW)
             {
                // get key size
-               sUnwrapTemplate.skeySize = cmdarg_GetKeySize();
+               sUnwrapTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES);
             }
          }
 
@@ -1467,12 +1489,6 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
          break;
       }
 
-      // get key type (CK_KEY_TYPE)
-      if ((sDeriveTemplate.sderivedKeyType = cmdarg_GetKeytype(CK_TRUE, KEY_TYPE_DERIVEKEY)) == CK_NULL_ELEMENT)
-      {
-         printf("wrong or missing argument : -keytype \n");
-         break;
-      }
       // get key class 
       sDeriveTemplate.sDerivedClass = cmdarg_GetClassFromkeyType(KEY_TYPE_DERIVEKEY);
       if (sDeriveTemplate.sDerivedClass == CK_NULL_ELEMENT)
@@ -1481,8 +1497,34 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
          break;
       }
 
+      // get key type (CK_KEY_TYPE)
+      if ((sDeriveTemplate.sderivedKeyType = cmdarg_GetKeytype(CK_FALSE, KEY_TYPE_DERIVEKEY)) == CK_NULL_ELEMENT)
+      {
+         printf("wrong or missing argument : -keytype \n");
+         break;
+      }
+
+      // get size according key type
+      switch (sDeriveTemplate.sderivedKeyType)
+      {
+      case CKK_AES:
+         sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES);
+         break;
+      case CKK_DES:
+      case CKK_DES2:
+      case CKK_DES3:
+         sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_DES);
+         break;
+      case CKK_GENERIC_SECRET:
+         sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_HMAC_GEN);
+         break;
+      default:
+         printf("Invalid key type\n");
+         return CK_FALSE;
+      }
+
       // get derived key length
-      if ((sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize()) == 0)
+      if (sDeriveTemplate.sderivedKeyLength == 0)
       {
          printf("Invalid or missing argument  : -keysize \n");
          return CK_FALSE;
@@ -1810,7 +1852,7 @@ CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
       }
 
       // get MZMK get size
-      if ((sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize()) == 0)
+      if ((sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_MZMK)) == 0)
       {
          printf("Invalid or missing argument  : -keysize \n");
          return CK_FALSE;

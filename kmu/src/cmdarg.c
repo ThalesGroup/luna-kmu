@@ -796,9 +796,9 @@ CK_CHAR_PTR  cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK
 }
 
 /*
-    FUNCTION:        CK_LONG  cmdarg_GetKeySize()
+    FUNCTION:        CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
 */
-CK_LONG  cmdarg_GetKeySize()
+CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
 {
    PARSER_CURRENT_CMD_ARG* arg;
    CK_CHAR_PTR sString = NULL;
@@ -808,6 +808,52 @@ CK_LONG  cmdarg_GetKeySize()
 
    if (arg == NULL)
    {
+
+      // print supported key size for AES
+      if (uKeyType == TYPE_KEY_SIZE_AES)
+      {
+         printf("AES Key size in byte, supported key size is: \n-> 16 for AES-128\n-> 24 for AES-192\n-> 32 for AES-256\n");
+      }
+
+      // print supported key size for DES
+      if (uKeyType == TYPE_KEY_SIZE_DES)
+      {
+         printf("DES Key size in byte, supported key size is: \n-> 8 for DES\n-> 16 for 2DES\n-> 24 for 3DES\n");
+      }
+
+      // print supported key size for generic keys
+      if (uKeyType == TYPE_KEY_SIZE_HMAC_GEN)
+      {
+         printf("HMAC and generic Key size in byte, supported key size is: \nMinimum-> 8 (64 bits)\nMinimum in FIPS mode-> 16 (128 bits)\nMaximum size-> 512 (4096 bits)\n");
+      }
+
+      // print supported key size for RSA keys
+      if (uKeyType == TYPE_KEY_SIZE_RSA)
+      {
+         printf("RSA Key size in bits, supported key size is: \n");
+         printf("->pkcs method : Minimum 256, Maximum size-> 8192\n");
+         printf("->prime method : Minimum 2048, Maximum size-> 8192\n");
+         printf("->aux method : Minimum 1024, Maximum size-> 8192\n");
+      }
+      // print supported key size for ml dsa keys
+      if (uKeyType == TYPE_KEY_SIZE_MLDSA)
+      {
+         printf("ML-DSA Key size in bits, supported key size is: \n");
+         printf("->ML-DSA-44 : 1312\n");
+         printf("->ML-DSA-65 : 1952\n");
+         printf("->ML-DSA-87 : 2592\n");
+      }
+
+      // print supported key size for mzmk
+      if (uKeyType == TYPE_KEY_SIZE_MZMK)
+      {
+         printf("MZMK Key size in bytes, supported key size is: \n");
+         printf("-> 16 for AES-128\n");
+         printf("-> 24 for AES-192\n");
+         printf("-> 32 for AES-256\n");
+         printf("-> 24 for 3DES\n");
+      }
+
       printf("Enter size for key : ");
 
       // request user

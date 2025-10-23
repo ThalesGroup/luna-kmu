@@ -99,6 +99,13 @@ extern "C" {
 #define FILE_FORMAT_PKCS12          0x40
 #define FILE_FORMAT_TR31            0x80
 
+#define TYPE_KEY_SIZE_AES           0x01
+#define TYPE_KEY_SIZE_DES           0x02
+#define TYPE_KEY_SIZE_HMAC_GEN      0x03
+#define TYPE_KEY_SIZE_RSA           0x04
+#define TYPE_KEY_SIZE_MLDSA         0x05
+#define TYPE_KEY_SIZE_MZMK          0x06
+
 
 #define cmdarg_GetLabel(buffer, size)        cmdarg_SearchTypeString(ARG_TYPE_CKA_LABEL, buffer, size)
 #define cmdarg_GetLabelPrivate(buffer, size) cmdarg_SearchTypeString(ARG_TYPE_LABEL_PRIV, buffer, size)
@@ -136,7 +143,7 @@ extern "C" {
    _EXT  CK_OBJECT_HANDLE        cmdarg_GetHandleValue(CK_BYTE bArgType);
    _EXT  CK_CHAR_PTR             cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK_ULONG sBufferSize);
    _EXT  CK_LONG                 cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString);
-   _EXT  CK_LONG                 cmdarg_GetKeySize();
+   _EXT  CK_LONG                 cmdarg_GetKeySize(CK_ULONG uKeyType);
    _EXT  P11_RSA_EXP*            cmdarg_GetPublicExponant();
    _EXT  CK_MECHANISM_TYPE       cmdarg_GetRSAGenMechParam();
    _EXT  CK_MECHANISM_TYPE       cmdarg_GetDHGenMechParam();
