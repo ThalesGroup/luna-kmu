@@ -110,3 +110,4 @@ Sonarqube
 /tr31_output.c
 /value.bin
 /valueoutput.bin
+/x64/Release/tmd.obj
