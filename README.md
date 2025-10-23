@@ -65,7 +65,7 @@ KMU is available as a console and might be scriptable from a command line. The c
 - Using Visual Studio:
   - Open the "kmu.sln" solution file.
   - Select the "release" configuration and build the solution.
-  .- Note. An error may happen during compilation in cryptoki_v2.h. If happens replace #include "RSA/pkcs11.h" by #include "pkcs11.h".
+  -  Note. An error may happen during compilation in cryptoki_v2.h. If happens replace #include "RSA/pkcs11.h" by #include "pkcs11.h".
 - Once built, "kmu.exe" can be used immediately.
 
 Note:
