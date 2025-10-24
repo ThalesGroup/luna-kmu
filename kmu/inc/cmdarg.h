@@ -104,7 +104,8 @@ extern "C" {
 #define TYPE_KEY_SIZE_HMAC_GEN      0x03
 #define TYPE_KEY_SIZE_RSA           0x04
 #define TYPE_KEY_SIZE_MLDSA         0x05
-#define TYPE_KEY_SIZE_MZMK          0x06
+#define TYPE_KEY_SIZE_MLKEM         0x06
+#define TYPE_KEY_SIZE_MZMK          0x07
 
 
 #define cmdarg_GetLabel(buffer, size)        cmdarg_SearchTypeString(ARG_TYPE_CKA_LABEL, buffer, size)

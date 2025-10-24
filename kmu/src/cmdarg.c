@@ -816,19 +816,19 @@ CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
       }
 
       // print supported key size for DES
-      if (uKeyType == TYPE_KEY_SIZE_DES)
+      else if (uKeyType == TYPE_KEY_SIZE_DES)
       {
          printf("DES Key size in byte, supported key size is: \n-> 8 for DES\n-> 16 for 2DES\n-> 24 for 3DES\n");
       }
 
       // print supported key size for generic keys
-      if (uKeyType == TYPE_KEY_SIZE_HMAC_GEN)
+      else if (uKeyType == TYPE_KEY_SIZE_HMAC_GEN)
       {
          printf("HMAC and generic Key size in byte, supported key size is: \nMinimum-> 8 (64 bits)\nMinimum in FIPS mode-> 16 (128 bits)\nMaximum size-> 512 (4096 bits)\n");
       }
 
       // print supported key size for RSA keys
-      if (uKeyType == TYPE_KEY_SIZE_RSA)
+      else if (uKeyType == TYPE_KEY_SIZE_RSA)
       {
          printf("RSA Key size in bits, supported key size is: \n");
          printf("->pkcs method : Minimum 256, Maximum size-> 8192\n");
@@ -836,16 +836,24 @@ CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
          printf("->aux method : Minimum 1024, Maximum size-> 8192\n");
       }
       // print supported key size for ml dsa keys
-      if (uKeyType == TYPE_KEY_SIZE_MLDSA)
+      else if (uKeyType == TYPE_KEY_SIZE_MLDSA)
       {
-         printf("ML-DSA Key size in bits, supported key size is: \n");
+         printf("ML-DSA Key size in bytes, supported key size is: \n");
          printf("->ML-DSA-44 : 1312\n");
          printf("->ML-DSA-65 : 1952\n");
          printf("->ML-DSA-87 : 2592\n");
       }
-
+      // print supported key size for ml kem keys
+      else if (uKeyType == TYPE_KEY_SIZE_MLKEM)
+      {
+         printf("ML-KEM Key size in bytes, supported key size is: \n");
+         printf("->ML-KEM-512  : 800\n");
+         printf("->ML-KEM-768  : 1184\n");
+         printf("->ML-KEM-1024 : 1568\n");
+      }
+      
       // print supported key size for mzmk
-      if (uKeyType == TYPE_KEY_SIZE_MZMK)
+      else if (uKeyType == TYPE_KEY_SIZE_MZMK)
       {
          printf("MZMK Key size in bytes, supported key size is: \n");
          printf("-> 16 for AES-128\n");

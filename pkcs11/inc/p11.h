@@ -87,6 +87,14 @@ extern "C" {
 #define ML_DSA_65_PRIVATE_KEY_SIZE           3309
 #define ML_DSA_87_PRIVATE_KEY_SIZE           4627
 
+#define ML_KEM_512_PUBLIC_KEY_SIZE           800
+#define ML_KEM_768_PUBLIC_KEY_SIZE           1184
+#define ML_KEM_1024_PUBLIC_KEY_SIZE          1568
+
+#define ML_KEM_512_PRIVATE_KEY_SIZE          2420
+#define ML_KEM_768_PRIVATE_KEY_SIZE          3309
+#define ML_KEM_1024_PRIVATE_KEY_SIZE         4627
+
 
    typedef struct ck_des_param
    {
@@ -259,6 +267,13 @@ extern "C" {
       CK_ML_DSA_PARAMETER_SET_TYPE  uML_DSA_Parameter_Set;
    }ML_DSA_PUBLIC_KEY;
 
+   typedef struct mlkempublickey
+   {
+      CK_CHAR_PTR                   sPublicKey;
+      CK_ULONG                      uPublicKeyLength;
+      CK_ML_KEM_PARAMETER_SET_TYPE  uML_KEM_Parameter_Set;
+   }ML_KEM_PUBLIC_KEY;
+
    typedef union publickey
    {
       RSA_PUBLIC_KEY       sRsaPublicKey;
@@ -266,6 +281,7 @@ extern "C" {
       DH_PUBLIC_KEY        sDhPublicKey;
       EC_PUBLIC_KEY        sEcPublicKey;
       ML_DSA_PUBLIC_KEY    sMlDsaPublicKey;
+      ML_KEM_PUBLIC_KEY    sMlKemPublicKey;
    }PUBLIC_KEY;
 
    typedef struct p11_ml_dsa_key_size
@@ -275,6 +291,14 @@ extern "C" {
       CK_ML_DSA_PARAMETER_SET_TYPE           uML_DSA_Parameter_Set;
       CK_CHAR_PTR                            sName;
    }P11_ML_DSA_KEY_SIZE;
+
+   typedef struct p11_ml_kem_key_size
+   {
+      CK_ULONG                               sPublicKeySize;
+      CK_ULONG                               sPrivateKeySize;
+      CK_ML_DSA_PARAMETER_SET_TYPE           uML_KEM_Parameter_Set;
+      CK_CHAR_PTR                            sName;
+   }P11_ML_KEM_KEY_SIZE;
 
 
    // key atributes template
@@ -399,6 +423,7 @@ extern "C" {
          P11_EXP_DOMAIN* pDHDomain;
          P11_EXP_DOMAIN* pDSADomain;
          P11_ML_DSA_KEY_SIZE* pML_DSA;
+         P11_ML_KEM_KEY_SIZE* pML_KEM;
       };
       CK_BBOOL             bCKA_Token;
       CK_BBOOL             bCKA_Private;
@@ -479,6 +504,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_GetDsaPublicKey(CK_OBJECT_HANDLE Handle, DSA_PUBLIC_KEY* dsapublickey);
    _EXT  CK_BBOOL             P11_GetDHPublicKey(CK_OBJECT_HANDLE Handle, DH_PUBLIC_KEY* dhpublickey, CK_KEY_TYPE skeyType);
    _EXT  CK_BBOOL             P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey);
+   _EXT  CK_BBOOL             P11_GetMLKEMPublicKey(CK_OBJECT_HANDLE Handle, ML_KEM_PUBLIC_KEY* smlkempublickey);
    _EXT  CK_BBOOL             P11_EncryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pEncryptedData, CK_ULONG_PTR pEncryptedDataLength);
    _EXT  CK_BBOOL             P11_DecryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pDecryptedData, CK_ULONG_PTR pDecryptedDataLength);
    _EXT  CK_BBOOL             P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSignauture, CK_ULONG_PTR pSignautureLength);

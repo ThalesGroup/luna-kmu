@@ -62,6 +62,11 @@ const CK_CHAR OID_PKCS5_PBES2[]           = { 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86
 const CK_CHAR OID_ML_DSA_44[]             = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03, 0x11 };
 const CK_CHAR OID_ML_DSA_65[]             = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03, 0x12 };
 const CK_CHAR OID_ML_DSA_87[]             = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03, 0x13 };
+
+const CK_CHAR OID_ML_KEM_512[]            = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x04, 0x01 };
+const CK_CHAR OID_ML_KEM_768[]            = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x04, 0x02 };
+const CK_CHAR OID_ML_KEM_1024[]           = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x04, 0x03 };
+
 /*
    id-X25519    OBJECT IDENTIFIER ::= { 1 3 101 110 }
    id-X448      OBJECT IDENTIFIER ::= { 1 3 101 111 }
@@ -432,7 +437,7 @@ CK_BBOOL asn1_Build_DHpublicKeyInfo(DH_PUBLIC_KEY* sDHPublicKey)
 }
 
 /*
-    FUNCTION:        CK_BBOOL asn1_Build_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMLDSAPublicKey)
+    FUNCTION:        CK_BBOOL asn1_Build_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMLKEMPublicKey)
 */
 CK_BBOOL asn1_Build_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMLDSAPublicKey)
 {
@@ -478,6 +483,55 @@ CK_BBOOL asn1_Build_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMLDSAPublicKey)
 
    return CK_TRUE;
 }
+
+/*
+    FUNCTION:        CK_BBOOL asn1_Build_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMLKEMPublicKey)
+*/
+CK_BBOOL asn1_Build_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMLDSAPublicKey)
+{
+   CK_ULONG uTlvSize = 0;
+
+   // init asn1builder
+   asn1_Build_Init();
+
+   // Tag bitstring for public point
+   asn1_Build_tlv(TAG_BITSTRING, sMLDSAPublicKey->sPublicKey, sMLDSAPublicKey->uPublicKeyLength);
+
+
+   switch (sMLDSAPublicKey->uML_KEM_Parameter_Set)
+   {
+   case CKP_ML_KEM_512:
+
+      // New tlv branch
+      // push OID
+      uTlvSize = asn1_Build_t((CK_CHAR_PTR)OID_ML_KEM_512, sizeof(OID_ML_KEM_512));
+      break;
+   case CKP_ML_KEM_768:
+
+      // New tlv branch
+      // push OID
+      uTlvSize = asn1_Build_t((CK_CHAR_PTR)OID_ML_KEM_768, sizeof(OID_ML_KEM_768));
+      break;
+   case CKP_ML_KEM_1024:
+
+      // New tlv branch
+      // push OID
+      uTlvSize = asn1_Build_t((CK_CHAR_PTR)OID_ML_KEM_1024, sizeof(OID_ML_KEM_1024));
+      break;
+   default:
+      return CK_FALSE;
+
+   }
+
+   // encapsulate tag sequence in this tlv branch
+   asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+
+   // encapsulate tag sequence to all buffer
+   asn1_Build_tl(TAG_SEQUENCE, asn1_BuildBufferSize);
+
+   return CK_TRUE;
+}
+
 
 /*
 https://www.ietf.org/rfc/rfc5208.txt
@@ -1444,7 +1498,7 @@ CK_BBOOL asn1_Check_DHpublicKeyInfo(DH_PUBLIC_KEY* sDhPublicKey, CK_CHAR_PTR dat
 }
 
 /*
-    FUNCTION:        CK_BBOOL asn1_Check_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMlDsaPublicKey, CK_ML_DSA_PARAMETER_SET_TYPE pParameterSet, CK_CHAR_PTR data, CK_ULONG size)
+    FUNCTION:        CK_BBOOL asn1_Check_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMlKemPublicKey, CK_ML_DSA_PARAMETER_SET_TYPE pParameterSet, CK_CHAR_PTR data, CK_ULONG size)
 */
 CK_BBOOL asn1_Check_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMlDsaPublicKey, CK_CHAR_PTR data, CK_ULONG size)
 {
@@ -1519,6 +1573,101 @@ CK_BBOOL asn1_Check_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMlDsaPublicKey, CK_CH
       // get public key in uncompressed format
       sMlDsaPublicKey->sPublicKey = asn1_Check_GetCurrentValueBuffer();
       sMlDsaPublicKey->uPublicKeyLength = asn1_Check_GetCurrentValueLen();
+
+      // check no other tlv after
+      if (asn1_Check_NoNextTlv() == CK_FALSE)
+      {
+         break;
+      }
+
+      // step out
+      if (asn1_Check_StepOut() == CK_FALSE)
+      {
+         break;
+      }
+
+      return CK_TRUE;
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL asn1_Check_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMlKemPublicKey, CK_CHAR_PTR data, CK_ULONG size)
+*/
+CK_BBOOL asn1_Check_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMlKemPublicKey, CK_CHAR_PTR data, CK_ULONG size)
+{
+   CK_LONG sResult = -1;
+   do
+   {
+      // init settlv
+      asn1_Check_SetTlv(data, size);
+
+      // Check tag Sequence
+      if (asn1_Check_tl(TAG_SEQUENCE) == CK_FALSE)
+      {
+         break;
+      }
+      // Step in
+      if (asn1_Check_StepIn() == CK_FALSE)
+      {
+         break;
+      }
+      // Check tag Sequence
+      if (asn1_Check_t(TAG_SEQUENCE) == CK_FALSE)
+      {
+         break;
+      }
+      // Step in
+      if (asn1_Check_StepIn() == CK_FALSE)
+      {
+         break;
+      }
+      // Check tag OID
+      if (asn1_Check_t(TAG_OID) == CK_FALSE)
+      {
+         break;
+      }
+
+      // Check OID is DSA public PKCS1
+      if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_ML_KEM_512, asn1_Check_GetCurrentTlvLen()) == 0)
+      {
+         sMlKemPublicKey->uML_KEM_Parameter_Set = CKP_ML_KEM_512;
+      }
+      else if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_ML_KEM_768, asn1_Check_GetCurrentTlvLen()) == 0)
+      {
+         sMlKemPublicKey->uML_KEM_Parameter_Set = CKP_ML_KEM_768;
+      }
+      else if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_ML_KEM_1024, asn1_Check_GetCurrentTlvLen()) == 0)
+      {
+         sMlKemPublicKey->uML_KEM_Parameter_Set = CKP_ML_KEM_1024;
+      }
+      else
+      {
+         break;
+      }
+
+      // check no other tlv after
+      if (asn1_Check_NoNextTlv() == CK_FALSE)
+      {
+         break;
+      }
+
+      // step out
+      if (asn1_Check_StepOut() == CK_FALSE)
+      {
+         break;
+      }
+
+      // Check tag bit string
+      if (asn1_Check_Next(TAG_BITSTRING) == CK_FALSE)
+      {
+         break;
+      }
+
+      // get public key in uncompressed format
+      sMlKemPublicKey->sPublicKey = asn1_Check_GetCurrentValueBuffer();
+      sMlKemPublicKey->uPublicKeyLength = asn1_Check_GetCurrentValueLen();
 
       // check no other tlv after
       if (asn1_Check_NoNextTlv() == CK_FALSE)

@@ -419,7 +419,27 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
                printf("Invalid size  : -keysize\n");
                return CK_FALSE;
             }
+            break;
 
+         case CKK_ML_KEM:
+
+            // get arg size
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_MLKEM);
+
+            if (sKeyGenTemplate.skeySize == 0)
+            {
+               printf("Invalid or missing arg  : -keysize\n");
+               return CK_FALSE;
+            }
+
+            // get parameter set from key size
+            sKeyGenTemplate.pML_KEM = P11Util_GetML_KEM_ParameterFromKeySize(sKeyGenTemplate.skeySize);
+
+            if (sKeyGenTemplate.pML_KEM == NULL)
+            {
+               printf("Invalid size  : -keysize\n");
+               return CK_FALSE;
+            }
             break;
 
          default:
@@ -2277,8 +2297,15 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
          break;
 
       case CKK_ML_DSA:
-         // check RSApublicKeyInfo
+         // check MLDSApublicKeyInfo
          bResult = asn1_Check_MLDSApublicKeyInfo(&uPublicKey.sMlDsaPublicKey, sPublicKey, sPblicKeyLength);
+         break;
+
+      case CKK_ML_KEM:
+         // check MLKEMpublicKeyInfo
+         bResult = asn1_Check_MLKEMpublicKeyInfo(&uPublicKey.sMlKemPublicKey, sPublicKey, sPblicKeyLength);
+         break;
+      
       default:
          break;
       }
@@ -2367,14 +2394,23 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
    case CKK_ML_DSA:
       if (P11_GetMLDSAPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sMlDsaPublicKey) == CK_TRUE)
       {
-         // build EC public key info
+         // build ML DSA public key info
          asn1_Build_MLDSApublicKeyInfo(&sPublicKey.sMlDsaPublicKey);
          break;
       }
 
       printf("Error: Cannot read ML-DSA public key");
       return CK_FALSE;
+   case CKK_ML_KEM:
+      if (P11_GetMLKEMPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sMlKemPublicKey) == CK_TRUE)
+      {
+         // build ML KEM public key info
+         asn1_Build_MLKEMpublicKeyInfo(&sPublicKey.sMlKemPublicKey);
+         break;
+      }
 
+      printf("Error: Cannot read ML-KEM: public key");
+      return CK_FALSE;
 
    default:
       return CK_FALSE;

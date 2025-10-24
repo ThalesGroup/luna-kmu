@@ -148,7 +148,7 @@ const STRING_ARRAY ARG_IMPORTKEYTYPE_HELP = "Key type value\n\t\t\t\t\t-Supporte
 const STRING_ARRAY ARG_MZMK_KEYTYPE_HELP = "Key type value\n\t\t\t\t\t-Supported value: des, aes";
 
 const STRING_ARRAY ARG_KEYSIZE = "-keysize";
-const STRING_ARRAY ARG_KEYSIZE_HELP = "key size\n\t\t\t\t\t-Value in byte for DES(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC(1 to 512 bytes) keys\n\t\t\t\t\t-Modulus size in bits for RSA keys\n\t\t\t\t\t-public key size in bits (1312, 1952, 2592) for ML-DSA keys\n\t\t\t\t\t-Not required for other key types";
+const STRING_ARRAY ARG_KEYSIZE_HELP = "key size\n\t\t\t\t\t-Value in byte for DES(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC(1 to 512 bytes) keys\n\t\t\t\t\t-Modulus size in bits for RSA keys\n\t\t\t\t\t-public key size in bits (1312, 1952, 2592) for ML-DSA keys\n\t\t\t\t\t-public key size in bits (800, 1184, 1568) for ML-KEM keys\n\t\t\t\t\t-Not required for other key types";
 const STRING_ARRAY ARG_DERIVEKEY_SIZE_HELP = "derived key size\n\t\t\t\t\t-Value in byte for DES key(8, 16 or 24 bytes), \n\t\t\t\t\t-Value in byte for AES key(16, 24 or 32 bytes)\n\t\t\t\t\t-Value in byte for HMAC or generic key(1 to 512 bytes)";
 const STRING_ARRAY ARG_IMPORTKEY_SIZE_HELP = "Optional. Key size when importing key in compoments\n\t\t\t\t\t-Value in byte for AES key(16, 24 or 32 bytes)\n\t\t\t\t\t-no required when importing wrapped key or other type of keys";
 const STRING_ARRAY ARG_MZMK_KEYSIZE_HELP = "key size\n\t\t\t\t\t-Value in byte for DES(24 bytes), \n\t\t\t\t\t-Value in byte for AES(16, 24 or 32 bytes)";
