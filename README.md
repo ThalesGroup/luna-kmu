@@ -14,7 +14,7 @@ KMU allows to:
 - Create data objects.
 - List objects in partitions.
 - Display and modify object attributes.
-- Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, ML-DSA, SM2, SM4, HMAC or generic ones).
+- Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, ML-DSA, ML-KEM, SM2, SM4, HMAC or generic ones).
 - Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
 - Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
 - Export public keys in a binary file or a text file encoded using ASN1 DER and PKCS#8.
