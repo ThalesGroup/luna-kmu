@@ -111,3 +111,6 @@ Sonarqube
 /value.bin
 /valueoutput.bin
 /x64/Release/tmd.obj
+/mlkem1024privatekey.txt
+/mlkem1024publickey.pem
+/mlkem1024publickey.txt
