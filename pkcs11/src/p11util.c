@@ -58,6 +58,7 @@ typedef struct parser_KeyType
 {
    const CK_CHAR_PTR       sKeyTypeName;
    const CK_KEY_TYPE       cktype;
+   const CK_MECHANISM_TYPE cKeyGenMecanismType;
    const CK_OBJECT_CLASS   ckClass;
    const CK_ULONG          uFlag;
 }PARSER_KEY_TYPE;
@@ -95,37 +96,37 @@ const CK_CHAR KEY_TYPE_IDEA[] = "idea";
 
 #define SIZE_KEYGEN_SUPPORTED_TYPE_TABLE      DIM(arg_keygen_supported_type)
 const PARSER_KEY_TYPE arg_keygen_supported_type[] = {
-   {(CK_CHAR_PTR)&KEY_TYPE_AES,           CKK_AES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_MZMK},
-   {(CK_CHAR_PTR)&KEY_TYPE_SM4,           CKK_SM4,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES,           CKK_DES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_MZMK},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES2,          CKK_DES2,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES3,          CKK_DES3,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_GENERIC,       CKK_GENERIC_SECRET,     CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_HMAC,          CKK_GENERIC_SECRET,     CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RSA,           CKK_RSA,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DH,            CKK_DH,                 CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_X942_DH,       CKK_X9_42_DH,           CKO_PRIVATE_KEY,  KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DSA,           CKK_DSA,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_ECDSA,         CKK_ECDSA,              CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS,         CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS_OLD,     CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY,      CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY_OLD,  CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_SM2,           CKK_SM2,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_MD_DSA,        CKK_ML_DSA,             CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_MD_KEM,        CKK_ML_KEM,             CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_KEA,           CKK_KEA,                CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RC2,           CKK_RC2,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RC4,           CKK_RC4,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RC5,           CKK_RC5,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST,          CKK_CAST,               CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST3,         CKK_CAST3,              CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST5,         CKK_CAST5,              CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST128,       CKK_CAST128,            CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_IDEA,          CKK_IDEA,               CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_KCDSA,         CKK_KCDSA,              CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_KSEED,         CKK_SEED_OLD,           CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_BIP32,         CKK_BIP32,              CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_AES,           CKK_AES,                CKM_AES_KEY_GEN,                       CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC | KEY_TYPE_MZMK},
+   {(CK_CHAR_PTR)&KEY_TYPE_SM4,           CKK_SM4,                CKM_SM4_KEY_GEN,                       CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES,           CKK_DES,                CKM_DES_KEY_GEN,                       CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC | KEY_TYPE_MZMK},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES2,          CKK_DES2,               CKM_DES2_KEY_GEN,                      CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES3,          CKK_DES3,               CKM_DES3_KEY_GEN,                      CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_GENERIC,       CKK_GENERIC_SECRET,     CKM_GENERIC_SECRET_KEY_GEN,            CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_HMAC,          CKK_GENERIC_SECRET,     CKM_GENERIC_SECRET_KEY_GEN,            CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_RSA,           CKK_RSA,                CKM_RSA_FIPS_186_3_PRIME_KEY_PAIR_GEN, CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DH,            CKK_DH,                 CKM_DH_PKCS_KEY_PAIR_GEN,              CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_X942_DH,       CKK_X9_42_DH,           CKM_X9_42_DH_KEY_PAIR_GEN,             CKO_PRIVATE_KEY,  KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DSA,           CKK_DSA,                CKM_DSA_KEY_PAIR_GEN,                  CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_ECDSA,         CKK_ECDSA,              CKM_EC_KEY_PAIR_GEN,                   CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS,         CKM_EC_EDWARDS_KEY_PAIR_GEN,           CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS_OLD,     CKM_EC_EDWARDS_KEY_PAIR_GEN,           CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY,      CKM_EC_MONTGOMERY_KEY_PAIR_GEN,        CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY_OLD,  CKM_EC_MONTGOMERY_KEY_PAIR_GEN,        CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_SM2,           CKK_SM2,                CKM_SM2_KEY_PAIR_GEN,                  CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_DSA,        CKK_ML_DSA,             CKM_ML_DSA_KEY_PAIR_GEN,               CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_KEM,        CKK_ML_KEM,             CKM_ML_KEM_KEY_PAIR_GEN,               CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_KEA,           CKK_KEA,                0,                                     CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_RC2,           CKK_RC2,                0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_RC4,           CKK_RC4,                0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_RC5,           CKK_RC5,                0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST,          CKK_CAST,               0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST3,         CKK_CAST3,              0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST5,         CKK_CAST5,              0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST128,       CKK_CAST128,            0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_IDEA,          CKK_IDEA,               0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_KCDSA,         CKK_KCDSA,              0,                                     CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_KSEED,         CKK_SEED_OLD,           0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_BIP32,         CKK_BIP32,              0,                                     CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
 };
 
 /*
@@ -1184,6 +1185,64 @@ void P11Util_DisplaySupportedKeyType(CK_ULONG uFlag)
       if (arg_keygen_supported_type[u8Loop].uFlag & uFlag)
       {
          printf("-> %s\n", arg_keygen_supported_type[u8Loop].sKeyTypeName);
+      }
+   }
+}
+
+/*
+    FUNCTION:        void P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID)
+*/
+void P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID)
+{
+   CK_BYTE u8Loop;
+   CK_MECHANISM_INFO sInfo;
+
+   printf("Supported key generation mecanisms : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; u8Loop++)
+   {
+      // if flag ken gen
+      if (arg_keygen_supported_type[u8Loop].uFlag & KEY_TYPE_DISPLAY_MEC)
+      {
+         printf("-> %s\t\t", arg_keygen_supported_type[u8Loop].sKeyTypeName);
+
+         // if command name is shorter than 5, add an extra tag
+         if (strlen(arg_keygen_supported_type[u8Loop].sKeyTypeName) < 5)
+         {
+            printf("\t");
+         }
+
+         // if command name is shorter than 12, add an extra tag
+         if (strlen(arg_keygen_supported_type[u8Loop].sKeyTypeName) < 12)
+         {
+            printf("\t");
+         }
+
+
+         // get mecanism info
+         if (p11_GetMecanismInfo(u32_SlotID, arg_keygen_supported_type[u8Loop].cKeyGenMecanismType, &sInfo) == CK_TRUE)
+         {
+            if (sInfo.ulMinKeySize != sInfo.ulMaxKeySize)
+            {
+               printf("Minimum key size : %i\t\t", sInfo.ulMinKeySize);
+               printf("Maximum key size : %i\n", sInfo.ulMaxKeySize);
+            }
+            else
+            {
+               printf("Key size : %i\n", sInfo.ulMinKeySize);
+            }
+         }
+         else
+         {
+            printf("Not supported. ");
+
+            if ((arg_keygen_supported_type[u8Loop].cktype == CKK_ML_DSA) || (arg_keygen_supported_type[u8Loop].cktype == CKK_ML_KEM))
+            {
+               printf("This mecanism requires at least client 10.9.1 and firmware 7.9.1");
+            }
+
+            printf("\n");
+         }
       }
    }
 }

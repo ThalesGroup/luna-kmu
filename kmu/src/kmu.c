@@ -99,6 +99,9 @@ const STRING_ARRAY CMD_COMPUTE_KCV_HELP = "This command calculate the KCV of a s
 const STRING_ARRAY CMD_REMOTE_MZMK = "remotemzmk";
 const STRING_ARRAY CMD_REMOTE_MZMK_HELP = "This command generate and store a payshield TMD remote MZMK derived from the input file containing tmd public key and return CSV file for TMD";
 
+const STRING_ARRAY CMD_GET_CAPABILITIES = "getcapabilities";
+const STRING_ARRAY CMD_GET_CAPABILITIES_HELP = "This command returns the PKCS11 capabilities (limited to key generation)";
+
 
 /** parameters **/
 const STRING_ARRAY ARG_SLOT_ID = "-slot";
@@ -570,11 +573,19 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
                                     }
 
+#define CMD_GET_CAPABILITIES_VALUE       (const CK_CHAR_PTR)CMD_GET_CAPABILITIES, (const P_fCMD)&cmd_kmu_getcapabilities, (const CK_CHAR_PTR)CMD_GET_CAPABILITIES_HELP, \
+                                    {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
+                                    }
+
+
+
+
 #define MAX_COMMAND_NUMBER		DIM(kmu_batchcmd_list)
 const PARSER_COMMAND kmu_batchcmd_list[] =
 {
    CMD_HELP_VALUE,
    CMD_LIST_VALUE,
+   CMD_GET_CAPABILITIES_VALUE,
    CMD_GENERATEKEY_VALUE,
    CMD_CREATE_DO_VALUE,
    CMD_GET_ATTRIBUTE_VALUE,
@@ -601,6 +612,7 @@ const PARSER_COMMAND kmu_console_list[] =
    CMD_LOGIN_VALUE,
    CMD_LOGOUT_VALUE,
    CMD_LIST_VALUE,
+   CMD_GET_CAPABILITIES_VALUE,
    CMD_GENERATEKEY_VALUE,
    CMD_CREATE_DO_VALUE,
    CMD_GET_ATTRIBUTE_VALUE,
@@ -643,6 +655,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)CMD_DIGEST_KEY,
    (CK_CHAR_PTR)CMD_COMPUTE_KCV,
    (CK_CHAR_PTR)CMD_REMOTE_MZMK,
+   (CK_CHAR_PTR)CMD_GET_CAPABILITIES,
    (CK_CHAR_PTR)CMD_EXIT,
    (CK_CHAR_PTR)ARG_SLOT_ID,
    (CK_CHAR_PTR)ARG_PASSWORD,

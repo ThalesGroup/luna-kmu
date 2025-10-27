@@ -54,6 +54,7 @@ extern "C" {
    _EXT  P11_ML_KEM_KEY_SIZE*          P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet);
 
    _EXT  void                          P11Util_DisplaySupportedKeyType(CK_ULONG uFlag);
+   _EXT  void                          P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID);
    _EXT  void                          P11Util_DisplaySupportedPublicExp();
    _EXT  void                          P11Util_DisplaySupportedRSAGenMechParam();
    _EXT  void                          P11Util_DisplaySupportedCurveName(CK_KEY_TYPE sKeyType);

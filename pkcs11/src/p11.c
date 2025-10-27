@@ -560,6 +560,44 @@ CK_SLOT_ID P11_SelectStot(CK_SLOT_ID u32_SlotList)
 }
 
 /*
+    FUNCTION:        CK_BBOOL p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO * slotInfo)
+*/
+CK_BBOOL p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO * slotInfo)
+{
+   CK_RV retCode = CKR_GENERAL_ERROR;
+
+   // get slot info
+   retCode = P11Functions->C_GetSlotInfo(u32_SlotID, slotInfo);
+
+   // if call OK, return CK_TRUE
+   if (retCode == CKR_OK)
+   {
+      return CK_TRUE;
+   }
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL p11_GetMecanismInfo(CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO * info)
+*/
+CK_BBOOL p11_GetMecanismInfo(CK_SLOT_ID u32_SlotID, CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO* info)
+{
+   CK_RV retCode = CKR_SESSION_CLOSED;
+
+   // get mecanism info
+   retCode = P11Functions->C_GetMechanismInfo(u32_SlotID, sMech, info);
+
+   // if call OK, return CK_TRUE
+   if (retCode == CKR_OK)
+   {
+      return CK_TRUE;
+   }
+
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        CK_BBOOL P11_IsLoginPasswordRequired(void)
 */
 CK_BBOOL P11_IsLoginPasswordRequired(void)

@@ -28,6 +28,7 @@ extern "C" {
    _EXT  CK_BBOOL    cmd_kmu_login(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_logout(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_list_SLot(CK_BBOOL bIsConsole);
+   _EXT  CK_BBOOL    cmd_kmu_getcapabilities(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_getattribute(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_setattribute(CK_BBOOL bIsConsole);
    _EXT  CK_BBOOL    cmd_kmu_readattribute(CK_BBOOL bIsConsole);

@@ -70,6 +70,7 @@ extern "C" {
 #define KEY_TYPE_ENCRYPT            0x00000020
 #define KEY_TYPE_HASH               0x00000040
 #define KEY_TYPE_MZMK               0x00000080
+#define KEY_TYPE_DISPLAY_MEC        0x00000100
 
 #define KCV_PKCS11                  0x01
 #define KCV_PCI                     0x02
@@ -479,6 +480,8 @@ extern "C" {
    _EXT  CK_RV                P11_Logout();
    _EXT  CK_BBOOL             P11_IsLoggedIn();
    _EXT  CK_LONG              P11_ListStot();
+   _EXT  CK_BBOOL             p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO* slotInfo);
+   _EXT  CK_BBOOL             p11_GetMecanismInfo(CK_SLOT_ID u32_SlotID, CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO* info);
    _EXT  CK_BBOOL             P11_IsLoginPasswordRequired(void);
    _EXT  CK_BBOOL             P11_FindAllObjects(CK_LONG uLimit);
    _EXT  CK_BBOOL             P11_DeleteObject(CK_OBJECT_HANDLE Handle);

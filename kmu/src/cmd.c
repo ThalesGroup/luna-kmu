@@ -238,6 +238,40 @@ CK_BBOOL cmd_kmu_logout(CK_BBOOL bIsConsole)
 }
 
 /*
+    FUNCTION:        CK_BBOOL cmd_kmu_getcapabilies(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_getcapabilities(CK_BBOOL bIsConsole)
+{
+   CK_SLOT_ID u32_SlotID = 0;
+   CK_SLOT_INFO slotInfo = { 0 };
+   do
+   {
+      // get the slot ID
+      u32_SlotID = cmdarg_GetSlotID();
+
+      // if not slot ID provided, use slot 0
+      if (u32_SlotID == CK_NULL_ELEMENT)
+      {
+         u32_SlotID = 0;
+      }
+      
+      // check if slot exist
+      if (p11_GetSlotInfo(u32_SlotID, &slotInfo) == CK_FALSE)
+      {
+         printf("invalid slot ID \n");
+         break;
+      }
+
+      // display the mecansim info
+      P11Util_DisplayKeyGenMecanismInfo(u32_SlotID);
+
+      return CK_TRUE;
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
 */
 CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
