@@ -28,6 +28,7 @@ KMU allows to:
 - Convert a file format to other file formats.
 - Compute KCV on a symetric key (currently limited to 4 KCV methods: PCI DSS, PKCS#11, Global Platform and HMAC-SHA256).
 - Perform a remote MZMK setup with Thales TMD 
+- Get the HSM capabilities (limited rigth now to key generation mecanism)
 
 These operations require to create partitions, register clients, initialize user roles... These tasks can be performed using:
 - The [Luna Universal Client](https://thalesdocs.com/gphsm/luna/7/docs/network/Content/Utilities/Preface.htm), and esp.
@@ -80,12 +81,15 @@ listslot                        This command lists all PKCS#11 slot
 login                           Login to selected slot
 logout                          Logout the current slot
 list                            This command lists all the keys in the selected slot
+getcapabilities                 This command returns the PKCS11 capabilities (limited to key generation)
 generatekey                     This command generates a symmetric or asymmetric key
 createdo                        This command creates a data object
 getattribute                    This command displays object attributes
 setattribute                    This command set attributes to an object
+readattribute                   This command read an attribute of a object and write in a file
+writeattribute                  This command write an attribute of a object read from a file
 export                          This command exports a key to a file
-import                          This command imports a key from a file
+import                          This command imports a key from a file or from key components
 encrypt                         This command encrypts a file
 decrypt                         This command decrypts a file
 derive                          This command derives a key
@@ -93,7 +97,7 @@ convert                         This command converts a file to a different form
 delete                          This command deletes an object
 digestkey                       This command return a message digest of secret key
 computekcv                      This command calculate the KCV of a symetric key
-remotemzmk                      This command generate and store a payshield TMD remote MZMK derived from the input file containing tmd public key and return CSV file for TMD
+remotemzmk                      This command generate and store a payshield TMD remote MZMK
 exit                            Exit console
 ```
 

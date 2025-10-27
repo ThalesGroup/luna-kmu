@@ -86,7 +86,9 @@ import -password 00000000 -keyclass=private -keytype=dsa -inputfile=private_dsa2
 import -password 00000000 -keyclass=private -keytype=dh -inputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhdpkcs2kprivate -modifiable=true -extractable=true
 import -password 00000000 -keyclass=private -keytype=dh-x9.42 -inputfile=private_dh_2k_x942.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhx9422kprivate -modifiable=true -extractable=true
 //import mldsa private
-import -password 00000000 -keyclass=private -keytype=ml-dsa -inputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmldsa85private -modifiable=true -extractable=true
+import -password 00000000 -keyclass=private -keytype=ml-dsa -inputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmldsa85private -modifiable=true -extractable=true**
+//import mlkem private
+import -password 00000000 -keyclass=private -keytype=ml-kem -inputfile=mlkem1024privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmlkem1024private -modifiable=true -extractable=true
 //import public key
 import -slot=1 -password 00000000 -keyclass=public -keytype=rsa -inputfile=public_rsa8k.txt -format=text -label=importrsa8k -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=ecdsa -inputfile=public_ecdsaR1.txt -format=text -label=importecdsa256R1 -modifiable=true -extractable=true
@@ -122,6 +124,8 @@ export -password 00000000 -handle=865 -outputfile=private_dh_2k_x942.txt -format
 export -password 00000000 -handle=867 -outputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad
 // export ml dsa with aes key wrap
 export -password 00000000 -handle=1122 -outputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp
+// export ml kem with aes key wrap
+export -password 00000000 -handle=1406 -outputfile=mlkem1024privatekey.txt -format=text -key=426 -algo=aes_kwp
 // export rsa public key
 export -slot=1 -password 00000000 -handle=418 -outputfile=public.txt -format=text
 export -slot=3 -password 00000000 -handle=621 -outputfile=public_rsa8k.txt -format=text
@@ -134,6 +138,8 @@ export -slot=1 -password 00000000 -handle=430 -outputfile=public_eddsa.txt -form
 export -slot=1 -password 00000000 -handle=423 -outputfile=public_sm2.txt -format=text
 // ML-DSA public key
 export -password 00000000 -handle=1098 -outputfile=mddsa87publickey.txt -format=text
+// ML-DSA public key
+export -password 00000000 -handle=1406 -outputfile=mlkem1024publickey.txt -format=text
 // export pkcs8
 export -slot=3 -password 00000000 -handle=717 -outputfile=public_ecdsa_sect571k1.pem -format=PKCS8
 export -slot=3 -password 00000000 -handle=621 -outputfile=public_rsa8k.pem -format=PKCS8
@@ -145,7 +151,10 @@ export -password 00000000 -handle=842 -outputfile=public_dsa2k.pem -format=PKCS8
 export -password 00000000 -handle=856 -outputfile=public_dh2k.pem -format=PKCS8
 export -password 00000000 -handle=852 -outputfile=public_dh-pkcs.pem -format=PKCS8
 // export pkcs8 ML DSA key
-export -password 00000000 -handle=1098 --outputfile=mddsa87publickey.pem -format=PKCS8
+export -password 00000000 -handle=1098 -outputfile=mddsa87publickey.pem -format=PKCS8
+// export pkcs8 ML KEM key
+export -password 00000000 -handle=1406 -outputfile=mlkem1024publickey.pem -format=PKCS8
+
 // export encrypted pkcs8 with password
 export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
 

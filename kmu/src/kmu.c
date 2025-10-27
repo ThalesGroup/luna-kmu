@@ -97,7 +97,7 @@ const STRING_ARRAY CMD_COMPUTE_KCV = "computekcv";
 const STRING_ARRAY CMD_COMPUTE_KCV_HELP = "This command calculate the KCV of a symetric key";
 
 const STRING_ARRAY CMD_REMOTE_MZMK = "remotemzmk";
-const STRING_ARRAY CMD_REMOTE_MZMK_HELP = "This command generate and store a payshield TMD remote MZMK derived from the input file containing tmd public key and return CSV file for TMD";
+const STRING_ARRAY CMD_REMOTE_MZMK_HELP = "This command generate and store a payshield TMD remote MZMK";
 
 const STRING_ARRAY CMD_GET_CAPABILITIES = "getcapabilities";
 const STRING_ARRAY CMD_GET_CAPABILITIES_HELP = "This command returns the PKCS11 capabilities (limited to key generation)";
@@ -573,7 +573,7 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
                                     }
 
-#define CMD_GET_CAPABILITIES_VALUE       (const CK_CHAR_PTR)CMD_GET_CAPABILITIES, (const P_fCMD)&cmd_kmu_getcapabilities, (const CK_CHAR_PTR)CMD_GET_CAPABILITIES_HELP, \
+#define CMD_GET_CAPABILITIES_VALUE  (const CK_CHAR_PTR)CMD_GET_CAPABILITIES, (const P_fCMD)&cmd_kmu_getcapabilities, (const CK_CHAR_PTR)CMD_GET_CAPABILITIES_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
                                     }
 
