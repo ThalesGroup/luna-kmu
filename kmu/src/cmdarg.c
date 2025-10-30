@@ -1470,9 +1470,9 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
 }
 
 /*
-P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim(BYTE bArgType)
+P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 */
-P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim(BYTE bArgType)
+P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 {
    P11_ENCRYPTION_MECH* DefaultEncryption_mech = NULL;
    CK_CHAR_PTR          sIV;
@@ -1487,7 +1487,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim(BYTE bArgType)
    do
    {
       // get algo
-      if ((DefaultEncryption_mech = cmdarg_SearchEncryptionAlgoValue(bArgType)) == NULL)
+      if ((DefaultEncryption_mech = cmdarg_SearchEncryptionAlgoValue(ARG_TYPE_PBE)) == NULL)
       {
          break;
       }
@@ -1519,7 +1519,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim(BYTE bArgType)
             sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.iterations = (CK_ULONG)lIteration;
          }
 
-         // Set prf
+         // Set default prf (only hmac-sha1 supported by hsm)
          sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = DefaultEncryption_mech->pbe_param.pbkdf2.pbfkd2_param.prf;
 
          // Set the salt
@@ -1585,6 +1585,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim(BYTE bArgType)
                sCustomEncryption_mech.pbe_param.uIVLength = uLength;
             }
 
+            // only AES suported rigth now
             if (sCustomEncryption_mech.pbe_param.sSymkeyType == CKK_AES)
             {
                sCustomEncryption_mech.aes_param.iv = sIV;
@@ -1593,7 +1594,6 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim(BYTE bArgType)
             {
                return NULL;
             }
-            
 
             // set IV length
             sCustomEncryption_mech.pbe_param.uIVLength = DefaultEncryption_mech->pbe_param.uIVLength;

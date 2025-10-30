@@ -1118,8 +1118,6 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
 
    return CK_FALSE;
 }
-// export -slot=1 -password=12345678 -handle=391 -algo=pbfkd2_aes256_cbc -format=pkcs8 -keypassword=password -outputfile=rsa-private.pem
-// export -slot=1 -password=12345678 -handle=391 -algo=pbfkd2_aes256_cbc -format=pkcs8 -keypassword=password -outputfile=rsa-private.pem -iv 536F375079BBF42A045FBDAC580B0126 -salt DCDDD846792603A4
 /*
     FUNCTION:        CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
 */
@@ -1189,7 +1187,7 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          if (FileFormat == FILE_FORMAT_PKCS8)
          {
             // get wrap algo
-            sExportTemplate.wrap_key_mech = cmdarg_GetPBEMecansim(ARG_TYPE_PBE);
+            sExportTemplate.wrap_key_mech = cmdarg_GetPBEMecansim();
             if (sExportTemplate.wrap_key_mech == NULL)
             {
                printf("wrong or missing argument : -algo \n");

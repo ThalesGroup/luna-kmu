@@ -128,7 +128,6 @@ extern "C" {
       CK_LONG                 sSymkeySize;
       CK_OBJECT_HANDLE        hSymKey;
       CK_CHAR_PTR             iv;
-      CK_CHAR                 sIV[AES_IV_LENGTH];
       CK_ULONG                uIVLength;
       union pbe_alg_param
       {

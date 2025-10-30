@@ -157,7 +157,7 @@ extern "C" {
    _EXT  P11_DERIVE_MECH*        cmdarg_SearchDerivationAlgoValue(BYTE bArgType);
    _EXT  P11_DERIVE_MECH*        cmdarg_GetDerivationMecansim(BYTE bArgType);
    _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetEncryptionMecansim(BYTE bArgType);
-   _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetPBEMecansim(BYTE bArgType);
+   _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetPBEMecansim();
    _EXT  CK_KDF_PRF_TYPE         cmdarg_GetKdfType();
    _EXT  CK_KDF_PRF_ENCODING_SCHEME cmdarg_GetKdfScheme();
    _EXT  CK_LONG_64              cmdarg_GetKdfCounter();
