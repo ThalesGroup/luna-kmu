@@ -46,7 +46,7 @@ extern "C" {
    _EXT  CK_BBOOL       asn1_Build_DSApublicKeyInfo(DSA_PUBLIC_KEY* sDSAPublicKey);
    _EXT  CK_BBOOL       asn1_Build_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMLDSAPublicKey);
    _EXT  CK_BBOOL       asn1_Build_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMLDSAPublicKey);
-   _EXT  CK_BBOOL       asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen);
+   _EXT  CK_BBOOL       asn1_Build_EncryptedPrivateKeyInfoPbe(P11_PBE_ENC_PARAMS* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen);
    _EXT  void           asn1_Check_SetTlv(CK_CHAR_PTR data, CK_ULONG size);
    _EXT  CK_BBOOL       asn1_Check_t(CK_BYTE tag);
    _EXT  CK_BBOOL       asn1_Check_tl(CK_BYTE tag);

@@ -621,9 +621,9 @@ The AES object identifier is defined in Appendix C.
 */
 
 /*
-    FUNCTION:        CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen)
+    FUNCTION:        CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbe(P11_PBE_ENC_PARAMS* sPbkd2, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen)
 */
-CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen)
+CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbe(P11_PBE_ENC_PARAMS* sPbkd2, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen)
 {
    CK_ULONG uTlvEncryptedDataSize = 0;
    CK_ULONG uTlvEncryptedAlgoSize = 0;
@@ -637,23 +637,26 @@ CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sP
    // Tag octect string for encrypted private key
    uTlvEncryptedDataSize = asn1_Build_tlv(TAG_OCTECTSTRING, pWrappedKey, pulWrappedKeyLen);
 
-   // new branch (encryptionScheme AES-CBC-ALGORITHM-IDENTIFIER)
-   // Puth IV in tag octect string
-   uTlvSize = asn1_Build_tlv(TAG_OCTECTSTRING, sPbkd2_param->iv, sPbkd2_param->uIVLength);
 
-   // Puth OID
-   switch (sPbkd2_param->ckMechSymType)
-   {
+   if(sPbkd2->ckMechPbeType == CKM_PKCS5_PBKD2)
+   { 
+      // new branch (encryptionScheme AES-CBC-ALGORITHM-IDENTIFIER)
+      // Puth IV in tag octect string
+      uTlvSize = asn1_Build_tlv(TAG_OCTECTSTRING, sPbkd2->iv, sPbkd2->uIVLength);
+
+      // Puth OID
+      switch (sPbkd2->ckSymMechType)
+      {
       case CKM_AES_CBC_PAD:
-         if (sPbkd2_param->skeySize == AES_128_KEY_LENGTH)
+         if (sPbkd2->sSymkeySize == AES_128_KEY_LENGTH)
          {
             uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_NIST_AES_128_CBC_PAD, sizeof(OID_NIST_AES_128_CBC_PAD));
          }
-         else if (sPbkd2_param->skeySize == AES_192_KEY_LENGTH)
+         else if (sPbkd2->sSymkeySize == AES_192_KEY_LENGTH)
          {
             uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_NIST_AES_192_CBC_PAD, sizeof(OID_NIST_AES_192_CBC_PAD));
          }
-         else if (sPbkd2_param->skeySize == AES_256_KEY_LENGTH)
+         else if (sPbkd2->sSymkeySize == AES_256_KEY_LENGTH)
          {
             uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_NIST_AES_256_CBC_PAD, sizeof(OID_NIST_AES_256_CBC_PAD));
          }
@@ -664,77 +667,84 @@ CK_BBOOL asn1_Build_EncryptedPrivateKeyInfoPbkdf2(CK_PKCS5_PBKD2_ENC_PARAMS2* sP
          break;
       default:
          return CK_FALSE;
+      }
+
+      // encapsulate in tag sequence
+      uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+      uTlvEncryptedAlgoSize = uTlvSize;
+
+      // new branch (keyDerivationFunc PBKDF2Algorithms)
+      uTlvSize = 0;
+
+      switch (sPbkd2->pbkdf2.pbfkd2_param.prf)
+      {
+      case CKP_PKCS5_PBKD2_HMAC_SHA1:
+         break;
+      case CKP_PKCS5_PBKD2_HMAC_SHA224:
+         uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+         uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA224, sizeof(OID_HMAC_SHA224));
+         break;
+      case CKP_PKCS5_PBKD2_HMAC_SHA256:
+         uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+         uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA256, sizeof(OID_HMAC_SHA256));
+         break;
+      case CKP_PKCS5_PBKD2_HMAC_SHA384:
+         uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+         uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA384, sizeof(OID_HMAC_SHA384));
+         break;
+      case CKP_PKCS5_PBKD2_HMAC_SHA512:
+         uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+         uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512, sizeof(OID_HMAC_SHA512));
+         break;
+      case CKP_PKCS5_PBKD2_HMAC_SHA512_224:
+         uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+         uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512_224, sizeof(OID_HMAC_SHA512_224));
+         break;
+      case CKP_PKCS5_PBKD2_HMAC_SHA512_256:
+         uTlvSize += asn1_Build_tl(TAG_NULL, 0);
+         uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512_256, sizeof(OID_HMAC_SHA512_256));
+         break;
+      default:
+         return CK_FALSE;
+      }
+
+      if (sPbkd2->pbkdf2.pbfkd2_param.prf != CKP_PKCS5_PBKD2_HMAC_SHA1)
+      {
+         uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+      }
+
+      // Push ierations
+      uTlvSize += asn1_Build_tlv_Long(TAG_INTEGER, sPbkd2->pbkdf2.pbfkd2_param.iterations);
+
+      // Push salt value
+      uTlvSize += asn1_Build_tlv(TAG_OCTECTSTRING, sPbkd2->pbkdf2.pbfkd2_param.pSaltSourceData, sPbkd2->pbkdf2.pbfkd2_param.ulSaltSourceDataLen);
+
+      // encapsulate in sequence
+      uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+
+      // push oid pbkdf2
+      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_PKCS5_PBKDF2, sizeof(OID_PKCS5_PBKDF2));
+
+      // encapsulate in sequence
+      uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+
+      // encapsulate in sequence (keyDerivationFunc + encryptionScheme)
+      uTlvEncryptedAlgoSize = uTlvEncryptedAlgoSize + uTlvSize + asn1_Build_tl(TAG_SEQUENCE, uTlvSize + uTlvEncryptedAlgoSize);
+
+      // push oid pbes2
+      uTlvEncryptedAlgoSize += asn1_Build_t((CK_CHAR_PTR)OID_PKCS5_PBES2, sizeof(OID_PKCS5_PBES2));
+
+      // encapsulate in tag sequence
+      uTlvEncryptedAlgoSize += asn1_Build_tl(TAG_SEQUENCE, uTlvEncryptedAlgoSize);
+
+      // encapsulate in sequence (encryptionAlgorithm + encryptedData)
+      asn1_Build_tl(TAG_SEQUENCE, uTlvEncryptedAlgoSize + uTlvEncryptedDataSize);
    }
-
-   // encapsulate in tag sequence
-   uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
-   uTlvEncryptedAlgoSize = uTlvSize;
-
-   // new branch (keyDerivationFunc PBKDF2Algorithms)
-   uTlvSize = 0;
-
-   switch (sPbkd2_param->pbfkd2_param.prf)
+   else
    {
-   case CKP_PKCS5_PBKD2_HMAC_SHA1:
-      break;
-   case CKP_PKCS5_PBKD2_HMAC_SHA224:
-      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
-      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA224, sizeof(OID_HMAC_SHA224));
-      break;
-   case CKP_PKCS5_PBKD2_HMAC_SHA256:
-      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
-      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA256, sizeof(OID_HMAC_SHA256));
-      break;
-   case CKP_PKCS5_PBKD2_HMAC_SHA384:
-      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
-      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA384, sizeof(OID_HMAC_SHA384));
-      break;
-   case CKP_PKCS5_PBKD2_HMAC_SHA512:
-      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
-      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512, sizeof(OID_HMAC_SHA512));
-      break;
-   case CKP_PKCS5_PBKD2_HMAC_SHA512_224:
-      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
-      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512_224, sizeof(OID_HMAC_SHA512_224));
-      break;
-   case CKP_PKCS5_PBKD2_HMAC_SHA512_256:
-      uTlvSize += asn1_Build_tl(TAG_NULL, 0);
-      uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_HMAC_SHA512_256, sizeof(OID_HMAC_SHA512_256));
-      break;
-   default:
+      // other pbe format not yet supported
       return CK_FALSE;
    }
-   if (sPbkd2_param->pbfkd2_param.prf != CKP_PKCS5_PBKD2_HMAC_SHA1)
-   {
-      uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
-   }
-
-   // Push ierations
-   uTlvSize += asn1_Build_tlv_Long(TAG_INTEGER, sPbkd2_param->pbfkd2_param.iterations);
-
-   // Push salt value
-   uTlvSize += asn1_Build_tlv(TAG_OCTECTSTRING, sPbkd2_param->pbfkd2_param.pSaltSourceData, sPbkd2_param->pbfkd2_param.ulSaltSourceDataLen);
-   
-   // encapsulate in sequence
-   uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
-
-   // push oid pbkdf2
-   uTlvSize += asn1_Build_t((CK_CHAR_PTR)OID_PKCS5_PBKDF2, sizeof(OID_PKCS5_PBKDF2));
-
-   // encapsulate in sequence
-   uTlvSize += asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
-
-   // encapsulate in sequence (keyDerivationFunc + encryptionScheme)
-   uTlvEncryptedAlgoSize = uTlvEncryptedAlgoSize + uTlvSize + asn1_Build_tl(TAG_SEQUENCE, uTlvSize + uTlvEncryptedAlgoSize);
-
-   // push oid pbes2
-   uTlvEncryptedAlgoSize += asn1_Build_t((CK_CHAR_PTR)OID_PKCS5_PBES2, sizeof(OID_PKCS5_PBES2));
-
-   // encapsulate in tag sequence
-   uTlvEncryptedAlgoSize += asn1_Build_tl(TAG_SEQUENCE, uTlvEncryptedAlgoSize);
-
-   // encapsulate in sequence (encryptionAlgorithm + encryptedData)
-   asn1_Build_tl(TAG_SEQUENCE, uTlvEncryptedAlgoSize + uTlvEncryptedDataSize);
 
    return CK_TRUE;
 }

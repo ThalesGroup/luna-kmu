@@ -529,9 +529,9 @@ const P11_ENCRYPTION_MECH encryption_algo[] = {
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA384_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA384, .rsa_oeap_param.mgf = CKG_MGF1_SHA384, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA512_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA512, .rsa_oeap_param.mgf = CKG_MGF1_SHA512, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_OAEP,                 CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = 0,          .rsa_oeap_param.mgf = 0,               .rsa_oeap_param.source = 0,                  .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
-   {KEY_TYPE_IMPORT_EXPORTKEY                   ,  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbkdf2_enc_param.ckMechSymType = CKM_AES_CBC_PAD, .pbkdf2_enc_param.skeySize = AES_128_KEY_LENGTH , .pbkdf2_enc_param.skeyType = CKK_AES, .pbkdf2_enc_param.sClass = CKO_SECRET_KEY ,.pbkdf2_enc_param.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbkdf2_enc_param.uIVLength = AES_IV_LENGTH },
-   {KEY_TYPE_IMPORT_EXPORTKEY                   ,  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbkdf2_enc_param.ckMechSymType = CKM_AES_CBC_PAD, .pbkdf2_enc_param.skeySize = AES_192_KEY_LENGTH , .pbkdf2_enc_param.skeyType = CKK_AES, .pbkdf2_enc_param.sClass = CKO_SECRET_KEY ,.pbkdf2_enc_param.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbkdf2_enc_param.uIVLength = AES_IV_LENGTH },
-   {KEY_TYPE_IMPORT_EXPORTKEY                   ,  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbkdf2_enc_param.ckMechSymType = CKM_AES_CBC_PAD, .pbkdf2_enc_param.skeySize = AES_256_KEY_LENGTH , .pbkdf2_enc_param.skeyType = CKK_AES, .pbkdf2_enc_param.sClass = CKO_SECRET_KEY ,.pbkdf2_enc_param.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbkdf2_enc_param.uIVLength = AES_IV_LENGTH }
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckSymMechType = CKM_AES_CBC_PAD, .pbe_param.sSymkeySize = AES_128_KEY_LENGTH , .pbe_param.sSymkeyType = CKK_AES, .pbe_param.sSymClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.uIVLength = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckSymMechType = CKM_AES_CBC_PAD, .pbe_param.sSymkeySize = AES_192_KEY_LENGTH , .pbe_param.sSymkeyType = CKK_AES, .pbe_param.sSymClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.uIVLength = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckSymMechType = CKM_AES_CBC_PAD, .pbe_param.sSymkeySize = AES_256_KEY_LENGTH , .pbe_param.sSymkeyType = CKK_AES, .pbe_param.sSymClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.uIVLength = AES_IV_LENGTH }
 };
 
 
@@ -990,7 +990,7 @@ CK_CHAR_PTR P11Util_DisplayKeyTypeName(CK_KEY_TYPE keytype)
 {
    CK_BYTE u8Loop;
 
-   // loop on all rsa mech structure
+   // loop on all keygen structure
    for (u8Loop = 0; u8Loop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; u8Loop++)
    {
       if (arg_keygen_supported_type[u8Loop].cktype == keytype)
@@ -1365,7 +1365,7 @@ void P11Util_DisplaySupportedCurveName(CK_KEY_TYPE sKeyType)
 {
    CK_BYTE u8Loop;
 
-   printf("Supported public exponant value : \n");
+   printf("Supported curve name : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_ECC_CURVE_TABLE; u8Loop++)
    {
@@ -1383,7 +1383,7 @@ void P11Util_DisplayEncryptionParam(CK_ULONG    bKeyFlag)
 {
    CK_BYTE u8Loop;
 
-   printf("Supported public exponant value : \n");
+   printf("Supported encryption algorithm : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_ENCRYPTION_ALGO_TABLE; u8Loop++)
    {
@@ -1425,7 +1425,7 @@ void P11Util_DisplayDerivationParam()
 {
    CK_BYTE u8Loop;
 
-   printf("Supported public exponant value : \n");
+   printf("Supported derivation method : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_DERIVATION_ALGO_TABLE; u8Loop++)
    {
@@ -1494,7 +1494,7 @@ void P11Util_DisplayKdfScheme()
 {
    CK_BYTE u8Loop;
 
-   printf("Supported Key Derivation Function type value : \n");
+   printf("Supported Key Derivation Function scheme type value : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_KDF_SCHEME_TABLE; u8Loop++)
    {

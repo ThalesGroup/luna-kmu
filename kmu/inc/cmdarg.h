@@ -91,6 +91,7 @@ extern "C" {
 #define ARG_TYPE_ITERATION          64
 #define ARG_TYPE_PRF                65
 #define ARG_TYPE_LIMIT              66
+#define ARG_TYPE_PBE                67
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -133,6 +134,7 @@ extern "C" {
 #define cmdarg_GetGCMAuthTagLen()            cmdarg_SearchTypeInteger(ARG_TYPE_GCM_TAG_LEN)
 #define cmdarg_GetHash()                     cmdarg_SearchHash(ARG_TYPE_HASH_KEY)
 #define cmdarg_Limit()                       cmdarg_SearchTypeInteger(ARG_TYPE_LIMIT)
+#define cmdarg_GetIteration()                cmdarg_SearchTypeInteger(ARG_TYPE_ITERATION)
 
    _EXT  CK_CHAR_PTR             cmdarg_GetPassword();
    _EXT  CK_SLOT_ID              cmdarg_GetSlotID();
@@ -155,6 +157,7 @@ extern "C" {
    _EXT  P11_DERIVE_MECH*        cmdarg_SearchDerivationAlgoValue(BYTE bArgType);
    _EXT  P11_DERIVE_MECH*        cmdarg_GetDerivationMecansim(BYTE bArgType);
    _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetEncryptionMecansim(BYTE bArgType);
+   _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetPBEMecansim(BYTE bArgType);
    _EXT  CK_KDF_PRF_TYPE         cmdarg_GetKdfType();
    _EXT  CK_KDF_PRF_ENCODING_SCHEME cmdarg_GetKdfScheme();
    _EXT  CK_LONG_64              cmdarg_GetKdfCounter();

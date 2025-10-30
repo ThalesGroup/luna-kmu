@@ -2305,9 +2305,9 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_P
 }
 
 /*
-    FUNCTION:        CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyTemplate, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2_param, CK_BBOOL bDisplay)
+    FUNCTION:        CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyTemplate, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2, CK_BBOOL bDisplay)
 */
-CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2_param, CK_BBOOL bDisplay)
+CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2, CK_BBOOL bDisplay)
 {
    CK_ULONG          u32labelsize = 0;
    CK_RV             retCode = CKR_GENERAL_ERROR;
@@ -2351,8 +2351,8 @@ CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HA
    }
 
    sKeygenMech.mechanism = CKM_PKCS5_PBKD2;
-   sKeygenMech.pParameter = (CK_ATTRIBUTE_PTR)&pbkdf2_param->pbfkd2_param;
-   sKeygenMech.usParameterLen = sizeof(pbkdf2_param->pbfkd2_param);
+   sKeygenMech.pParameter = (CK_ATTRIBUTE_PTR)&pbkdf2->pbfkd2_param;
+   sKeygenMech.usParameterLen = sizeof(pbkdf2->pbfkd2_param);
 
    
    // generate key

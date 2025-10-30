@@ -1061,6 +1061,11 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       switch (sUnwrapTemplate.sClass)
       {
       case CKO_PRIVATE_KEY:
+         /*
+         if (FileFormat == FILE_FORMAT_PKCS8)
+         {
+            return cmd_UnwrapPrivateSecretkey(&sUnwrapTemplate, sFilePath, FileFormat);
+         }*/
       case CKO_SECRET_KEY:
          // get handle for wrap key
          sUnwrapTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_UNWRAPKEY);
@@ -1179,22 +1184,30 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
             break;
          }
 
-         // get wrap algo
-         sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
-         if (sExportTemplate.wrap_key_mech == NULL)
-         {
-            printf("wrong or missing argument : -algo \n");
-            break;
-         }
-
          // check if format is pkcs8. 
          // pkcs8 for private key is based on password based encryption
          if (FileFormat == FILE_FORMAT_PKCS8)
          {
-            sExportTemplate.hWrappingKey = sExportTemplate.wrap_key_mech->pbkdf2_enc_param.hKey;
+            // get wrap algo
+            sExportTemplate.wrap_key_mech = cmdarg_GetPBEMecansim(ARG_TYPE_PBE);
+            if (sExportTemplate.wrap_key_mech == NULL)
+            {
+               printf("wrong or missing argument : -algo \n");
+               break;
+            }
+
+            sExportTemplate.hWrappingKey = sExportTemplate.wrap_key_mech->pbe_param.hSymKey;
          }
          else
          {
+            // get wrap algo
+            sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
+            if (sExportTemplate.wrap_key_mech == NULL)
+            {
+               printf("wrong or missing argument : -algo \n");
+               break;
+            }
+
             // get handle for wrap key
             sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
             if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
@@ -2138,7 +2151,7 @@ CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR
                P11_DeleteObject(sWrapTemplate->hWrappingKey);
 
                // create encrypted private key info
-               bResult = asn1_Build_EncryptedPrivateKeyInfoPbkdf2(&sWrapTemplate->wrap_key_mech->pbkdf2_enc_param, sWrappedkeyBuffer, AllocateSize);
+               bResult = asn1_Build_EncryptedPrivateKeyInfoPbe(&sWrapTemplate->wrap_key_mech->pbe_param, sWrappedkeyBuffer, AllocateSize);
 
                if (bResult == CK_TRUE)
                {
@@ -2239,6 +2252,18 @@ CK_BBOOL cmd_UnwrapPrivateSecretkey(P11_UNWRAPTEMPLATE* sUnwrapTemplate,  CK_CHA
             printf("Key successfully unwrapped: handle is : %i, label is : %s \n", hKey, sUnwrapTemplate->pKeyLabel);
          }
          break;
+      case FILE_FORMAT_PKCS8:
+
+         // check key type is private key
+         if (sUnwrapTemplate->sClass != CKA_PRIVATE)
+         {
+            break;
+         }
+
+
+
+         break;
+
       default:
          printf("Wrong file format");
       }
