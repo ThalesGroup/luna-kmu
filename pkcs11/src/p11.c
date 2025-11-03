@@ -25,6 +25,7 @@
 #include "str.h"
 #include "p11util.h"
 #include "asn1.h"
+#include "pkcs8.h"
 
 
 #ifdef _WIN32
@@ -1693,7 +1694,7 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       printf("KeySize=%i\n", sML_DSA_Key->sPrivateKeySize);
       printf("ParameterSet=%s (0x%08X)\n", sML_DSA_Key->sName, sML_DSA_Key->uML_DSA_Parameter_Set);
 
-      asn1_Check_MLDSApublicKeyInfo(&sML_DSA_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
+      pksc8_Check_PublicKeyInfoMLDSA(&sML_DSA_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
 
       str_DisplayByteArraytoString("PublicKey=", sML_DSA_PublicKey.sPublicKey, sML_DSA_PublicKey.uPublicKeyLength);
    }
@@ -1716,7 +1717,7 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       printf("KeySize=%i\n", sML_KEM_Key->sPrivateKeySize);
       printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
 
-      asn1_Check_MLKEMpublicKeyInfo(&sML_KEM_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[1].usValueLen);
+      pksc8_Check_PublicKeyInfoMLKEM(&sML_KEM_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[1].usValueLen);
       str_DisplayByteArraytoString("PublicKey=", sML_KEM_PublicKey.sPublicKey, sML_KEM_PublicKey.uPublicKeyLength);
    }
 
@@ -2305,9 +2306,9 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_P
 }
 
 /*
-    FUNCTION:        CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyTemplate, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2, CK_BBOOL bDisplay)
+    FUNCTION:        CK_BBOOL P11_GenerateKeyPbe(P11_KEYGENTEMPLATE* sKeyTemplate, P11_PBE_ENC_PARAMS * pbkdf2, CK_BBOOL bDisplay)
 */
-CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2, CK_BBOOL bDisplay)
+CK_BBOOL P11_GenerateKeyPbe(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, P11_PBE_ENC_PARAMS * sPbe, CK_BBOOL bDisplay)
 {
    CK_ULONG          u32labelsize = 0;
    CK_RV             retCode = CKR_GENERAL_ERROR;
@@ -2350,11 +2351,18 @@ CK_BBOOL P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HA
       sSimTemplateSize++;
    }
 
-   sKeygenMech.mechanism = CKM_PKCS5_PBKD2;
-   sKeygenMech.pParameter = (CK_ATTRIBUTE_PTR)&pbkdf2->pbfkd2_param;
-   sKeygenMech.usParameterLen = sizeof(pbkdf2->pbfkd2_param);
+   switch (sPbe->ckPbeMechType)
+   {
+   case CKM_PKCS5_PBKD2:
+      sKeygenMech.mechanism = CKM_PKCS5_PBKD2;
+      sKeygenMech.pParameter = (CK_ATTRIBUTE_PTR)&sPbe->pbkdf2.pbfkd2_param;
+      sKeygenMech.usParameterLen = sizeof(sPbe->pbkdf2.pbfkd2_param);
+      break;
+   default:
+      printf("P11_GenerateKeyPbe invalid PBE algorithm\n");
+      return CK_FALSE;
+   }
 
-   
    // generate key
    retCode = P11Functions->C_GenerateKey(hSession,
       &sKeygenMech,
@@ -3306,7 +3314,7 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_AES_OFB:
    case CKM_AES_CBC_PAD_IPSEC:
       // Init the sIV buffer and size
-      sEncMech->pParameter = encryption_mech->aes_param.iv;
+      sEncMech->pParameter = encryption_mech->aes_param.pIv;
       sEncMech->usParameterLen = AES_IV_LENGTH;
       break;
    case CKM_DES_CBC:
@@ -3314,7 +3322,7 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_DES3_CBC:
    case CKM_DES3_CBC_PAD:
       // Init the sIV buffer and size
-      sEncMech->pParameter = encryption_mech->des_param.iv;
+      sEncMech->pParameter = encryption_mech->des_param.pIv;
       sEncMech->usParameterLen = DES_IV_LENGTH;
       break;
 
@@ -3349,7 +3357,7 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    {
    case CKM_AES_CMAC:
       // Init the sIV buffer and size
-      sEncMech->pParameter = sign_mech->aes_param.iv;
+      sEncMech->pParameter = sign_mech->aes_param.pIv;
       if (sEncMech->pParameter != NULL)
       {
          sEncMech->usParameterLen = AES_IV_LENGTH;
@@ -3363,7 +3371,7 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    case CKM_DES_MAC:
    case CKM_DES3_MAC:
       // Init the sIV buffer and size
-      sEncMech->pParameter = sign_mech->des_param.iv;
+      sEncMech->pParameter = sign_mech->des_param.pIv;
       if (sEncMech->pParameter != NULL)
       {
          sEncMech->usParameterLen = DES_IV_LENGTH;
@@ -3883,7 +3891,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
           sSignatureTemplate.skeyType = skeyType;
           sSignatureTemplate.sInputData = sInputData;
           sSignatureTemplate.sInputDataLength = uInputLengh;
-          sSignMech.aes_param.iv = NULL;
+          sSignMech.aes_param.pIv = NULL;
           sSignMech.ckMechType = ckMechTypeMac;
 
           sSignatureTemplate.sign_mech = &sSignMech;
@@ -3936,7 +3944,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        sEncryptionTemplate.skeyType = skeyType;
        sEncryptionTemplate.sInputData = sInputData;
        sEncryptionTemplate.sInputDataLength = uInputLengh;
-       sEncMech.aes_param.iv = NULL;
+       sEncMech.aes_param.pIv = NULL;
        sEncMech.ckMechType = ckMechTypeEnc;
        sEncryptionTemplate.encryption_mech = &sEncMech;
 
@@ -3957,7 +3965,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        sSignatureTemplate.skeyType = skeyType;
        sSignatureTemplate.sInputData = sInputData;
        sSignatureTemplate.sInputDataLength = uInputLengh;
-       sSignMech.aes_param.iv = NULL;
+       sSignMech.aes_param.pIv = NULL;
        sSignMech.ckMechType = ckMechTypehMac;
 
        sSignatureTemplate.sign_mech = &sSignMech;

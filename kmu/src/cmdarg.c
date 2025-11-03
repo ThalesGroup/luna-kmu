@@ -203,7 +203,7 @@ CK_BBOOL cmdarg_SearchTypeBoolean(BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL b
          {
             // set value
             *bOutValue = arg_boolean[u8Loop].bBool;
-            
+
             // return param is present
             return CK_TRUE;
          }
@@ -334,7 +334,7 @@ CK_KEY_TYPE cmdarg_GetKeytype(CK_BBOOL bForceRequest, CK_ULONG uFlag)
    CK_KEY_TYPE cktype;
    CK_CHAR_PTR sKeyTypeString = NULL;
 
-   
+
    if (arg == NULL)
    {
       if (bForceRequest == CK_TRUE)
@@ -385,11 +385,11 @@ CK_OBJECT_CLASS cmdarg_GetClassFromkeyType(CK_ULONG uFlag)
       P11Util_DisplaySupportedKeyType(uFlag);
       printf("Enter key type : ");
       if (Console_RequestString() < 0)
-      {  
+      {
          return CK_NULL_ELEMENT;
       }
       sKeyTypeString = Console_GetBuffer();
-   }  
+   }
    else
    {
       sKeyTypeString = arg->s_argPart2;
@@ -404,7 +404,7 @@ CK_OBJECT_CLASS cmdarg_GetClassFromkeyType(CK_ULONG uFlag)
    {
       return cClass;
    }
-   
+
    printf("Wrong parameter for argument: -keytype,  %s \n", sKeyTypeString);
 
    return CK_NULL_ELEMENT;
@@ -487,7 +487,7 @@ CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize)
       memcpy(sCkaId, sBuffer, uLength);
       return uLength;
    } while (FALSE);
-    
+
    // return error
    return CK_NULL_ELEMENT;
 }
@@ -538,7 +538,7 @@ CK_OBJECT_HANDLE cmdarg_GetHandleValue(CK_BYTE bArgType)
       case ARG_TYPE_HANDLE_KCV:
          printf("Enter handle of the key to compute KCV (or 0 to list all objects): ");
          break;
-         
+
       default:
          return CK_NULL_ELEMENT;
       }
@@ -627,7 +627,7 @@ P11_EXP_DOMAIN* cmdarg_GetExpDomain(CK_BBOOL bIsSubPrime)
 
    // clear sDh_Domain
    memset(&sDh_Domain, 0, sizeof(sDh_Domain));
-   
+
    do
    {
       // get argument prime
@@ -851,7 +851,7 @@ CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
          printf("->ML-KEM-768  : 1184\n");
          printf("->ML-KEM-1024 : 1568\n");
       }
-      
+
       // print supported key size for mzmk
       else if (uKeyType == TYPE_KEY_SIZE_MZMK)
       {
@@ -879,10 +879,10 @@ CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
       sString = arg->s_argPart2;
    }
 
-   sValue= str_StringtoInteger(sString);
+   sValue = str_StringtoInteger(sString);
 
    // if length negative, return 0
-   if(sValue <0 )
+   if (sValue < 0)
    {
       return 0;
    }
@@ -930,7 +930,7 @@ CK_LONG  cmdarg_GetCompomentsNumber()
    return 0;
 }
 
-   
+
 /*
     FUNCTION:        CK_CHAR_PTR cmdarg_GetPublicExponant()
 */
@@ -1324,11 +1324,11 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
    P11_ENCRYPTION_MECH* DefaultEncryption_mech = NULL;
    CK_CHAR_PTR          sIV;
    CK_CHAR_PTR          sAAD;
-   CK_ULONG             uLength; 
+   CK_ULONG             uLength;
    P11_KEYGENTEMPLATE sKeyGenTemplate = { 0 };
 
 
-   memset(&sCustomEncryption_mech, 0,  sizeof(P11_ENCRYPTION_MECH));
+   memset(&sCustomEncryption_mech, 0, sizeof(P11_ENCRYPTION_MECH));
 
    do
    {
@@ -1368,7 +1368,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
                break;
             }
             // Set the custom sIV
-            sCustomEncryption_mech.aes_param.iv = sIV;
+            sCustomEncryption_mech.aes_param.pIv = sIV;
 
             // return custom enc param
             return &sCustomEncryption_mech;
@@ -1495,17 +1495,17 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
       switch (DefaultEncryption_mech->ckMechType)
       {
       case CKM_PKCS5_PBKD2:
-         sCustomEncryption_mech.pbe_param.ckMechPbeType = CKM_PKCS5_PBKD2;
+         sCustomEncryption_mech.pbe_param.ckPbeMechType = CKM_PKCS5_PBKD2;
 
          // Change ckMechType with the symetric key mechanism
-         sCustomEncryption_mech.ckMechType = DefaultEncryption_mech->pbe_param.ckSymMechType;
+         sCustomEncryption_mech.ckMechType = DefaultEncryption_mech->pbe_param.ckEncMechType;
          sCustomEncryption_mech.sMechName = DefaultEncryption_mech->sMechName;
 
          // set key type
-         sCustomEncryption_mech.pbe_param.sSymClass = DefaultEncryption_mech->pbe_param.sSymClass;
-         sCustomEncryption_mech.pbe_param.ckSymMechType = DefaultEncryption_mech->pbe_param.ckSymMechType;
-         sCustomEncryption_mech.pbe_param.sSymkeyType = DefaultEncryption_mech->pbe_param.sSymkeyType;
-         sCustomEncryption_mech.pbe_param.sSymkeySize = DefaultEncryption_mech->pbe_param.sSymkeySize;
+         sCustomEncryption_mech.pbe_param.sEncClass = DefaultEncryption_mech->pbe_param.sEncClass;
+         sCustomEncryption_mech.pbe_param.ckEncMechType = DefaultEncryption_mech->pbe_param.ckEncMechType;
+         sCustomEncryption_mech.pbe_param.sEnckeyType = DefaultEncryption_mech->pbe_param.sEnckeyType;
+         sCustomEncryption_mech.pbe_param.sEnckeySize = DefaultEncryption_mech->pbe_param.sEnckeySize;
 
          lIteration = cmdarg_GetIteration();
 
@@ -1544,63 +1544,37 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
          sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword = cmdarg_GetKeyPassword();
          sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.usPasswordLen = (CK_ULONG)strlen((CK_BYTE_PTR)sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword);
 
-
-         // Create key gen template
-         sKeyGenTemplate.sClass = sCustomEncryption_mech.pbe_param.sSymClass;
-         sKeyGenTemplate.skeyType = sCustomEncryption_mech.pbe_param.sSymkeyType;
-         sKeyGenTemplate.skeySize = sCustomEncryption_mech.pbe_param.sSymkeySize;
-         sKeyGenTemplate.bCKA_Wrap = CK_TRUE;
-         sKeyGenTemplate.bCKA_Unwrap = CK_TRUE;
-         sKeyGenTemplate.pKeyLabel = "pbkdf2_temp";
-         sKeyGenTemplate.bCKA_Private = CK_TRUE;
-         sKeyGenTemplate.bCKA_Sensitive = CK_TRUE;
-
-         // generate pbe wrap key
-         if (P11_GenerateKeyPbkdf2(&sKeyGenTemplate, &sCustomEncryption_mech.pbe_param.hSymKey, &sCustomEncryption_mech.pbe_param.pbkdf2, CK_FALSE) == CK_TRUE)
+         // get IV
+         sIV = cmdarg_ArgGetIV();
+         if (sIV == NULL)
+         {
+            // generate random sIV
+            sIV = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sIV[0];
+            P11_GenerateRandom(sIV, DefaultEncryption_mech->pbe_param.ulIvLen);
+            // Set the sIV to the pointer
+            sCustomEncryption_mech.pbe_param.pIv = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sIV;
+         }
+         else
          {
 
-            sIV = cmdarg_ArgGetIV();
-
-            if (sIV == NULL)
+            uLength = str_StringtoByteArray(sIV, (CK_ULONG)strlen(sIV));
+            // convert the sIV to hex binary string
+            if (uLength != DefaultEncryption_mech->pbe_param.ulIvLen)
             {
-               // generate random sIV
-               sIV = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sIV[0];
-               P11_GenerateRandom(sIV, DefaultEncryption_mech->pbe_param.uIVLength);
-               // Set the sIV to the pointer
-               sCustomEncryption_mech.pbe_param.iv = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sIV;
-            }
-            else
-            {
-
-               uLength = str_StringtoByteArray(sIV, (CK_ULONG)strlen(sIV));
-               // convert the sIV to hex binary string
-               if (uLength != DefaultEncryption_mech->pbe_param.uIVLength)
-               {
-                  printf("wrong IV length or value: -iv=%s \n", sIV);
-                  break;
-               }
-
-               // Set the sIV to the pointer
-               sCustomEncryption_mech.pbe_param.iv = (CK_BYTE_PTR)sIV;
-               sCustomEncryption_mech.pbe_param.uIVLength = uLength;
+               printf("wrong IV length or value: -iv=%s \n", sIV);
+               break;
             }
 
-            // only AES suported rigth now
-            if (sCustomEncryption_mech.pbe_param.sSymkeyType == CKK_AES)
-            {
-               sCustomEncryption_mech.aes_param.iv = sIV;
-            }
-            else
-            {
-               return NULL;
-            }
-
-            // set IV length
-            sCustomEncryption_mech.pbe_param.uIVLength = DefaultEncryption_mech->pbe_param.uIVLength;
-
-
-            return &sCustomEncryption_mech;
+            // Set the sIV to the pointer
+            sCustomEncryption_mech.pbe_param.pIv = (CK_BYTE_PTR)sIV;
+            sCustomEncryption_mech.pbe_param.ulIvLen = uLength;
          }
+
+         // set IV length
+         sCustomEncryption_mech.pbe_param.ulIvLen = DefaultEncryption_mech->pbe_param.ulIvLen;
+
+         return &sCustomEncryption_mech;
+
       }
    } while (FALSE);
 
@@ -1612,7 +1586,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 */
 P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
 {
-   P11_DERIVE_MECH*     DefaultDerive_mech = NULL;
+   P11_DERIVE_MECH* DefaultDerive_mech = NULL;
    CK_LONG_64           i64_Counter;
    CK_LONG              sBufferLength;
    CK_CHAR_PTR          pSBuffer = NULL;
@@ -1621,7 +1595,7 @@ P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
 
    do
    {
-      if((DefaultDerive_mech = cmdarg_SearchDerivationAlgoValue(bArgType)) == NULL)
+      if ((DefaultDerive_mech = cmdarg_SearchDerivationAlgoValue(bArgType)) == NULL)
       {
          printf("wrong argument : -mech \n");
          break;
@@ -1970,13 +1944,15 @@ CK_CHAR_PTR cmdarg_GetKeyPassword()
       if (arg == NULL)
       {
          // request user to enter a string
-         printf("Enter the password fot the password based encryption ");
+         printf("Enter the password for the password based encryption : ");
 
          // request user
-         if (Console_RequestString() < 0)
+         if (Console_RequestPassword() < 0)
          {
             break;
          }
+
+         printf("\n\n");
 
          // get string
          sString = Console_GetBuffer();

@@ -359,7 +359,7 @@ CK_OBJECT_HANDLE TR31_DeriveKeyMac(CK_OBJECT_HANDLE hWrappingKey)
       sSignatureTemplate.skeyType = cKeyType;
       sSignatureTemplate.sInputData = sInputPart1;
       sSignatureTemplate.sInputDataLength = TR31_DERIVATION_DATA_LENGTH;
-      sSignMech.aes_param.iv = NULL;
+      sSignMech.aes_param.pIv = NULL;
       sSignMech.ckMechType = CKM_AES_CMAC;
       sSignatureTemplate.sign_mech = &sSignMech;
 
@@ -480,7 +480,7 @@ CK_OBJECT_HANDLE TR31_DeriveKeyEnc(CK_OBJECT_HANDLE hWrappingKey)
       sSignatureTemplate.skeyType = cKeyType;
       sSignatureTemplate.sInputData = sInputPart1;
       sSignatureTemplate.sInputDataLength = TR31_DERIVATION_DATA_LENGTH;
-      sSignMech.aes_param.iv = NULL;
+      sSignMech.aes_param.pIv = NULL;
       sSignMech.ckMechType = CKM_AES_CMAC;
       sSignatureTemplate.sign_mech = &sSignMech;
 
@@ -571,7 +571,7 @@ CK_BBOOL TR31_VerifyMAC(CK_OBJECT_HANDLE hMacKey, CK_CHAR_PTR pHeader, CK_ULONG 
       sSignatureTemplate.skeyType = P11_GetKeyType(hMacKey);
       sSignatureTemplate.sInputData = pHeader;
       sSignatureTemplate.sInputDataLength = pHeaderLength;
-      sSignMech.aes_param.iv = NULL;
+      sSignMech.aes_param.pIv = NULL;
       sSignMech.ckMechType = CKM_AES_CMAC;
       sSignatureTemplate.sign_mech = &sSignMech;
 
@@ -625,7 +625,7 @@ CK_BBOOL TR31_DecryptKey(CK_OBJECT_HANDLE hEncKey, CK_CHAR_PTR pEncryptedKey, CK
       sEncryptionTemplate.sInputData = pEncryptedKey;
       sEncryptionTemplate.sInputDataLength = pEncryptedKEyLength;
       sEncryptionMech.ckMechType = CKM_AES_CBC;
-      sEncryptionMech.aes_param.iv = pIV;
+      sEncryptionMech.aes_param.pIv = pIV;
       sEncryptionTemplate.encryption_mech = &sEncryptionMech;
 
       // decrypt the data

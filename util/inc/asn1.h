@@ -24,13 +24,15 @@ extern "C" {
 #define _EXT extern
 #endif
 
+#define TAG_SEQUENCE             0x30
+#define TAG_OID                  0x06
+#define TAG_BITSTRING            0x03
+#define TAG_OCTECTSTRING         0x04
+#define TAG_INTEGER              0x02
+#define TAG_NULL                 0x05
 
-   _EXT  CK_BBOOL       asn1_Build_RSApublicKeyInfo(RSA_PUBLIC_KEY * sRsaPublicKey);
-   _EXT  CK_BBOOL       asn1_Build_ECpublicKeyInfo(EC_PUBLIC_KEY* sEcdsaPublicKey, CK_KEY_TYPE ckKeyType);
-   _EXT  CK_BBOOL       asn1_Check_DSApublicKeyInfo(DSA_PUBLIC_KEY* sDsaPublicKey, CK_CHAR_PTR data, CK_ULONG size);
-   _EXT  CK_BBOOL       asn1_Check_DHpublicKeyInfo(DH_PUBLIC_KEY* sDhPublicKey, CK_CHAR_PTR data, CK_ULONG size);
-   _EXT  CK_BBOOL       asn1_Check_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMlDsaPublicKey, CK_CHAR_PTR data, CK_ULONG size);
-   _EXT  CK_BBOOL       asn1_Check_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMlKemPublicKey, CK_CHAR_PTR data, CK_ULONG size);
+
+
    _EXT  CK_BBOOL       asn1_Build_Init();
    _EXT  CK_ULONG       asn1_Build_tlv(CK_BYTE tag, CK_CHAR_PTR data, CK_ULONG size);
    _EXT  CK_ULONG       asn1_Build_tlv_Long(CK_BYTE tag, CK_ULONG Value);
@@ -40,18 +42,12 @@ extern "C" {
    _EXT  CK_CHAR_PTR    asn1_BuildGetBuffer();
    _EXT  CK_ULONG       asn1_GetBufferSize();
 
-   _EXT  CK_BBOOL       asn1_Check_RSApublicKeyInfo(RSA_PUBLIC_KEY* sRsaPublicKey, CK_CHAR_PTR data, CK_ULONG size);
-   _EXT  CK_BBOOL       asn1_Check_ECpublicKeyInfo(EC_PUBLIC_KEY* sECPublicKey, CK_CHAR_PTR data, CK_ULONG size, CK_KEY_TYPE ckKeyType);
-   _EXT  CK_BBOOL       asn1_Build_DHpublicKeyInfo(DH_PUBLIC_KEY* sDHPublicKey);
-   _EXT  CK_BBOOL       asn1_Build_DSApublicKeyInfo(DSA_PUBLIC_KEY* sDSAPublicKey);
-   _EXT  CK_BBOOL       asn1_Build_MLDSApublicKeyInfo(ML_DSA_PUBLIC_KEY* sMLDSAPublicKey);
-   _EXT  CK_BBOOL       asn1_Build_MLKEMpublicKeyInfo(ML_KEM_PUBLIC_KEY* sMLDSAPublicKey);
-   _EXT  CK_BBOOL       asn1_Build_EncryptedPrivateKeyInfoPbe(P11_PBE_ENC_PARAMS* sPbkd2_param, CK_BYTE_PTR   pWrappedKey, CK_ULONG pulWrappedKeyLen);
    _EXT  void           asn1_Check_SetTlv(CK_CHAR_PTR data, CK_ULONG size);
    _EXT  CK_BBOOL       asn1_Check_t(CK_BYTE tag);
    _EXT  CK_BBOOL       asn1_Check_tl(CK_BYTE tag);
    _EXT  CK_CHAR_PTR    asn1_Check_GetCurrentValueBuffer();
    _EXT  CK_CHAR_PTR    asn1_Check_GetCurrentTagBuffer();
+   _EXT  CK_BBOOL       asn1_Check_GetCurrentValueLong(CK_ULONG_PTR pulInteger);
    _EXT  CK_ULONG       asn1_Check_GetCurrentValueLen();
    _EXT  CK_ULONG       asn1_Check_GetCurrentTlvLen();
    _EXT  CK_BBOOL       asn1_Check_StepIn();

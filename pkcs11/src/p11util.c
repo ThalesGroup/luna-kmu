@@ -515,23 +515,23 @@ const CK_CHAR default_AES_GCM_IV[AES_IV_LENGTH] = { 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
 
 #define SIZE_ENCRYPTION_ALGO_TABLE     DIM(encryption_algo)
 const P11_ENCRYPTION_MECH encryption_algo[] = {
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_ECB,                  CKM_AES_ECB,            .aes_param.iv = NULL},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC,                  CKM_AES_CBC,            .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD,              CKM_AES_CBC_PAD,        .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD_IPSEC,        CKM_AES_CBC_PAD_IPSEC,  .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB8,                 CKM_AES_CFB8,           .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB128,               CKM_AES_CFB128,         .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_OFB,                  CKM_AES_OFB,            .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KW,                   CKM_AES_KW,             .aes_param.iv = NULL},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KWP,                  CKM_AES_KWP,            .aes_param.iv = NULL},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_ECB,                  CKM_AES_ECB,            .aes_param.pIv = NULL},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC,                  CKM_AES_CBC,            .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD,              CKM_AES_CBC_PAD,        .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD_IPSEC,        CKM_AES_CBC_PAD_IPSEC,  .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB8,                 CKM_AES_CFB8,           .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB128,               CKM_AES_CFB128,         .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_OFB,                  CKM_AES_OFB,            .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KW,                   CKM_AES_KW,             .aes_param.pIv = NULL},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KWP,                  CKM_AES_KWP,            .aes_param.pIv = NULL},
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_GCM,                  CKM_AES_GCM,            .aes_gcm_param.pIv = (CK_CHAR_PTR)default_AES_GCM_IV, .aes_gcm_param.ulIvLen = AES_IV_LENGTH, .aes_gcm_param.ulIvBits = AES_IV_LENGTH << 3, .aes_gcm_param.pAAD = NULL,.aes_gcm_param.ulAADLen = 0, .aes_gcm_param.ulTagBits = AES_GCM_AUTH_TAG_LENGTH_96 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA256_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA256, .rsa_oeap_param.mgf = CKG_MGF1_SHA256, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA384_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA384, .rsa_oeap_param.mgf = CKG_MGF1_SHA384, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA512_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA512, .rsa_oeap_param.mgf = CKG_MGF1_SHA512, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_OAEP,                 CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = 0,          .rsa_oeap_param.mgf = 0,               .rsa_oeap_param.source = 0,                  .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
-   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckSymMechType = CKM_AES_CBC_PAD, .pbe_param.sSymkeySize = AES_128_KEY_LENGTH , .pbe_param.sSymkeyType = CKK_AES, .pbe_param.sSymClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.uIVLength = AES_IV_LENGTH },
-   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckSymMechType = CKM_AES_CBC_PAD, .pbe_param.sSymkeySize = AES_192_KEY_LENGTH , .pbe_param.sSymkeyType = CKK_AES, .pbe_param.sSymClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.uIVLength = AES_IV_LENGTH },
-   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckSymMechType = CKM_AES_CBC_PAD, .pbe_param.sSymkeySize = AES_256_KEY_LENGTH , .pbe_param.sSymkeyType = CKK_AES, .pbe_param.sSymClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.uIVLength = AES_IV_LENGTH }
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_128_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_192_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_256_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH }
 };
 
 

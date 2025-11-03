@@ -100,35 +100,38 @@ extern "C" {
 
    typedef struct ck_des_param
    {
-      CK_CHAR_PTR  iv;
-   }CK_DES_PARAM;
+      CK_CHAR_PTR             pIv;           /* must be first position*/
+      CK_ULONG                ulIvLen;
+   }P11_DES_PARAM;
 
 
    typedef struct ck_aes_param
    {
-      CK_CHAR_PTR  iv;
-   }CK_AES_PARAM;
+      CK_CHAR_PTR             pIv;           /* must be first position*/
+      CK_ULONG                ulIvLen;
+   }P11_AES_PARAM;
 
 
    typedef struct P11_PBFKD2_ENC_PARAMS
    {
-      CK_PKCS5_PBKD2_PARAMS2  pbfkd2_param;
       CK_CHAR                 sIV[AES_IV_LENGTH];
       CK_CHAR                 sSalt[PBFKD2_SALT_LENGTH];
+      CK_PKCS5_PBKD2_PARAMS2  pbfkd2_param;
    } P11_PKCS5_PBKD2_ENC_PARAMS2;
 
    typedef P11_PKCS5_PBKD2_ENC_PARAMS2 CK_PTR CK_PKCS5_PBKD2_ENC_PARAMS2_PTR;
 
    typedef struct p11_pbe_enc_algo
    {
-      CK_MECHANISM_TYPE       ckMechPbeType;
-      CK_OBJECT_CLASS         sSymClass;
-      CK_KEY_TYPE             sSymkeyType;
-      CK_MECHANISM_TYPE       ckSymMechType;
-      CK_LONG                 sSymkeySize;
-      CK_OBJECT_HANDLE        hSymKey;
-      CK_CHAR_PTR             iv;
-      CK_ULONG                uIVLength;
+      CK_CHAR_PTR             pIv;           /* must be first position*/
+      CK_ULONG                ulIvLen;
+      CK_MECHANISM_TYPE       ckPbeMechType;
+      CK_OBJECT_CLASS         sEncClass;
+      CK_KEY_TYPE             sEnckeyType;
+      CK_MECHANISM_TYPE       ckEncMechType;
+      CK_LONG                 sEnckeySize;
+      CK_CHAR_PTR             pWrappedKey;
+      CK_ULONG                ulWrappedKeyLen;
       union pbe_alg_param
       {
          P11_PKCS5_PBKD2_ENC_PARAMS2  pbkdf2;
@@ -144,15 +147,13 @@ extern "C" {
       CK_MECHANISM_TYPE ckMechType;
       union specific_alg_param
       {
-         CK_DES_PARAM   des_param;
-         CK_AES_PARAM   aes_param;
-         CK_GCM_PARAMS  aes_gcm_param;
-         CK_RSA_PKCS_OAEP_PARAMS rsa_oeap_param;
-         //CK_KEY_WRAP_SET_OAEP_PARAMS rsa_wrap_oeap;
+         P11_DES_PARAM              des_param;
+         P11_AES_PARAM              aes_param;
+         CK_GCM_PARAMS              aes_gcm_param;
+         P11_PBE_ENC_PARAMS         pbe_param;
+         CK_RSA_PKCS_OAEP_PARAMS    rsa_oeap_param;
          CK_RSA_AES_KEY_WRAP_PARAMS rsa_aes_wrap; // not supported by luna
       };
-      P11_PBE_ENC_PARAMS   pbe_param;
-
    }P11_ENCRYPTION_MECH;
 
    typedef struct p11_SignAlgo
@@ -162,8 +163,8 @@ extern "C" {
       CK_MECHANISM_TYPE ckMechType;
       union
       {
-         CK_DES_PARAM   des_param;
-         CK_AES_PARAM   aes_param;
+         P11_DES_PARAM   des_param;
+         P11_AES_PARAM   aes_param;
          CK_MAC_GENERAL_PARAMS  macGeneralParams;
       };
    }P11_SIGN_MECH;
@@ -358,7 +359,7 @@ extern "C" {
       CK_BBOOL             bCKA_Modifiable;
       CK_CHAR_PTR          pCKA_ID;
       CK_ULONG             uCKA_ID_Length;
-      P11_DERIVE_MECH* sDeriveMech;
+      P11_DERIVE_MECH*     sDeriveMech;
    }P11_DERIVETEMPLATE;
 
    // unwrap template
@@ -383,6 +384,7 @@ extern "C" {
       CK_CHAR_PTR          pCKA_ID;
       CK_ULONG             uCKA_ID_Length;
       CK_OBJECT_HANDLE     hWrappingKey;
+      CK_BBOOL             bPbe;
       P11_ENCRYPTION_MECH* wrapmech;
    }P11_UNWRAPTEMPLATE;
 
@@ -394,6 +396,7 @@ extern "C" {
       CK_OBJECT_HANDLE     hKeyToExport;
       CK_OBJECT_HANDLE     hWrappingKey;
       CK_CHAR_PTR          pKeyLabel;
+      CK_BBOOL             bPbe;
       P11_ENCRYPTION_MECH* wrap_key_mech;
    }P11_WRAPTEMPLATE;
 
@@ -508,7 +511,7 @@ extern "C" {
    _EXT  CK_OBJECT_HANDLE     P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyGenTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength);
    _EXT  CK_OBJECT_HANDLE     P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG sSymkeySize, CK_CHAR_PTR pLabel);
    _EXT  CK_BBOOL             P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hPrivateKey, CK_OBJECT_HANDLE_PTR hPublicKey, CK_BBOOL bDisplay);
-   _EXT  CK_BBOOL             P11_GenerateKeyPbkdf2(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_PKCS5_PBKD2_ENC_PARAMS2_PTR pbkdf2, CK_BBOOL bDisplay);
+   _EXT  CK_BBOOL             P11_GenerateKeyPbe(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, P11_PBE_ENC_PARAMS* pbkdf2, CK_BBOOL bDisplay);
    _EXT  CK_BBOOL             P11_CreateDO(P11_DOTEMPLATE* sDOTemplate);
    _EXT  CK_BBOOL             P11_WrapPrivateSecretKey(P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR   pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen);
    _EXT  CK_BBOOL             P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR_PTR pWrappedKey, CK_LONG pulWrappedKeyLen, CK_OBJECT_HANDLE* hKey);

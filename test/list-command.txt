@@ -104,6 +104,8 @@ import -password 00000000 -keyclass=public -keytype=dsa -inputfile=public_dsa2k.
 import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh2k.pem -format=PKCS8 -label=importeddhx9422kpem -modifiable=true -extractable=true
 import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh-pkcs.pem -format=PKCS8 -label=importeddhpkcspem -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=ml-dsa -inputfile=mddsa87publickey.pem -format=pkcs8 -label=importmldsa85pem
+// import encrypted pkcs8 with password
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k.pem -format=pkcs8 -label=importersa2kpem -modifiable=true -extractable=true -keypassword=000000000
 
 # export key
 // export rsa with aes key wrap
@@ -157,7 +159,7 @@ export -password 00000000 -handle=1406 -outputfile=mlkem1024publickey.pem -forma
 
 // export encrypted pkcs8 with password
 export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
-export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -prf=hmac-sha1 -iv=CD51A6C198D5721FE0811DAF8B26D265
+export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265
 
 # encrypt a file
 // aes

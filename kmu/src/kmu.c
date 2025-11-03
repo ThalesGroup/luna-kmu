@@ -444,6 +444,7 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
                                     (const CK_CHAR_PTR)ARG_KCV_COMP, ARG_TYPE_KEY_COMP, (const CK_CHAR_PTR)ARG_KCV_COMP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_KEYPASSWORD_COMP, ARG_TYPE_KEY_PASSWORD, (const CK_CHAR_PTR)ARG_KEYPASSWORD_COMP_HELP, \
                                     (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT, ARG_TYPE_CKA_ENCRYPT, (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_DECRYPT, ARG_TYPE_CKA_DECRYPT, (const CK_CHAR_PTR)ARG_ATTR_DECRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SIGN, ARG_TYPE_CKA_SIGN, (const CK_CHAR_PTR)ARG_ATTR_SIGN_HELP,\
