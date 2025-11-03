@@ -49,7 +49,8 @@ KMU is available as a console and might be scriptable from a command line. The c
 - Redistribuable package:
   - 2015 -2022 (refer to https://learn.microsoft.com/fr-fr/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022).
 - Thales Luna Universal Client:
-  - 10.9.x or later.
+  - 10.5.x or later.
+    - Note. Client 10.9.1 or later is recommanded to use PQC features. 
 - Environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
   - This environment variable is set when you install luna client.
   - KMU searches for a "cryptoki.dll" in the path pointed at by this environment variable.
@@ -63,7 +64,7 @@ KMU is available as a console and might be scriptable from a command line. The c
   - Development environment:
     - Visual Studio 2015 or later with a C/C++ build chain.
     - Thales Luna Universal Client:
-      - 10.9.x or later.
+      - 10.9.1 or later.
     - Environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
 - Using Visual Studio:
   - Open the "kmu.sln" solution file.
