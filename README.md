@@ -59,7 +59,7 @@ KMU is available as a console and might be scriptable from a command line. The c
 ## Build
 - Requirements:
   - Base OS:
-    - Windows-10 or later.
+    - Windows 10 or later.
     - Windows Server 2019 or later.
   - Development environment:
     - Visual Studio 2015 or later with a C/C++ build chain.
