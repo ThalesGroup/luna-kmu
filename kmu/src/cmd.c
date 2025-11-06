@@ -887,6 +887,8 @@ CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
          bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_UNWRAP, CKA_UNWRAP);
          bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCRYPT, CKA_ENCRYPT);
          bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECRYPT, CKA_DECRYPT);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCAPSULATE, CKA_ENCAPSULATE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECAPSULATE, CKA_DECAPSULATE);
          bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DERIVE, CKA_DERIVE);
          bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_EXTRACTABLE, CKA_EXTRACTABLE);
 

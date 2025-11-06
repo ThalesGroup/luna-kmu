@@ -2740,7 +2740,6 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
 
       // force some attributes to false
       sKeyGenTemplate->bCKA_Derive = CK_FALSE;
-
       break;
 
 
@@ -3164,13 +3163,13 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
    case CKK_ML_DSA:
    {
 
-      // Set modulus length in bit
+      // Set public key value
       PubTemplate[PubTemplateSize].type = CKA_VALUE;
       PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlDsaPublicKey.sPublicKey;
       PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sMlDsaPublicKey.uPublicKeyLength;
       PubTemplateSize++;
 
-      // Set public exponant
+      // Set parameter set
       PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
       PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlDsaPublicKey.uML_DSA_Parameter_Set;
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
@@ -3181,13 +3180,13 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
    case CKK_ML_KEM:
    {
 
-      // Set modulus length in bit
+      // Set public key value
       PubTemplate[PubTemplateSize].type = CKA_VALUE;
       PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlKemPublicKey.sPublicKey;
       PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sMlKemPublicKey.uPublicKeyLength;
       PubTemplateSize++;
 
-      // Set public exponant
+      // Set parameter set
       PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
       PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlKemPublicKey.uML_KEM_Parameter_Set;
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_KEM_PARAMETER_SET_TYPE);

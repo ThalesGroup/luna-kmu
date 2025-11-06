@@ -345,13 +345,13 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_DERIVE, ARG_TYPE_CKA_DERIVE, (const CK_CHAR_PTR)ARG_ATTR_DERIVE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_WRAP, ARG_TYPE_CKA_WRAP, (const CK_CHAR_PTR)ARG_ATTR_WRAP_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_UNWRAP, ARG_TYPE_CKA_UNWRAP, (const CK_CHAR_PTR)ARG_ATTR_UNWRAP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE, ARG_TYPE_CKA_EXTRACTABLE, (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE, ARG_TYPE_CKA_MODIFIABLE, (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_TOKEN, ARG_TYPE_CKA_TOKEN, (const CK_CHAR_PTR)ARG_ATTR_TOKEN_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_PRIVATE, ARG_TYPE_CKA_PRIVATE, (const CK_CHAR_PTR)ARG_ATTR_PRIVATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE, ARG_TYPE_CKA_SENSITIVE, (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE_HELP,\
-                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
-                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
                                     }
 
@@ -387,6 +387,8 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_DERIVE, ARG_TYPE_CKA_DERIVE, (const CK_CHAR_PTR)ARG_ATTR_DERIVE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_WRAP, ARG_TYPE_CKA_WRAP, (const CK_CHAR_PTR)ARG_ATTR_WRAP_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_UNWRAP, ARG_TYPE_CKA_UNWRAP, (const CK_CHAR_PTR)ARG_ATTR_UNWRAP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE, ARG_TYPE_CKA_EXTRACTABLE, (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE, ARG_TYPE_CKA_MODIFIABLE, (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_PRIVATE, ARG_TYPE_CKA_PRIVATE, (const CK_CHAR_PTR)ARG_ATTR_PRIVATE_HELP,\
@@ -459,13 +461,13 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_DERIVE, ARG_TYPE_CKA_DERIVE, (const CK_CHAR_PTR)ARG_ATTR_DERIVE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_WRAP, ARG_TYPE_CKA_WRAP, (const CK_CHAR_PTR)ARG_ATTR_WRAP_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_UNWRAP, ARG_TYPE_CKA_UNWRAP, (const CK_CHAR_PTR)ARG_ATTR_UNWRAP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE, ARG_TYPE_CKA_EXTRACTABLE, (const CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE, ARG_TYPE_CKA_MODIFIABLE, (const CK_CHAR_PTR)ARG_ATTR_MODIFIABLE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_TOKEN, ARG_TYPE_CKA_TOKEN, (const CK_CHAR_PTR)ARG_ATTR_TOKEN_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_PRIVATE, ARG_TYPE_CKA_PRIVATE, (const CK_CHAR_PTR)ARG_ATTR_PRIVATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE, ARG_TYPE_CKA_SENSITIVE, (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE_HELP,\
-                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
-                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
 }
 
@@ -702,6 +704,8 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_ATTR_DERIVE,
    (CK_CHAR_PTR)ARG_ATTR_WRAP,
    (CK_CHAR_PTR)ARG_ATTR_UNWRAP,
+   (CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE,
+   (CK_CHAR_PTR)ARG_ATTR_DECAPSULATE,
    (CK_CHAR_PTR)ARG_ATTR_EXTRACTABLE,
    (CK_CHAR_PTR)ARG_ATTR_MODIFIABLE,
    (CK_CHAR_PTR)ARG_ATTR_ID,

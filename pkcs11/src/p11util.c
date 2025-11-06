@@ -922,6 +922,8 @@ ATTRIBUTE_NAME attribute_table[] =
    {CKA_DERIVE,               "CKA_DERIVE" },
    {CKA_START_DATE,           "CKA_START_DATE" },
    {CKA_END_DATE,             "CKA_END_DATE" },
+   {CKA_ENCAPSULATE,          "CKA_ENCAPSULATE" },
+   {CKA_DECAPSULATE,          "CKA_DECAPSULATE" },
 };
 
 /*
