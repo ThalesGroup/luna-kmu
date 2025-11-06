@@ -46,10 +46,9 @@ extern "C" {
 #define ARG_TYPE_CKA_PRIVATE        19
 #define ARG_TYPE_CKA_SENSITIVE      20
 #define ARG_TYPE_CKA_ID             21
-#define ARG_TYPE_ECC_CURVE          22
-#define ARG_TYPE_HANDLE             23
-#define ARG_TYPE_HANDLE_WRAPKEY     24
-#define ARG_TYPE_HANDLE_UNWRAPKEY   25
+#define ARG_TYPE_CKA_ENCAPSULATE    22
+#define ARG_TYPE_CKA_DECAPSULATE    23
+
 #define ARG_TYPE_FILE_OUTPUT        26
 #define ARG_TYPE_FILE_INPUT         27
 #define ARG_TYPE_WRAP_ALGO          28
@@ -92,6 +91,11 @@ extern "C" {
 #define ARG_TYPE_PRF                65
 #define ARG_TYPE_LIMIT              66
 #define ARG_TYPE_PBE                67
+#define ARG_TYPE_ECC_CURVE          68
+#define ARG_TYPE_HANDLE             69
+#define ARG_TYPE_HANDLE_WRAPKEY     70
+#define ARG_TYPE_HANDLE_UNWRAPKEY   71
+
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -126,6 +130,8 @@ extern "C" {
 #define cmdarg_GetCKAUnwrap(p)               cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_UNWRAP, p, CK_TRUE)
 #define cmdarg_GetCKAModifiable(p)           cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_MODIFIABLE, p, CK_TRUE)
 #define cmdarg_GetCKAExtractable(p)          cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_EXTRACTABLE, p, CK_TRUE)
+#define cmdarg_GetCKAEncapsulate(p)          cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_ENCAPSULATE, p, CK_TRUE)
+#define cmdarg_GetCKADecapsulate(p)          cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_DECAPSULATE, p, CK_TRUE)
 #define cmdarg_GetOutputFilePath(buf, size)  cmdarg_SearchTypeString(ARG_TYPE_FILE_OUTPUT, buf, size)
 #define cmdarg_GetInputFilePath(buf, size)   cmdarg_SearchTypeString(ARG_TYPE_FILE_INPUT, buf, size)
 #define cmdarg_ArgGetIV()                    cmdarg_SearchTypeString(ARG_TYPE_IV, NULL, 0)

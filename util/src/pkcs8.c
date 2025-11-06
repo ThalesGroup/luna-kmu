@@ -92,7 +92,6 @@ const CK_CHAR OID_ML_KEM_1024[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x
 */
 CK_ULONG  pkcs8_DecodePublicKeyFromPem(CK_CHAR_PTR sPublicKey, CK_ULONG sPublicKeyLength)
 {
-
    CK_CHAR_PTR    sStringEndofFile = sPublicKey + sPublicKeyLength;
    CK_CHAR_PTR    sStringBeginOfLine;
    CK_CHAR_PTR    sStringEndPublicKey;

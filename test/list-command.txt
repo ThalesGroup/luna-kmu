@@ -6,10 +6,10 @@ list -slot=0 -password=00000000 -cu=true
 list -slot=0 -password=00000000 -cu=true -limit=10
 
 # computekcv
-kmu computekcv -slot 2 -password 00000000 -handle 1158 -method pci
-kmu computekcv -slot 2 -password 00000000 -handle 1158 -method pkcs11
-kmu computekcv -slot 2 -password 00000000 -handle 1158 -method gp
-
+computekcv -slot 2 -password 00000000 -handle 426 -method pci
+computekcv -slot 2 -password 00000000 -handle 426 -method pkcs11
+computekcv -slot 2 -password 00000000 -handle 426 -method gp
+computekcv -slot 2 -password 00000000 -handle 360 -method hmac-sha-256
 
 # Generate Key
 //des
@@ -59,6 +59,10 @@ generatekey -slot=3 -password 00000000 -keytype=dsa -labelpublic=kmu-dsa-2k-publ
 generatekey -slot=3 -password 00000000 -keytype=ml-dsa -keysize=1312 -labelpublic=kmu-mldsa-44-public -labelprivate=kmu-mldsa-44-private
 generatekey -slot=3 -password 00000000 -keytype=ml-dsa -keysize=1952 -labelpublic=kmu-mldsa-65-public -labelprivate=kmu-mldsa-65-private
 generatekey -slot=3 -password 00000000 -keytype=ml-dsa -keysize=2592 -labelpublic=kmu-mldsa-87-public -labelprivate=kmu-mldsa-87-private
+// ML KEM
+generatekey -slot=3 -password 00000000 -keytype=ml-kem -keysize=800 -labelpublic=ml-kem-512-public -labelprivate=ml-kem-512-private
+generatekey -slot=3 -password 00000000 -keytype=ml-kem -keysize=1184 -labelpublic=ml-kem-768-public -labelprivate=ml-kem-768-private
+generatekey -slot=3 -password 00000000 -keytype=ml-kem -keysize=1568 -labelpublic=ml-kem-1024-public -labelprivate=ml-kem-1024-private
 
 # Create DO
 createdo -password 00000000 -label=kmu-do -token=true -modifiable=true -private=true -application=01020303 -value=99897898
@@ -75,9 +79,13 @@ setattribute -password 00000000 -handle=858 -private=false -sign=true -verify=tr
 # import key
 //import rsa with aes key wrap
 import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa.bin -format=bin -key=426 -algo=aes_cbc_pad -label=importrsakey -modifiable=false -extractable=false
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_kwp.bin -format=bin -key=426 -algo=aes_kwp -label=importrsakey -modifiable=false -extractable=false
 import -slot=3 -password 00000000 -keyclass=private -keytype=rsa -inputfile=text.txt -format=text -key=426 -algo=aes_cbc_pad -label=importkey -modifiable=true -extractable=true
 //import aes with rsa key wrap
 import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=wrapped_aes.txt -format=text -key=603 -algo=rsa_oaep_sha256 -label=importaeskey -modifiable=true -extractable=true
+//import aes with aes kwp and kw
+import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kwp.bin -format=bin -key=426 -algo=aes_kwp -label=importaeskey -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kw.bin -format=bin -key=426 -keysize=32 -algo=aes_kw -label=importaeskey -modifiable=true -extractable=true
 import ecdsa with aes key wrap
 import -slot=1 -password 00000000 -keyclass=private -keytype=ecdsa -inputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad -label=importecdsaprivate -modifiable=true -extractable=true
 //import dsa private
@@ -86,8 +94,10 @@ import -password 00000000 -keyclass=private -keytype=dsa -inputfile=private_dsa2
 import -password 00000000 -keyclass=private -keytype=dh -inputfile=private_dh_2k_pkcs.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhdpkcs2kprivate -modifiable=true -extractable=true
 import -password 00000000 -keyclass=private -keytype=dh-x9.42 -inputfile=private_dh_2k_x942.txt -format=text -key=426 -algo=aes_cbc_pad -label=importdhx9422kprivate -modifiable=true -extractable=true
 //import mldsa private
-import -password 00000000 -keyclass=private -keytype=ml-dsa -inputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmldsa85private -modifiable=true -extractable=true**
+import -password 00000000 -keyclass=private -keytype=ml-dsa -inputfile=mldsa87privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmldsa85private -modifiable=true -extractable=true
 //import mlkem private
+import -password 00000000 -keyclass=private -keytype=ml-kem -inputfile=mlkem512privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmlkem512private -modifiable=true -extractable=true
+import -password 00000000 -keyclass=private -keytype=ml-kem -inputfile=mlkem768privatekey.txt -format=text -key=426 -algo=aes_cbc_pad -label=importmlkem768private -modifiable=true -extractable=true
 import -password 00000000 -keyclass=private -keytype=ml-kem -inputfile=mlkem1024privatekey.txt -format=text -key=426 -algo=aes_kwp -label=importmlkem1024private -modifiable=true -extractable=true
 //import public key
 import -slot=1 -password 00000000 -keyclass=public -keytype=rsa -inputfile=public_rsa8k.txt -format=text -label=importrsa8k -modifiable=true -extractable=true
@@ -104,14 +114,20 @@ import -password 00000000 -keyclass=public -keytype=dsa -inputfile=public_dsa2k.
 import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh2k.pem -format=PKCS8 -label=importeddhx9422kpem -modifiable=true -extractable=true
 import -password 00000000 -keyclass=public -keytype=dh -inputfile=public_dh-pkcs.pem -format=PKCS8 -label=importeddhpkcspem -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=public -keytype=ml-dsa -inputfile=mddsa87publickey.pem -format=pkcs8 -label=importmldsa85pem
+import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=mlkem512publickey.pem -format=pkcs8 -label=importmlkem512pem
+import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=mlkem768publickey.pem -format=pkcs8 -label=importmlkem768pem
+import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=mlkem1024publickey.pem -format=pkcs8 -label=importmlkem1024pem
 // import encrypted pkcs8 with password
 import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k.pem -format=pkcs8 -label=importersa2kpem -modifiable=true -extractable=true -keypassword=000000000
 
 # export key
 // export rsa with aes key wrap
 export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa.bin -format=bin -key=426 -algo=aes_cbc_pad
+export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa_kwp.bin -format=bin -key=426 -algo=aes_kwp
 // export aes with aes key wrap
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=426 -algo=aes_cbc
+export -slot=1 -password 00000000 -handle=535 -outputfile=aes_kwp.bin -format=bin -key=426 -algo=aes_kwp
+export -slot=1 -password 00000000 -handle=535 -outputfile=aes_kw.bin -format=bin -key=426 -algo=aes_kw
 // export aes with rsa key wrap
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha256
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha384
@@ -152,14 +168,20 @@ export -slot=3 -password 00000000 -handle=776 -outputfile=public_montgomeryx2551
 export -password 00000000 -handle=842 -outputfile=public_dsa2k.pem -format=PKCS8
 export -password 00000000 -handle=856 -outputfile=public_dh2k.pem -format=PKCS8
 export -password 00000000 -handle=852 -outputfile=public_dh-pkcs.pem -format=PKCS8
-// export pkcs8 ML DSA key
+// export pkcs8 ML DSA public key
 export -password 00000000 -handle=1098 -outputfile=mddsa87publickey.pem -format=PKCS8
-// export pkcs8 ML KEM key
-export -password 00000000 -handle=1406 -outputfile=mlkem1024publickey.pem -format=PKCS8
+// export pkcs8 ML KEM public key
+export -password 00000000 -handle=1379 -outputfile=mlkem512publickey.pem -format=PKCS8
+export -password 00000000 -handle=1383 -outputfile=mlkem768publickey.pem -format=PKCS8
+export -password 00000000 -handle=1424 -outputfile=mlkem1024publickey.pem -format=PKCS8
+// export pkcs8 ML KEM private key
+export -slot=1 -password 00000000 -handle=1432 -outputfile=mlkem512privatekey.txt -format=txt -key=426 -algo=aes_kwp
+export -slot=1 -password 00000000 -handle=1347 -outputfile=mlkem768privatekey.txt -format=txt -key=426 -algo=aes_cbc_pad
+export -slot=1 -password 00000000 -handle=1398 -outputfile=mlkem1024privatekey.txt -format=txt -key=426 -algo=aes_kwp
 
 // export encrypted pkcs8 with password
-export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
-export -password 00000000 -handle=377 -outputfile=private_rsa.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
+export -password 00000000 -handle=377 -outputfile=private_rsa1.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265
 
 # encrypt a file
 // aes

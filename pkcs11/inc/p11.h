@@ -379,6 +379,8 @@ extern "C" {
       CK_BBOOL             bCKA_Derive;
       CK_BBOOL             bCKA_Wrap;
       CK_BBOOL             bCKA_Unwrap;
+      CK_BBOOL             bCKA_Encapsulate;
+      CK_BBOOL             bCKA_Decapsulate;
       CK_BBOOL             bCKA_Extractable;
       CK_BBOOL             bCKA_Modifiable;
       CK_CHAR_PTR          pCKA_ID;
@@ -453,6 +455,8 @@ extern "C" {
       CK_BBOOL             bCKA_Derive;
       CK_BBOOL             bCKA_Wrap;
       CK_BBOOL             bCKA_Unwrap;
+      CK_BBOOL             bCKA_Encapsulate;
+      CK_BBOOL             bCKA_Decapsulate;
       CK_BBOOL             bCKA_Extractable;
       CK_BBOOL             bCKA_Modifiable;
       CK_CHAR_PTR          pCKA_ID;

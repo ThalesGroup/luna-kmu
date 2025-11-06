@@ -247,6 +247,12 @@ const STRING_ARRAY ARG_ATTR_EXTRACTABLE_HELP = "pkcs11 attribute CKA_EXTRACTABLE
 const STRING_ARRAY ARG_ATTR_MODIFIABLE = "-modifiable";
 const STRING_ARRAY ARG_ATTR_MODIFIABLE_HELP = "pkcs11 attribute CKA_MODIFIABLE \n\t\t\t\t\t-Supported value: true, false, 0, 1 \n\t\t\t\t\t-Optional Default value is true";
 
+const STRING_ARRAY ARG_ATTR_ENCAPSULATE = "-encapsulate";
+const STRING_ARRAY ARG_ATTR_ENCAPSULATE_HELP = "pkcs11 attribute CKA_ENCAPSULATE \n\t\t\t\t\t-Supported value: true, false, 0, 1 \n\t\t\t\t\t-Optional Default value is true";
+
+const STRING_ARRAY ARG_ATTR_DECAPSULATE = "-decapsulate";
+const STRING_ARRAY ARG_ATTR_DECAPSULATE_HELP = "pkcs11 attribute CKA_DECAPSULATE \n\t\t\t\t\t-Supported value: true, false, 0, 1 \n\t\t\t\t\t-Optional Default value is true";
+
 const STRING_ARRAY ARG_ATTR_ID = "-id";
 const STRING_ARRAY ARG_ATTR_ID_HELP = "pkcs11 attribute CKA_ID as hexadecimal string\n\t\t\t\t\t-Optional Default value empty";
 
@@ -344,9 +350,10 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_TOKEN, ARG_TYPE_CKA_TOKEN, (const CK_CHAR_PTR)ARG_ATTR_TOKEN_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_PRIVATE, ARG_TYPE_CKA_PRIVATE, (const CK_CHAR_PTR)ARG_ATTR_PRIVATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE, ARG_TYPE_CKA_SENSITIVE, (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
                                     }
-
 
 #define CMD_CREATE_DO_VALUE     (const CK_CHAR_PTR)CMD_CREATE_DO, (const P_fCMD)&cmd_kmu_createDO, (const CK_CHAR_PTR)CMD_CREATE_DO_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
@@ -457,6 +464,8 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_TOKEN, ARG_TYPE_CKA_TOKEN, (const CK_CHAR_PTR)ARG_ATTR_TOKEN_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_PRIVATE, ARG_TYPE_CKA_PRIVATE, (const CK_CHAR_PTR)ARG_ATTR_PRIVATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE, ARG_TYPE_CKA_SENSITIVE, (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE, ARG_TYPE_CKA_ENCAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_ENCAPSULATE_HELP,\
+                                    (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE, ARG_TYPE_CKA_DECAPSULATE, (const CK_CHAR_PTR)ARG_ATTR_DECAPSULATE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
 }
 

@@ -304,6 +304,8 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
       cmdarg_GetCKADerive(&sKeyGenTemplate.bCKA_Derive);
       cmdarg_GetCKAExtractable(&sKeyGenTemplate.bCKA_Extractable);
       cmdarg_GetCKAModifiable(&sKeyGenTemplate.bCKA_Modifiable);
+      cmdarg_GetCKAEncapsulate(&sKeyGenTemplate.bCKA_Encapsulate);
+      cmdarg_GetCKADecapsulate(&sKeyGenTemplate.bCKA_Decapsulate);
 
       // Get CKA id
       sKeyGenTemplate.pCKA_ID = cmd_cka_ID;
@@ -968,6 +970,8 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       cmdarg_GetCKADerive(&sUnwrapTemplate.bCKA_Derive);
       cmdarg_GetCKAExtractable(&sUnwrapTemplate.bCKA_Extractable);
       cmdarg_GetCKAModifiable(&sUnwrapTemplate.bCKA_Modifiable);
+      cmdarg_GetCKAEncapsulate(&sUnwrapTemplate.bCKA_Encapsulate);
+      cmdarg_GetCKADecapsulate(&sUnwrapTemplate.bCKA_Decapsulate);
       
       // Get CKA id
       sUnwrapTemplate.pCKA_ID = cmd_cka_ID;

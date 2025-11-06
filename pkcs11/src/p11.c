@@ -1699,28 +1699,37 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       str_DisplayByteArraytoString("PublicKey=", sML_DSA_PublicKey.sPublicKey, sML_DSA_PublicKey.uPublicKeyLength);
    }
 
-   // if ml dsa key
+   // if ml KEM key
    case CKK_ML_KEM:
    {
       P11_ML_KEM_KEY_SIZE* sML_KEM_Key;
       ML_KEM_PUBLIC_KEY sML_KEM_PublicKey = { 0 };
+      CK_BBOOL             bCKA_Decapsulate = CK_FALSE;
       CK_ATTRIBUTE pubMLKEMTemplate[] = {
+               {CKA_DECAPSULATE,       &bCKA_Decapsulate,                                 sizeof(CK_BBOOL)},
                {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
                {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
       };
-
+      
       /* get and display ML DSA public key attributes */
       retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLKEMTemplate, DIM(pubMLKEMTemplate));
 
-      sML_KEM_Key = P11Util_GetML_KEM_ParameterFromParameterSet(*(CK_ML_KEM_PARAMETER_SET_TYPE*)(pubMLKEMTemplate[0].pValue));
+      // display CKA_ENCAPSULATE
+      printf("Decapsulate=%s\n", P11Util_DisplayBooleanName(bCKA_Decapsulate));
 
-      printf("KeySize=%i\n", sML_KEM_Key->sPrivateKeySize);
-      printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
+      sML_KEM_Key = P11Util_GetML_KEM_ParameterFromParameterSet(*(CK_ML_KEM_PARAMETER_SET_TYPE*)(pubMLKEMTemplate[1].pValue));
 
-      pksc8_Check_PublicKeyInfoMLKEM(&sML_KEM_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[1].usValueLen);
+      if (sML_KEM_Key != NULL)
+      {
+         printf("KeySize=%i\n", sML_KEM_Key->sPrivateKeySize);
+         printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
+      }
+
+      pksc8_Check_PublicKeyInfoMLKEM(&sML_KEM_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[2].usValueLen);
       str_DisplayByteArraytoString("PublicKey=", sML_KEM_PublicKey.sPublicKey, sML_KEM_PublicKey.uPublicKeyLength);
-   }
+      
 
+   }
 
    default:
       break;
@@ -1857,7 +1866,9 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
    case CKK_ML_KEM:
    {
       P11_ML_KEM_KEY_SIZE* sML_KEM_Key;
+      CK_BBOOL             bCKA_Encapsulate = CK_FALSE;
       CK_ATTRIBUTE pubMLKEMTemplate[] = {
+               {CKA_ENCAPSULATE,       &bCKA_Encapsulate,                                 sizeof(CK_BBOOL)},
                {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PARAM],      sizeof(CK_ML_KEM_PARAMETER_SET_TYPE)},
                {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_VALUE],      MAX_COMPONENT_PQC_SIZE},
                //{CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
@@ -1867,16 +1878,19 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       /* get and display ML DSA public key attributes */
       retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLKEMTemplate, DIM(pubMLKEMTemplate));
 
+      // display CKA_ENCAPSULATE
+      printf("Encapsulate=%s\n", P11Util_DisplayBooleanName(bCKA_Encapsulate));
+
       // get parameter set
-      sML_KEM_Key = P11Util_GetML_KEM_ParameterFromParameterSet(*(CK_ML_KEM_PARAMETER_SET_TYPE*)(pubMLKEMTemplate[0].pValue));
+      sML_KEM_Key = P11Util_GetML_KEM_ParameterFromParameterSet(*(CK_ML_KEM_PARAMETER_SET_TYPE*)(pubMLKEMTemplate[1].pValue));
 
       printf("KeySize=%i\n", sML_KEM_Key->sPublicKeySize);
       printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
       /*
-      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[2].usValueLen);
+      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[3].usValueLen);
       printf("\n");
       */
-      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLKEMTemplate[1].usValueLen);
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLKEMTemplate[2].usValueLen);
 
    }
 
@@ -2696,17 +2710,37 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
       PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_DSA->uML_DSA_Parameter_Set;
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
       PubTemplateSize++;
+
+      // force some attributes to false
+      sKeyGenTemplate->bCKA_Derive = CK_FALSE;
+
       break;
     
    case CKK_ML_KEM:
 
       sKeygenMech.mechanism = CKM_ML_KEM_KEY_PAIR_GEN;
 
-      // Set ml dsa params
+      // Set ml kem params
       PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
       PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_KEM->uML_KEM_Parameter_Set;
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_KEM_PARAMETER_SET_TYPE);
       PubTemplateSize++;
+
+      // set encapsulate
+      PubTemplate[PubTemplateSize].type = CKA_ENCAPSULATE;
+      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->bCKA_Encapsulate;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_BBOOL);
+      PubTemplateSize++;
+
+      // set decapsulate
+      PriTemplate[PriTemplateSize].type = CKA_DECAPSULATE;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->bCKA_Decapsulate;
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_BBOOL);
+      PriTemplateSize++;
+
+      // force some attributes to false
+      sKeyGenTemplate->bCKA_Derive = CK_FALSE;
+
       break;
 
 
@@ -2949,6 +2983,16 @@ CK_BBOOL P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR
          privtemplatesize++;
       }
 
+      // if ml kem key add the attribute CKA_DECAPSULATE
+      if (sUnWrapTemplate->skeyType == CKK_ML_KEM)
+      {
+         // set decapsulate
+         PriTemplate[privtemplatesize].type = CKA_DECAPSULATE;
+         PriTemplate[privtemplatesize].pValue = &sUnWrapTemplate->bCKA_Decapsulate;
+         PriTemplate[privtemplatesize].usValueLen = sizeof(CK_BBOOL);
+         privtemplatesize++;
+      }
+
       // use the private key attribute template
       KeyTemplate = PriTemplate;
       templatesize = privtemplatesize;
@@ -2959,6 +3003,7 @@ CK_BBOOL P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR
       KeyTemplate = SymKeyTemplate;
       templatesize = symtemplatesize;
    }
+
 
    if (P11_BuildCKEncMecanism(sUnWrapTemplate->wrapmech, &swrapMech) == CK_FALSE)
    {
@@ -2998,6 +3043,7 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
    CK_OBJECT_HANDLE  hPublicKey = 0;
    CK_LONG           PubTemplateSize = 8;     // Size until CKA_LABEL.
    CK_BBOOL          bWrapEncrypt = CK_FALSE;
+   CK_BBOOL          bEncapsulate = CK_TRUE;
    P11_EDDSA_OID_CONVERT* eddsa_convert;
 
    // init with common attribute for all public key keys
@@ -3115,7 +3161,6 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplateSize++;
       break;
    }
-
    case CKK_ML_DSA:
    {
 
@@ -3128,11 +3173,36 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       // Set public exponant
       PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
       PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlDsaPublicKey.uML_DSA_Parameter_Set;
-      PubTemplate[PubTemplateSize].usValueLen = sizeof(CKA_PARAMETER_SET);
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
       PubTemplateSize++;
       break;
 
    }
+   case CKK_ML_KEM:
+   {
+
+      // Set modulus length in bit
+      PubTemplate[PubTemplateSize].type = CKA_VALUE;
+      PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlKemPublicKey.sPublicKey;
+      PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sMlKemPublicKey.uPublicKeyLength;
+      PubTemplateSize++;
+
+      // Set public exponant
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlKemPublicKey.uML_KEM_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_KEM_PARAMETER_SET_TYPE);
+      PubTemplateSize++;
+
+      // set encapsulate
+      PubTemplate[PubTemplateSize].type = CKA_ENCAPSULATE;
+      PubTemplate[PubTemplateSize].pValue = &sImportPublicKeyTemplate->bCKA_Encapsulate;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_BBOOL);
+      PubTemplateSize++;
+
+      break;
+
+   }
+
    default:
       printf("C_CreateObject : invalid keytype : %i", sImportPublicKeyTemplate->skeyType);
       return CK_FALSE;
