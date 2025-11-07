@@ -1679,7 +1679,7 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       // if ml dsa key
    case CKK_ML_DSA:
    {
-      P11_ML_DSA_KEY_SIZE* sML_DSA_Key;
+      P11_ML_DSA_KEY* sML_DSA_Key;
       ML_DSA_PUBLIC_KEY sML_DSA_PublicKey = {0};
       CK_ATTRIBUTE pubMLDSATemplate[] = {
                {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
@@ -1702,7 +1702,7 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
    // if ml KEM key
    case CKK_ML_KEM:
    {
-      P11_ML_KEM_KEY_SIZE* sML_KEM_Key;
+      P11_ML_KEM_KEY* sML_KEM_Key;
       ML_KEM_PUBLIC_KEY sML_KEM_PublicKey = { 0 };
       CK_BBOOL             bCKA_Decapsulate = CK_FALSE;
       CK_ATTRIBUTE pubMLKEMTemplate[] = {
@@ -1839,7 +1839,7 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
    // if ml dsa key
    case CKK_ML_DSA:
    {
-      P11_ML_DSA_KEY_SIZE * sML_DSA_Key;
+      P11_ML_DSA_KEY * sML_DSA_Key;
       CK_ATTRIBUTE pubMLDSATemplate[] = {
                {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
                {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE],      MAX_COMPONENT_PQC_SIZE},
@@ -1865,7 +1865,7 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
    // if ml KEM key
    case CKK_ML_KEM:
    {
-      P11_ML_KEM_KEY_SIZE* sML_KEM_Key;
+      P11_ML_KEM_KEY* sML_KEM_Key;
       CK_BBOOL             bCKA_Encapsulate = CK_FALSE;
       CK_ATTRIBUTE pubMLKEMTemplate[] = {
                {CKA_ENCAPSULATE,       &bCKA_Encapsulate,                                 sizeof(CK_BBOOL)},

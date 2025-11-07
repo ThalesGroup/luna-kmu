@@ -48,10 +48,10 @@ extern "C" {
    _EXT  CK_CHAR_PTR                   P11Util_DisplayAttributeName(CK_ATTRIBUTE_TYPE ckAttribute);
    _EXT  BYTE                          P11Util_GetKCVMethod(CK_CHAR_PTR sKCV);
    _EXT  CK_ATTRIBUTE_TYPE             P11Util_GetAttributeType(CK_CHAR_PTR sAttribute);
-   _EXT  P11_ML_DSA_KEY_SIZE *         P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize);
-   _EXT  P11_ML_DSA_KEY_SIZE*          P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet);
-   _EXT  P11_ML_KEM_KEY_SIZE*          P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize);
-   _EXT  P11_ML_KEM_KEY_SIZE*          P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet);
+   _EXT  P11_ML_DSA_KEY *              P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize);
+   _EXT  P11_ML_DSA_KEY*               P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet);
+   _EXT  P11_ML_KEM_KEY*               P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize);
+   _EXT  P11_ML_KEM_KEY*               P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet);
 
    _EXT  void                          P11Util_DisplaySupportedKeyType(CK_ULONG uFlag);
    _EXT  void                          P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID);

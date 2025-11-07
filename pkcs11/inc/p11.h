@@ -306,15 +306,15 @@ extern "C" {
       CK_ULONG                               sPrivateKeySize;
       CK_ML_DSA_PARAMETER_SET_TYPE           uML_DSA_Parameter_Set;
       CK_CHAR_PTR                            sName;
-   }P11_ML_DSA_KEY_SIZE;
+   }P11_ML_DSA_KEY;
 
-   typedef struct p11_ml_kem_key_size
+   typedef struct p11_ml_kem_key
    {
       CK_ULONG                               sPublicKeySize;
       CK_ULONG                               sPrivateKeySize;
       CK_ML_DSA_PARAMETER_SET_TYPE           uML_KEM_Parameter_Set;
       CK_CHAR_PTR                            sName;
-   }P11_ML_KEM_KEY_SIZE;
+   }P11_ML_KEM_KEY;
 
 
    // key atributes template
@@ -442,8 +442,8 @@ extern "C" {
          P11_ECC_OID* pECCurveOID;
          P11_EXP_DOMAIN* pDHDomain;
          P11_EXP_DOMAIN* pDSADomain;
-         P11_ML_DSA_KEY_SIZE* pML_DSA;
-         P11_ML_KEM_KEY_SIZE* pML_KEM;
+         P11_ML_DSA_KEY* pML_DSA;
+         P11_ML_KEM_KEY* pML_KEM;
       };
       CK_BBOOL             bCKA_Token;
       CK_BBOOL             bCKA_Private;

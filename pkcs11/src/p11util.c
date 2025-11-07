@@ -659,7 +659,7 @@ const CK_CHAR ML_DSA_87[] = "ML-DSA-87";
 
 /***   ML DSA ****/
 #define SIZE_P11_ML_DSA_KEYSIZE_TABLE     DIM(ml_dsa_publickeysize)
-const P11_ML_DSA_KEY_SIZE ml_dsa_publickeysize[] = {
+const P11_ML_DSA_KEY ml_dsa_publickeysize[] = {
    {ML_DSA_44_PUBLIC_KEY_SIZE,   ML_DSA_44_PRIVATE_KEY_SIZE,          CKP_ML_DSA_44,             (CK_CHAR_PTR)&ML_DSA_44},
    {ML_DSA_65_PUBLIC_KEY_SIZE,   ML_DSA_65_PRIVATE_KEY_SIZE,          CKP_ML_DSA_65,             (CK_CHAR_PTR)&ML_DSA_65},
    {ML_DSA_87_PUBLIC_KEY_SIZE,   ML_DSA_87_PRIVATE_KEY_SIZE,          CKP_ML_DSA_87,             (CK_CHAR_PTR)&ML_DSA_87},
@@ -673,7 +673,7 @@ const CK_CHAR ML_KEM_1024[] = "ML-KEM-1024";
 
 /***   ML KEM ****/
 #define SIZE_P11_ML_KEM_KEYSIZE_TABLE     DIM(ml_kem_publickeysize)
-const P11_ML_KEM_KEY_SIZE ml_kem_publickeysize[] = {
+const P11_ML_KEM_KEY ml_kem_publickeysize[] = {
    {ML_KEM_512_PUBLIC_KEY_SIZE,  ML_KEM_512_PRIVATE_KEY_SIZE,          CKP_ML_KEM_512,             (CK_CHAR_PTR)&ML_KEM_512},
    {ML_KEM_768_PUBLIC_KEY_SIZE,  ML_KEM_768_PRIVATE_KEY_SIZE,          CKP_ML_KEM_768,             (CK_CHAR_PTR)&ML_KEM_768},
    {ML_KEM_1024_PUBLIC_KEY_SIZE, ML_KEM_1024_PRIVATE_KEY_SIZE,         CKP_ML_KEM_1024,            (CK_CHAR_PTR)&ML_KEM_1024},
@@ -1695,9 +1695,9 @@ void P11Util_DisplaySupportedAttribute()
 }
 
 /*
-    FUNCTION:        P11_ML_DSA_KEY_SIZE P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+    FUNCTION:        P11_ML_DSA_KEY P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
 */
-P11_ML_DSA_KEY_SIZE * P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+P11_ML_DSA_KEY * P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
 {
    CK_BYTE u8Loop;
    // loop on all structure
@@ -1707,7 +1707,7 @@ P11_ML_DSA_KEY_SIZE * P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKey
       if (ml_dsa_publickeysize[u8Loop].sPublicKeySize == sPublicKeySize)
       {
 
-         return (P11_ML_DSA_KEY_SIZE*) &ml_dsa_publickeysize[u8Loop];
+         return (P11_ML_DSA_KEY*) &ml_dsa_publickeysize[u8Loop];
 
       }
    };
@@ -1716,9 +1716,9 @@ P11_ML_DSA_KEY_SIZE * P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKey
 }
 
 /*
-    FUNCTION:        P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
+    FUNCTION:        P11_ML_DSA_KEY* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
 */
-P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
+P11_ML_DSA_KEY* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
 {
    CK_BYTE u8Loop;
    // loop on all structure
@@ -1728,7 +1728,7 @@ P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAM
       if (ml_dsa_publickeysize[u8Loop].uML_DSA_Parameter_Set == sParameterSet)
       {
 
-         return (P11_ML_DSA_KEY_SIZE*)&ml_dsa_publickeysize[u8Loop];
+         return (P11_ML_DSA_KEY*)&ml_dsa_publickeysize[u8Loop];
 
       }
    };
@@ -1737,9 +1737,9 @@ P11_ML_DSA_KEY_SIZE* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAM
 }
 
 /*
-    FUNCTION:        P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+    FUNCTION:        P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize)
 */
-P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize)
 {
    CK_BYTE u8Loop;
    // loop on all structure
@@ -1749,7 +1749,7 @@ P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeyS
       if (ml_kem_publickeysize[u8Loop].sPublicKeySize == sPublicKeySize)
       {
 
-         return (P11_ML_KEM_KEY_SIZE*)&ml_kem_publickeysize[u8Loop];
+         return (P11_ML_KEM_KEY*)&ml_kem_publickeysize[u8Loop];
 
       }
    };
@@ -1758,9 +1758,9 @@ P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeyS
 }
 
 /*
-    FUNCTION:        P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet)
+    FUNCTION:        P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet)
 */
-P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet)
+P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet)
 {
    CK_BYTE u8Loop;
    // loop on all structure
@@ -1770,7 +1770,7 @@ P11_ML_KEM_KEY_SIZE* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAM
       if (ml_kem_publickeysize[u8Loop].uML_KEM_Parameter_Set == sParameterSet)
       {
 
-         return (P11_ML_KEM_KEY_SIZE*)&ml_kem_publickeysize[u8Loop];
+         return (P11_ML_KEM_KEY*)&ml_kem_publickeysize[u8Loop];
 
       }
    };
