@@ -17,13 +17,15 @@ KMU allows to:
 - Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, ML-DSA, ML-KEM, SM2, SM4, HMAC or generic ones).
 - Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
 - Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
-- Export private keys protected with password based encryption (PBKDF2) in a file encoded in PEM-PKCS#8. 
-- Export public keys in a binary file or a text file encoded using ASN1 DER and PEM-PKCS#8 file.
+- Export private keys protected with password based encryption (PBKDF2) in a PEM-PKCS#8 file. 
+- Export public keys in a PEM-PKCS#8 file.
+- Export public keys in a binary file or a text file encoded in ASN1 DER.
 - Import wrapped private/secret keys from a file (currently limited to RSA OAEP, AES variant wrap algorithms).
 - Import wrapped AES keys from a file encoded in TR31 format(partial support with AES key only as ZMK).
-- Import private keys protected with password based encryption (PBKDF2) from a file encoded in PEM-PKCS#8.
+- Import private keys protected with password based encryption (PBKDF2) from a PEM-PKCS#8 file.
+- Import public keys from a PEM-PKCS#8 file.
+- Import public keys from a binary file and a text file encoded in ASN1 DER.
 - Import DES or AES keys as multiple clear key compoments and KCV (XOR method)
-- Import public keys from a binary file or a text text file encoded using ASN1 DER, PKCS#8.
 - Encrypt/decrypt from/to a file (currently limited to RSA OAEP and AES encryption algorithms).
 - Derive key (currently limited to SHAxxx derivation mechanisms and proprietary Thales Luna key derivation functions such as CKM_NIST_PRF_KDF).
 - Generate a digest for symetric keys.
