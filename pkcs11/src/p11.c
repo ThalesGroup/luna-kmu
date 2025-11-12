@@ -2871,6 +2871,7 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
       break;
    case CKK_HSS:
 
+      bSignVerify = CK_TRUE;
       sKeygenMech.mechanism = CKM_HSS_KEY_PAIR_GEN;
 
       // Set hss level
