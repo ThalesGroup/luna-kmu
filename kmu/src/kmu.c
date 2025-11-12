@@ -30,6 +30,7 @@
 #include "console.h"
 #include "file.h"
 #include "str.h"
+#include "resource.h"
 
 
 /** commands **/
@@ -787,7 +788,7 @@ int main(int argc, // Number of strings in array argv
    char* argv[],      // Array of command-line argument strings
    char** envp)
 {
-   printf("Key Management Utility (64-bit). Copyright ©(c) 2025 Thales Group. All rights reserved.\n");
+   printf("Key Management Utility (64-bit) version %s. Copyright ©(c) 2025 Thales Group. All rights reserved.\n", PRODUCT_VERSION);
    printf("This tool is a cryptography key utility compatible with PKCS#11 device such as luna hsm and is only for test purposes and shall not be distributed.\n\n");
 
    // Init console
