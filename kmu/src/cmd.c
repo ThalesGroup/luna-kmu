@@ -478,6 +478,57 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
             }
             break;
 
+         case CKK_HSS:
+         case CKK_LMS:
+
+            if (sKeyGenTemplate.skeyType == CKK_HSS)
+            {
+               // get HSS level
+               sKeyGenTemplate.pHSS.uHSS_Levels = cmdarg_GetHSSLevel();
+
+               // if absent set by default
+               if (sKeyGenTemplate.pHSS.uHSS_Levels == CK_NULL_ELEMENT)
+               {
+                  printf("Invalid HSS level value : -hss-level\n");
+                  return CK_FALSE;
+               }
+
+               // check level
+               if (sKeyGenTemplate.pHSS.uHSS_Levels > MAX_HSS_LEVEL)
+               {
+                  printf("Invalid HSS level value : -hss-level\n");
+                  return CK_FALSE;
+               }
+               // check level
+               if (sKeyGenTemplate.pHSS.uHSS_Levels <= 0)
+               {
+                  printf("Invalid HSS level value : -hss-level\n");
+                  return CK_FALSE;
+               }
+            }
+            else
+            {
+               // LMS default level to 1
+               sKeyGenTemplate.pHSS.uHSS_Levels = DEFAULT_LMS_LEVEL;
+               sKeyGenTemplate.skeyType = CKK_HSS;
+            }
+
+
+            // get LMS type array
+            if (cmdarg_LMSType(&sKeyGenTemplate.pHSS.uLmsType[0], sKeyGenTemplate.pHSS.uHSS_Levels) == CK_FALSE)
+            {
+               printf("Invalid LMS Type value  : -lms-type\n");
+               return CK_FALSE;
+            }
+
+            // get LMS-OTS type array
+            if (cmdarg_LMSOTSType(&sKeyGenTemplate.pHSS.uLmotsType[0], sKeyGenTemplate.pHSS.uHSS_Levels) == CK_FALSE)
+            {
+               printf("Invalid LMS-OTS Type value  : -lmots-type\n");
+               return CK_FALSE;
+            }
+            break;
+
          default:
             return CK_FALSE;
          }
@@ -2462,6 +2513,11 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
          bResult = pksc8_Check_PublicKeyInfoMLKEM(&uPublicKey.sMlKemPublicKey, sPublicKey, sPblicKeyLength);
          break;
       
+      case CKK_HSS:
+         // check HSSpublicKeyInfo
+         bResult = pksc8_Check_PublicKeyInfoLMS(&uPublicKey.sLmsPublicKey, sPublicKey, sPblicKeyLength);
+         break;
+
       default:
          break;
       }
@@ -2566,6 +2622,17 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
       }
 
       printf("Error: Cannot read ML-KEM: public key");
+      return CK_FALSE;
+
+   case CKK_HSS:
+      if (P11_GetLMSPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sLmsPublicKey) == CK_TRUE)
+      {
+         printf("Warning: The ASN1 format is preliminary and subject to change in standard\n");
+         pksc8_Build_PublicKeyInfoLMS(&sPublicKey.sLmsPublicKey);
+         break;
+      }
+
+      printf("Error: Cannot read LMS-HSS: public key");
       return CK_FALSE;
 
    default:

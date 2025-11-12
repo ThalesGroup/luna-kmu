@@ -64,6 +64,9 @@ generatekey -slot=3 -password 00000000 -keytype=ml-kem -keysize=800 -labelpublic
 generatekey -slot=3 -password 00000000 -keytype=ml-kem -keysize=1184 -labelpublic=ml-kem-768-public -labelprivate=ml-kem-768-private
 generatekey -slot=3 -password 00000000 -keytype=ml-kem -keysize=1568 -labelpublic=ml-kem-1024-public -labelprivate=ml-kem-1024-private
 
+// lms key
+generatekey -slot=3 -password 00000000 -keytype=lms -labelpublic=lms-m24_h5-n24_w1 -labelprivate=ml-kem-512-private -lms-type=sha256_m24_h5 -lmots-type=sha256_n24_w1
+
 # Create DO
 createdo -password 00000000 -label=kmu-do -token=true -modifiable=true -private=true -application=01020303 -value=99897898
 createdo -password 00000000 -label=kmu-do -token=true -modifiable=true -private=true
@@ -121,6 +124,7 @@ import -slot=1 -password 00000000 -keyclass=public -keytype=ml-dsa -inputfile=md
 import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=mlkem512publickey.pem -format=pkcs8 -label=importmlkem512pem
 import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=mlkem768publickey.pem -format=pkcs8 -label=importmlkem768pem
 import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=mlkem1024publickey.pem -format=pkcs8 -label=importmlkem1024pem
+import -slot=1 -password 00000000 -keyclass=public -keytype=lms -inputfile=lms-m24_h5-n24_w1.pem -format=PKCS8 -label=importlms-m24_h5-n24_w1
 // import encrypted pkcs8 with password
 import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k.pem -format=pkcs8 -label=importersa2kpem -modifiable=true -extractable=true -keypassword=000000000
 
@@ -178,6 +182,9 @@ export -password 00000000 -handle=1098 -outputfile=mddsa87publickey.pem -format=
 export -password 00000000 -handle=1379 -outputfile=mlkem512publickey.pem -format=PKCS8
 export -password 00000000 -handle=1383 -outputfile=mlkem768publickey.pem -format=PKCS8
 export -password 00000000 -handle=1424 -outputfile=mlkem1024publickey.pem -format=PKCS8
+// export pkcs8 lms/hss public key
+export -password 00000000 -handle=1459 -outputfile=lms-m24_h5-n24_w1.pem -format=PKCS8
+
 // export pkcs8 ML KEM private key
 export -slot=1 -password 00000000 -handle=1432 -outputfile=mlkem512privatekey.txt -format=txt -key=426 -algo=aes_kwp
 export -slot=1 -password 00000000 -handle=1347 -outputfile=mlkem768privatekey.txt -format=txt -key=426 -algo=aes_cbc_pad

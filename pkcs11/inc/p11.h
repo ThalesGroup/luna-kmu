@@ -98,6 +98,11 @@ extern "C" {
 #define ML_KEM_1024_PRIVATE_KEY_SIZE         4627
 
 
+#define CKK_LMS                              (CKK_HSS | CKK_VENDOR_DEFINED)
+#define DEFAULT_LMS_LEVEL                    1
+#define MAX_HSS_LEVEL                        8
+
+
    typedef struct ck_des_param
    {
       CK_CHAR_PTR             pIv;           /* must be first position*/
@@ -290,6 +295,15 @@ extern "C" {
       CK_ML_KEM_PARAMETER_SET_TYPE  uML_KEM_Parameter_Set;
    }ML_KEM_PUBLIC_KEY;
 
+   typedef struct lms_publickey
+   {
+      CK_CHAR_PTR                            sPublicKey;
+      CK_ULONG                               uPublicKeyLength;
+      CK_HSS_LEVELS                          uHSS_Levels;
+      CK_LMS_TYPE                            uLmsType;
+      CK_LMOTS_TYPE                          uLmotsType;
+   }LMS_PUBLIC_KEY;
+
    typedef union publickey
    {
       RSA_PUBLIC_KEY       sRsaPublicKey;
@@ -298,6 +312,7 @@ extern "C" {
       EC_PUBLIC_KEY        sEcPublicKey;
       ML_DSA_PUBLIC_KEY    sMlDsaPublicKey;
       ML_KEM_PUBLIC_KEY    sMlKemPublicKey;
+      LMS_PUBLIC_KEY       sLmsPublicKey;
    }PUBLIC_KEY;
 
    typedef struct p11_ml_dsa_key_size
@@ -316,6 +331,15 @@ extern "C" {
       CK_CHAR_PTR                            sName;
    }P11_ML_KEM_KEY;
 
+
+
+   typedef struct p11_hss_key
+   {
+      CK_HSS_LEVELS                          uHSS_Levels;
+      CK_LMS_TYPE                            uLmsType[MAX_HSS_LEVEL];
+      CK_LMOTS_TYPE                          uLmotsType[MAX_HSS_LEVEL];
+   }P11_HSS_KEY;
+   
 
    // key atributes template
    typedef struct P11_keyattributes
@@ -438,12 +462,13 @@ extern "C" {
       CK_CHAR_PTR          pKeyLabelPublic;
       CK_LONG              sKeyGenMech;
       union {
-         P11_RSA_EXP* pKeyPublicExp;
-         P11_ECC_OID* pECCurveOID;
-         P11_EXP_DOMAIN* pDHDomain;
-         P11_EXP_DOMAIN* pDSADomain;
-         P11_ML_DSA_KEY* pML_DSA;
-         P11_ML_KEM_KEY* pML_KEM;
+         P11_RSA_EXP*      pKeyPublicExp;
+         P11_ECC_OID*      pECCurveOID;
+         P11_EXP_DOMAIN*   pDHDomain;
+         P11_EXP_DOMAIN*   pDSADomain;
+         P11_ML_DSA_KEY*   pML_DSA;
+         P11_ML_KEM_KEY*   pML_KEM;
+         P11_HSS_KEY       pHSS;
       };
       CK_BBOOL             bCKA_Token;
       CK_BBOOL             bCKA_Private;
@@ -529,6 +554,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_GetDHPublicKey(CK_OBJECT_HANDLE Handle, DH_PUBLIC_KEY* dhpublickey, CK_KEY_TYPE skeyType);
    _EXT  CK_BBOOL             P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey);
    _EXT  CK_BBOOL             P11_GetMLKEMPublicKey(CK_OBJECT_HANDLE Handle, ML_KEM_PUBLIC_KEY* smlkempublickey);
+   _EXT  CK_BBOOL             P11_GetLMSPublicKey(CK_OBJECT_HANDLE Handle, LMS_PUBLIC_KEY* sLmspublickey);
    _EXT  CK_BBOOL             P11_EncryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pEncryptedData, CK_ULONG_PTR pEncryptedDataLength);
    _EXT  CK_BBOOL             P11_DecryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pDecryptedData, CK_ULONG_PTR pDecryptedDataLength);
    _EXT  CK_BBOOL             P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSignauture, CK_ULONG_PTR pSignautureLength);

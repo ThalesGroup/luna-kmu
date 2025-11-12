@@ -95,7 +95,9 @@ extern "C" {
 #define ARG_TYPE_HANDLE             69
 #define ARG_TYPE_HANDLE_WRAPKEY     70
 #define ARG_TYPE_HANDLE_UNWRAPKEY   71
-
+#define ARG_TYPE_LMS_TYPE           72
+#define ARG_TYPE_LMOTS_TYPE         73
+#define ARG_TYPE_HSS_LEVEL          74
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -175,6 +177,9 @@ extern "C" {
    _EXT  CK_BBOOL                cmdarg_isCryptoUserLoginRequested();
    _EXT  CK_LONG                 cmdarg_GetCompomentsNumber();
    _EXT  CK_CHAR_PTR             cmdarg_GetKeyPassword();
+   _EXT  CK_LONG                 cmdarg_GetHSSLevel();
+   _EXT  CK_BBOOL                cmdarg_LMSType(CK_LMS_TYPE paLMSType[], CK_LONG uMaxSize);
+   _EXT  CK_BBOOL                cmdarg_LMSOTSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uRequiredType);
 
 #undef _EXT
 

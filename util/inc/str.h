@@ -28,6 +28,7 @@ extern "C" {
    extern const char strSpace;
    extern const char strEqual;
    extern const char strDash;
+   extern const char strComma;
    extern const char strBackSlashString[2];
 
    _EXT  void           str_DisplayByteArraytoString(CK_CHAR_PTR Name, CK_CHAR_PTR ByteArray, CK_LONG Length);

@@ -78,6 +78,9 @@ const CK_CHAR OID_ML_KEM_512[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x0
 const CK_CHAR OID_ML_KEM_768[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x04, 0x02 };
 const CK_CHAR OID_ML_KEM_1024[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x04, 0x03 };
 
+
+const CK_CHAR OID_LMS_HSS_SIG[] = { 0x06, 0x0B, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x10, 0x03, 0x11 };
+
 /*
    id-X25519    OBJECT IDENTIFIER ::= { 1 3 101 110 }
    id-X448      OBJECT IDENTIFIER ::= { 1 3 101 111 }
@@ -846,7 +849,7 @@ CK_BBOOL pksc8_Build_PublicKeyInfoMLDSA(ML_DSA_PUBLIC_KEY* sMLDSAPublicKey)
 /*
     FUNCTION:        CK_BBOOL pksc8_Build_PublicKeyInfoMLKEM(ML_KEM_PUBLIC_KEY* sMLKEMPublicKey)
 */
-CK_BBOOL pksc8_Build_PublicKeyInfoMLKEM(ML_KEM_PUBLIC_KEY* sMLDSAPublicKey)
+CK_BBOOL pksc8_Build_PublicKeyInfoMLKEM(ML_KEM_PUBLIC_KEY* sMLKEMPublicKey)
 {
    CK_ULONG uTlvSize = 0;
 
@@ -854,10 +857,10 @@ CK_BBOOL pksc8_Build_PublicKeyInfoMLKEM(ML_KEM_PUBLIC_KEY* sMLDSAPublicKey)
    asn1_Build_Init();
 
    // Tag bitstring for public point
-   asn1_Build_tlv(TAG_BITSTRING, sMLDSAPublicKey->sPublicKey, sMLDSAPublicKey->uPublicKeyLength);
+   asn1_Build_tlv(TAG_BITSTRING, sMLKEMPublicKey->sPublicKey, sMLKEMPublicKey->uPublicKeyLength);
 
 
-   switch (sMLDSAPublicKey->uML_KEM_Parameter_Set)
+   switch (sMLKEMPublicKey->uML_KEM_Parameter_Set)
    {
    case CKP_ML_KEM_512:
 
@@ -890,6 +893,53 @@ CK_BBOOL pksc8_Build_PublicKeyInfoMLKEM(ML_KEM_PUBLIC_KEY* sMLDSAPublicKey)
 
    return CK_TRUE;
 }
+
+/* 
+https://datatracker.ietf.org/doc/html/rfc8708#name-leighton-micali-one-time-si
+https://mirrors.ircam.fr/pub/rfc/rfc8708.html
+https://www.rfc-editor.org/rfc/rfc9802.html
+
+   pk-HSS-LMS-HashSig PUBLIC-KEY ::= {
+       IDENTIFIER id-alg-hss-lms-hashsig
+       KEY HSS-LMS-HashSig-PublicKey
+       PARAMS ARE absent
+       CERT-KEY-USAGE
+         { digitalSignature, nonRepudiation, keyCertSign, cRLSign } }
+
+   HSS-LMS-HashSig-PublicKey ::= OCTET STRING
+
+
+    id-alg-hss-lms-hashsig OBJECT IDENTIFIER ::= { iso(1)
+       member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
+       smime(16) alg(3) 17 }
+
+
+*/
+/*
+    FUNCTION:        CK_BBOOL pksc8_Build_PublicKeyInfoLMS(LMS_PUBLIC_KEY* sMLKEMPublicKey)
+*/
+CK_BBOOL pksc8_Build_PublicKeyInfoLMS(LMS_PUBLIC_KEY* sLmspublickey)
+{
+
+   CK_ULONG uTlvSize = 0;
+
+   // init asn1builder
+   asn1_Build_Init();
+
+   // Tag bitstring for public point
+   asn1_Build_tlv(TAG_BITSTRING, sLmspublickey->sPublicKey, sLmspublickey->uPublicKeyLength);
+
+   uTlvSize = asn1_Build_t((CK_CHAR_PTR)OID_LMS_HSS_SIG, sizeof(OID_LMS_HSS_SIG));
+   
+   // encapsulate tag sequence in this tlv branch
+   asn1_Build_tl(TAG_SEQUENCE, uTlvSize);
+
+   // encapsulate tag sequence to all buffer
+   asn1_Build_tl(TAG_SEQUENCE, asn1_GetBufferSize());
+   
+   return CK_TRUE;
+}
+
 
 
 /*
@@ -1879,6 +1929,91 @@ CK_BBOOL pksc8_Check_PublicKeyInfoMLKEM(ML_KEM_PUBLIC_KEY* sMlKemPublicKey, CK_C
    } while (FALSE);
 
    return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL pksc8_Check_PublicKeyInfoLMS(LMS_PUBLIC_KEY* sMlKemPublicKey, CK_CHAR_PTR data, CK_ULONG size)
+*/
+CK_BBOOL pksc8_Check_PublicKeyInfoLMS(LMS_PUBLIC_KEY* sMlKemPublicKey, CK_CHAR_PTR data, CK_ULONG size)
+{
+
+   do
+   {
+      // init settlv
+      asn1_Check_SetTlv(data, size);
+
+      // Check tag Sequence
+      if (asn1_Check_tl(TAG_SEQUENCE) == CK_FALSE)
+      {
+         break;
+      }
+      // Step in
+      if (asn1_Check_StepIn() == CK_FALSE)
+      {
+         break;
+      }
+      // Check tag Sequence
+      if (asn1_Check_t(TAG_SEQUENCE) == CK_FALSE)
+      {
+         break;
+      }
+      // Step in
+      if (asn1_Check_StepIn() == CK_FALSE)
+      {
+         break;
+      }
+      // Check tag OID
+      if (asn1_Check_t(TAG_OID) == CK_FALSE)
+      {
+         break;
+      }
+
+      // Check OID is DSA public PKCS1
+      if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_LMS_HSS_SIG, asn1_Check_GetCurrentTlvLen()) != 0)
+      {
+         break;
+      }
+
+
+      // check no other tlv after
+      if (asn1_Check_NoNextTlv() == CK_FALSE)
+      {
+         break;
+      }
+
+      // step out
+      if (asn1_Check_StepOut() == CK_FALSE)
+      {
+         break;
+      }
+
+      // Check tag bit string
+      if (asn1_Check_Next(TAG_BITSTRING) == CK_FALSE)
+      {
+         break;
+      }
+
+      // get public key in uncompressed format
+      sMlKemPublicKey->sPublicKey = asn1_Check_GetCurrentValueBuffer();
+      sMlKemPublicKey->uPublicKeyLength = asn1_Check_GetCurrentValueLen();
+
+      // check no other tlv after
+      if (asn1_Check_NoNextTlv() == CK_FALSE)
+      {
+         break;
+      }
+
+      // step out
+      if (asn1_Check_StepOut() == CK_FALSE)
+      {
+         break;
+      }
+
+      return CK_TRUE;
+   } while (FALSE);
+
+   return CK_FALSE;
+
 }
 
 /*

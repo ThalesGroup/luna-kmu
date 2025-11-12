@@ -295,6 +295,16 @@ const STRING_ARRAY ARG_ITERATION_COMP_HELP = "number if iteration value for PBKD
 const STRING_ARRAY ARG_PRF_COMP = "-prf";
 const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password based encryption function. \n\t\t\t\t\t-Optional. hmac-sha1, If empty, the default prf algo is hmac-sha1 ";
 
+const STRING_ARRAY ARG_LMS_TYPE_COMP = "-lms-type";
+const STRING_ARRAY ARG_LMS_TYPE_COMP_HELP = "Leighton-Micali Signature(LMS) type, mandatory for LMS or HSS keys. \n\t\t\t\t\t-Supported value: sha256_m24_h5, sha256_m24_h10, sha256_m24_h15, sha256_m24_h20\n\t\t\t\t\t-Supported value: sha256_m32_h5, sha256_m32_h10, sha256_m32_h15, sha256_m32_h20";
+
+const STRING_ARRAY ARG_LMOTS_TYPE_COMP = "-lmots-type";
+const STRING_ARRAY ARG_LMOTS_TYPE_COMP_HELP = "Leighton-Micali One Time Signature (LM-OTS) type, mandatory for LMS or HSS keys. \n\t\t\t\t\t-Supported value: sha256_n32_w1, sha256_n32_w2, sha256_n32_w4, sha256_n32_w8\n\t\t\t\t\t-Supported value: sha256_n24_w1, sha256_n24_w2, sha256_n24_w8, sha256_m32_h20";
+
+const STRING_ARRAY ARG_HSS_LEVEL_COMP = "-hss-level";
+const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS) level for Leighton-Micali Signature (LMS) system, mandatory for HSS keys, implicitely 1 for LMS keys. \n\t\t\t\t\t-Supported value: 1 to 8\n\t\t\t\t\t-Optional Default value is 1";
+
+
 
 #define CMD_HELP_VALUE              (const CK_CHAR_PTR)CMD_HELP, (const P_fCMD)&parser_CommandHelp, (const CK_CHAR_PTR)CMD_HELP_HELP, \
                                     {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
@@ -338,6 +348,9 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_DH_PRIME, ARG_TYPE_DH_PRIME, (const CK_CHAR_PTR)ARG_DH_PRIME_HELP,\
                                     (const CK_CHAR_PTR)ARG_DH_SUBPRIME, ARG_TYPE_DH_SUBPRIME, (const CK_CHAR_PTR)ARG_DH_SUBPRIME_HELP,\
                                     (const CK_CHAR_PTR)ARG_KCV_COMP, ARG_TYPE_KEY_COMP, (const CK_CHAR_PTR)ARG_KCV_COMP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_HSS_LEVEL_COMP, ARG_TYPE_HSS_LEVEL, (const CK_CHAR_PTR)ARG_HSS_LEVEL_COMP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_LMS_TYPE_COMP, ARG_TYPE_LMS_TYPE, (const CK_CHAR_PTR)ARG_LMS_TYPE_COMP_HELP,\
+                                    (const CK_CHAR_PTR)ARG_LMOTS_TYPE_COMP, ARG_TYPE_LMOTS_TYPE, (const CK_CHAR_PTR)ARG_LMOTS_TYPE_COMP_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT, ARG_TYPE_CKA_ENCRYPT, (const CK_CHAR_PTR)ARG_ATTR_ENCRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_DECRYPT, ARG_TYPE_CKA_DECRYPT, (const CK_CHAR_PTR)ARG_ATTR_DECRYPT_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_SIGN, ARG_TYPE_CKA_SIGN, (const CK_CHAR_PTR)ARG_ATTR_SIGN_HELP,\
@@ -354,6 +367,8 @@ const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password base
                                     (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE, ARG_TYPE_CKA_SENSITIVE, (const CK_CHAR_PTR)ARG_ATTR_SENSITIVE_HELP,\
                                     (const CK_CHAR_PTR)ARG_ATTR_ID, ARG_TYPE_CKA_ID, (const CK_CHAR_PTR)ARG_ATTR_ID_HELP,\
                                     }
+
+
 
 #define CMD_CREATE_DO_VALUE     (const CK_CHAR_PTR)CMD_CREATE_DO, (const P_fCMD)&cmd_kmu_createDO, (const CK_CHAR_PTR)CMD_CREATE_DO_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
@@ -694,6 +709,8 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_FORMAT,
    (CK_CHAR_PTR)ARG_OUTFORMAT,
    (CK_CHAR_PTR)ARG_INFORMAT,
+   (CK_CHAR_PTR)ARG_LMS_TYPE_COMP,
+   (CK_CHAR_PTR)ARG_LMOTS_TYPE_COMP,
    (CK_CHAR_PTR)ARG_ATTR_TOKEN,
    (CK_CHAR_PTR)ARG_ATTR_PRIVATE,
    (CK_CHAR_PTR)ARG_ATTR_SENSITIVE,

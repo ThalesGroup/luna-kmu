@@ -83,6 +83,9 @@ const CK_CHAR KEY_TYPE_X942_DH[] = "dh-x9.42";
 const CK_CHAR KEY_TYPE_GENERIC[] = "genericsecret";
 const CK_CHAR KEY_TYPE_MD_DSA[] = "ml-dsa";
 const CK_CHAR KEY_TYPE_MD_KEM[] = "ml-kem";
+const CK_CHAR KEY_TYPE_MD_LMS[] = "lms";
+const CK_CHAR KEY_TYPE_MD_HSS[] = "hss";
+
 
 const CK_CHAR KEY_TYPE_KEA[] = "kea";
 const CK_CHAR KEY_TYPE_RC2[] = "rc2";
@@ -121,6 +124,8 @@ const PARSER_KEY_TYPE arg_keygen_supported_type[] = {
    {(CK_CHAR_PTR)&KEY_TYPE_SM2,           CKK_SM2,                CKM_SM2_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
    {(CK_CHAR_PTR)&KEY_TYPE_MD_DSA,        CKK_ML_DSA,             CKM_ML_DSA_KEY_PAIR_GEN,                  CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
    {(CK_CHAR_PTR)&KEY_TYPE_MD_KEM,        CKK_ML_KEM,             CKM_ML_KEM_KEY_PAIR_GEN,                  CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_LMS,        CKK_LMS,                CKM_HSS_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY },
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_HSS,        CKK_HSS,                CKM_HSS_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
    {(CK_CHAR_PTR)&KEY_TYPE_KEA,           CKK_KEA,                0,                                        CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_RC2,           CKK_RC2,                0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
    {(CK_CHAR_PTR)&KEY_TYPE_RC4,           CKK_RC4,                0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
@@ -680,6 +685,67 @@ const P11_ML_KEM_KEY ml_kem_publickeysize[] = {
 
 };
 
+
+/******************** lms *********************/
+typedef struct lms_type_attributes
+{
+   const CK_CHAR_PTR    sParamName;
+   const CK_LMS_TYPE    uLMSType;
+}LMS_TYPE_ATTIBUTES;
+
+typedef struct lmots_type_attributes
+{
+   const CK_CHAR_PTR    sParamName;
+   const CK_LMOTS_TYPE  uLMOTSType;
+}LMOTS_TYPE_ATTIBUTES;
+
+const CK_CHAR NAME_LMS_SHA256_M24_H5[]    = "sha256_m24_h5";
+const CK_CHAR NAME_LMS_SHA256_M24_H10[]   = "sha256_m24_h10";
+const CK_CHAR NAME_LMS_SHA256_M24_H15[]   = "sha256_m24_h15";
+const CK_CHAR NAME_LMS_SHA256_M24_H20[]   = "sha256_m24_h20";
+
+const CK_CHAR NAME_LMS_SHA256_M32_H5[]    = "sha256_m32_h5";
+const CK_CHAR NAME_LMS_SHA256_M32_H10[]   = "sha256_m32_h10";
+const CK_CHAR NAME_LMS_SHA256_M32_H15[]   = "sha256_m32_h15";
+const CK_CHAR NAME_LMS_SHA256_M32_H20[]   = "sha256_m32_h20";
+
+#define SIZE_LMS_TYPE_TABLE      DIM(lms_type_attributes)
+const LMS_TYPE_ATTIBUTES lms_type_attributes[] = {
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H5,         LMS_SHA256_M24_H5},
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H10,        LMS_SHA256_M24_H10 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H15,        LMS_SHA256_M24_H15 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H20,        LMS_SHA256_M24_H20 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H5,         LMS_SHA256_M32_H5},
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H10,        LMS_SHA256_M32_H10 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H15,        LMS_SHA256_M32_H15 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H20,        LMS_SHA256_M32_H20 },
+};
+
+const CK_CHAR NAME_LMOTS_SHA256_N24_W1[] = "sha256_n24_w1";
+const CK_CHAR NAME_LMOTS_SHA256_N24_W2[] = "sha256_n24_w2";
+const CK_CHAR NAME_LMOTS_SHA256_N24_W4[] = "sha256_n24_w4";
+const CK_CHAR NAME_LMOTS_SHA256_N24_W8[] = "sha256_n24_w8";
+
+const CK_CHAR NAME_LMOTS_SHA256_N32_W1[] = "sha256_n32_w1";
+const CK_CHAR NAME_LMOTS_SHA256_N32_W2[] = "sha256_n32_w2";
+const CK_CHAR NAME_LMOTS_SHA256_N32_W4[] = "sha256_n32_w4";
+const CK_CHAR NAME_LMOTS_SHA256_N32_W8[] = "sha256_n32_w8";
+
+#define SIZE_LMOTS_TYPE_TABLE      DIM(lmots_type_attributes)
+const LMOTS_TYPE_ATTIBUTES lmots_type_attributes[] = {
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W1,       LMOTS_SHA256_N24_W1},
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W2,       LMOTS_SHA256_N24_W2 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W4,       LMOTS_SHA256_N24_W4 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W8,       LMOTS_SHA256_N24_W8 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W1,       LMOTS_SHA256_N32_W1},
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W2,       LMOTS_SHA256_N32_W2 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W4,       LMOTS_SHA256_N32_W4 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W8,       LMOTS_SHA256_N32_W8 },
+
+};
+
+
+
 /******************** pkcs11 error *********************/
 typedef struct pkcs11_error
 {
@@ -1230,14 +1296,21 @@ void P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID)
          // get mecanism info
          if (p11_GetMecanismInfo(u32_SlotID, arg_keygen_supported_type[u8Loop].cKeyGenMecanismType, &sInfo) == CK_TRUE)
          {
-            if (sInfo.ulMinKeySize != sInfo.ulMaxKeySize)
+            if ((arg_keygen_supported_type[u8Loop].cktype == CKK_HSS))
             {
-               printf("Minimum key size : %i\t\t", sInfo.ulMinKeySize);
-               printf("Maximum key size : %i\n", sInfo.ulMaxKeySize);
+               printf("Supported. This algorithm does use size for keys. Refer to supported LMS type and LMS-OT type\n");
             }
             else
             {
-               printf("Key size : %i\n", sInfo.ulMinKeySize);
+               if (sInfo.ulMinKeySize != sInfo.ulMaxKeySize)
+               {
+                  printf("Minimum key size : %i\t\t", sInfo.ulMinKeySize);
+                  printf("Maximum key size : %i\n", sInfo.ulMaxKeySize);
+               }
+               else
+               {
+                  printf("Key size : %i\n", sInfo.ulMinKeySize);
+               }
             }
          }
          else
@@ -1247,6 +1320,11 @@ void P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID)
             if ((arg_keygen_supported_type[u8Loop].cktype == CKK_ML_DSA) || (arg_keygen_supported_type[u8Loop].cktype == CKK_ML_KEM))
             {
                printf("This mecanism requires at least client 10.9.1 and firmware 7.9.1");
+            }
+
+            if (arg_keygen_supported_type[u8Loop].cktype == CKK_HSS)
+            {
+               printf("This mecanism requires at least client 10.8.0 and firmware 7.8.8");
             }
 
             printf("\n");
@@ -1776,4 +1854,107 @@ P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_
    };
 
    return NULL;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetLMSTypeName(CK_LMS_TYPE uLMStype)
+*/
+CK_CHAR_PTR P11Util_GetLMSTypeName(CK_LMS_TYPE uLMStype)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMS_TYPE_TABLE; u8Loop++)
+   {
+      if (lms_type_attributes[u8Loop].uLMSType == uLMStype)
+      {
+        return lms_type_attributes[u8Loop].sParamName;
+      }
+   };
+   return (CK_CHAR_PTR)CLASS_UNKNOWN;
+}
+
+/*
+    FUNCTION:        CK_LMS_TYPE P11Util_GetLMSType(CK_CHAR_PTR uLMStypeName)
+*/
+CK_LMS_TYPE P11Util_GetLMSType(CK_CHAR_PTR uLMStypeName)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMS_TYPE_TABLE; u8Loop++)
+   {
+      if (strcmp(lms_type_attributes[u8Loop].sParamName, uLMStypeName) == 0)
+      {
+         return lms_type_attributes[u8Loop].uLMSType;
+      }
+   };
+   return -1;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetLMOTSTypeName(CK_LMS_TYPE uLMOTStype)
+*/
+CK_CHAR_PTR P11Util_GetLMOTSTypeName(CK_LMS_TYPE uLMOTStype)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMOTS_TYPE_TABLE; u8Loop++)
+   {
+      if (lmots_type_attributes[u8Loop].uLMOTSType == uLMOTStype)
+      {
+         return lmots_type_attributes[u8Loop].sParamName;
+      }
+   };
+   return (CK_CHAR_PTR)CLASS_UNKNOWN;
+}
+
+/*
+    FUNCTION:        CK_LMS_TYPE P11Util_GetLMSOTSType(CK_CHAR_PTR uLMSOTtypeName)
+*/
+CK_LMOTS_TYPE P11Util_GetLMSOTSType(CK_CHAR_PTR uLMSOTtypeName)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMOTS_TYPE_TABLE; u8Loop++)
+   {
+      if (strcmp(lmots_type_attributes[u8Loop].sParamName, uLMSOTtypeName) == 0)
+      {
+         return lmots_type_attributes[u8Loop].uLMOTSType;
+      }
+   };
+   return -1;
+}
+
+/*
+    FUNCTION:        void P11Util_DisplaySupportedLMSType()
+*/
+void P11Util_DisplaySupportedLMSType()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported LMS type : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMS_TYPE_TABLE; u8Loop++)
+   {
+      printf("-> %s\n", lms_type_attributes[u8Loop].sParamName);
+   }
+}
+
+/*
+    FUNCTION:        void P11Util_DisplaySupportedLMSOTSType()
+*/
+void P11Util_DisplaySupportedLMSOTSType()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported LMS-OT type : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMOTS_TYPE_TABLE; u8Loop++)
+   {
+      printf("-> %s\n", lmots_type_attributes[u8Loop].sParamName);
+
+   }
 }

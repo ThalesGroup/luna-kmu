@@ -67,6 +67,12 @@ extern "C" {
    _EXT  void                          P11Util_DisplaySupportedHash(CK_ULONG uFlag);
    _EXT  void                          P11Util_DisplaySupportedKCVMethod();
    _EXT  void                          P11Util_DisplaySupportedAttribute();
+   _EXT  CK_CHAR_PTR                   P11Util_GetLMSTypeName(CK_LMS_TYPE uLMStype);
+   _EXT  CK_CHAR_PTR                   P11Util_GetLMOTSTypeName(CK_LMS_TYPE uLMOTStype);
+   _EXT  void                          P11Util_DisplaySupportedLMSType();
+   _EXT  void                          P11Util_DisplaySupportedLMSOTSType();
+   _EXT  CK_LMS_TYPE                   P11Util_GetLMSType(CK_CHAR_PTR uLMStypeName);
+   _EXT  CK_LMOTS_TYPE                 P11Util_GetLMSOTSType(CK_CHAR_PTR uLMSOTtypeName);
 
 
 #undef _EXT

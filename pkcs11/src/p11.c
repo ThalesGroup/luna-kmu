@@ -88,6 +88,7 @@ CK_CHAR        LibPath[4096];
 #define TEMP_BUFFER_OFFSET_MLKEM_PK_INFO     4
 #define TEMP_BUFFER_OFFSET_MLKEM_VALUE       (TEMP_BUFFER_OFFSET_MLKEM_PK_INFO + MAX_COMPONENT_PQC_SIZE)
 
+#define TEMP_BUFFER_OFFSET_HSS_PARAM         0
 
 CK_CHAR           pTempBuffer[TEMP_BUFFER_SIZE];
 
@@ -1362,6 +1363,52 @@ CK_BBOOL P11_GetMLKEMPublicKey(CK_OBJECT_HANDLE Handle, ML_KEM_PUBLIC_KEY* smlke
 }
 
 /*
+    FUNCTION:        CK_BBOOL P11_GetLMSPublicKey(CK_OBJECT_HANDLE Handle, LMS_PUBLIC_KEY* sLmspublickey)
+*/
+CK_BBOOL P11_GetLMSPublicKey(CK_OBJECT_HANDLE Handle, LMS_PUBLIC_KEY* sLmspublickey)
+{
+   CK_RV                retCode = CKR_SESSION_CLOSED;
+   CK_ULONG             uHSS_level = 0;
+   CK_LMS_TYPE          uLMS_Type = 0;
+   CK_LMOTS_TYPE        uLMOTS_level = 0;
+
+   CK_ATTRIBUTE pubLMSTemplate[] = {
+      {CKA_HSS_LEVELS,           &uHSS_level,                                 sizeof(CK_HSS_LEVELS)},
+      {CKA_HSS_LMS_TYPE,         &uLMS_Type,                                  sizeof(CK_LMS_TYPE)},
+      {CKA_HSS_LMOTS_TYPE,       &uLMOTS_level,                               sizeof(CK_LMOTS_TYPE)},
+      {CKA_VALUE,                &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM],  TEMP_BUFFER_SIZE},
+   };
+
+   do
+   {
+      // call this function. Required if slot is HA, otherwise getattribute return error. 
+      retCode = P11Functions->C_FindObjectsInit(hSession, NULL, 0);
+
+      // Get object attribute
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubLMSTemplate, DIM(pubLMSTemplate));
+
+      // check if error. 
+      if (retCode != CKR_OK)
+      {
+         printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+         break;
+      }
+
+      // update mlkempublickey
+      sLmspublickey->sPublicKey = &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM];
+      sLmspublickey->uPublicKeyLength = pubLMSTemplate[3].usValueLen;
+      sLmspublickey->uHSS_Levels = uHSS_level;
+      sLmspublickey->uLmsType = uLMS_Type;
+      sLmspublickey->uLmotsType = uLMOTS_level;
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   return CK_FALSE;
+
+}
+
+/*
     FUNCTION:        void P11_DisplayCertificate(CK_KEY_TYPE  skeyType)
 */
 void P11_DisplayCertificate(CK_OBJECT_HANDLE Handle)
@@ -1676,7 +1723,7 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       }
       break;
 
-      // if ml dsa key
+   //  if ml dsa key
    case CKK_ML_DSA:
    {
       P11_ML_DSA_KEY* sML_DSA_Key;
@@ -1697,6 +1744,7 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       pksc8_Check_PublicKeyInfoMLDSA(&sML_DSA_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
 
       str_DisplayByteArraytoString("PublicKey=", sML_DSA_PublicKey.sPublicKey, sML_DSA_PublicKey.uPublicKeyLength);
+      break;
    }
 
    // if ml KEM key
@@ -1727,8 +1775,52 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
 
       pksc8_Check_PublicKeyInfoMLKEM(&sML_KEM_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[2].usValueLen);
       str_DisplayByteArraytoString("PublicKey=", sML_KEM_PublicKey.sPublicKey, sML_KEM_PublicKey.uPublicKeyLength);
+      break;
+
+   }
+
+   // if LMS and HSS keys
+   case CKK_HSS:
+   {
+      CK_HSS_LEVELS  uHSS_level = 0;
+      CK_LMS_TYPE    uLMS_Type[MAX_HSS_LEVEL] = { 0 };
+      CK_LMOTS_TYPE  uLMOTS_level[MAX_HSS_LEVEL] = { 0 };
+      CK_ULONG       uRemainingSig = 0;
+
+      CK_ATTRIBUTE privHSSTemplate[] = {
+            {CKA_HSS_LEVELS,           &uHSS_level,                                 sizeof(CK_HSS_LEVELS)},
+            {CKA_HSS_LMS_TYPES,        &uLMS_Type[0],                               (CK_ULONG)sizeof(CK_LMS_TYPE) * MAX_HSS_LEVEL},
+            {CKA_HSS_LMOTS_TYPES,      &uLMOTS_level[0],                            (CK_ULONG)sizeof(CK_LMOTS_TYPE) * MAX_HSS_LEVEL},
+            {CKA_PUBLIC_KEY,           &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM],  TEMP_BUFFER_SIZE},
+            {CKA_HSS_KEYS_REMAINING,   &uRemainingSig,                              sizeof(CK_ULONG)},
+      };
       
 
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, privHSSTemplate, DIM(privHSSTemplate));
+
+      printf("HSSLevel=%i", uHSS_level);
+      if (uHSS_level == 1)
+      {
+         printf(" (LMS Key)\n");
+      }
+      else
+      {
+         printf("\n");
+      }
+      // display LMS type and LMOTS for each level
+      for (CK_BYTE bLoop = 0; bLoop < uHSS_level; bLoop++)
+      {
+         printf("LMS-Type(Level %i)=%i (%s)\n", bLoop +1,  uLMS_Type[bLoop], P11Util_GetLMSTypeName(uLMS_Type[0]));
+         printf("LMOTS-Type(Level %i)=%i (%s)\n", bLoop + 1, uLMOTS_level[bLoop], P11Util_GetLMOTSTypeName(uLMOTS_level[0]));
+      }
+
+      // display remaining siganture
+      printf("KeyRemaining=%u\n", uRemainingSig);
+
+      // display public key
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM], privHSSTemplate[3].usValueLen);
+      break;
    }
 
    default:
@@ -1859,6 +1951,7 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
  //     str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[2].usValueLen);
  //     printf("\n");
       str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLDSATemplate[1].usValueLen);
+      break;
       
    }
 
@@ -1887,16 +1980,51 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       printf("KeySize=%i\n", sML_KEM_Key->sPublicKeySize);
       printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
       /*
-      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[3].usValueLen);
+      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubLMSTemplate[3].usValueLen);
       printf("\n");
       */
       str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLKEMTemplate[2].usValueLen);
 
    }
+      break;
 
+   // if LMS and HSS keys
+   case CKK_HSS:
+   {
+      CK_HSS_LEVELS  uHSS_level = 0;
+      CK_LMS_TYPE    uLMS_Type = 0;
+      CK_LMOTS_TYPE  uLMOTS_level = 0;
+
+      CK_ATTRIBUTE pubHSSTemplate[] = {
+            {CKA_HSS_LEVELS,           &uHSS_level,                                 sizeof(CK_HSS_LEVELS)},
+            {CKA_HSS_LMS_TYPE,         &uLMS_Type,                                  sizeof(CK_LMS_TYPE)},
+            {CKA_HSS_LMOTS_TYPE,       &uLMOTS_level,                               sizeof(CK_LMOTS_TYPE)},
+            {CKA_VALUE,                &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM],  TEMP_BUFFER_SIZE},
+      };
+
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubHSSTemplate, DIM(pubHSSTemplate));
+
+      printf("HSSLevel=%i", uHSS_level);
+      if (uHSS_level == 1)
+      {
+         printf(" (LMS Key)\n");
+      }
+      else
+      {
+         printf("\n");
+      }
+      
+      printf("LMS-Type=%i (%s)\n", uLMS_Type, P11Util_GetLMSTypeName(uLMS_Type));
+      printf("LMOTS-Type=%i (%s)\n", uLMOTS_level, P11Util_GetLMOTSTypeName(uLMOTS_level));
+
+
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM], pubHSSTemplate[3].usValueLen);
 
 
       break;
+   }
    default:
       break;
    }
@@ -2741,7 +2869,31 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HAND
       // force some attributes to false
       sKeyGenTemplate->bCKA_Derive = CK_FALSE;
       break;
+   case CKK_HSS:
 
+      sKeygenMech.mechanism = CKM_HSS_KEY_PAIR_GEN;
+
+      // Set hss level
+      PriTemplate[PriTemplateSize].type = CKA_HSS_LEVELS;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->pHSS.uHSS_Levels;
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_HSS_LEVELS);
+      PriTemplateSize++;
+
+      // Set hss level
+      PriTemplate[PriTemplateSize].type = CKA_HSS_LMS_TYPES;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->pHSS.uLmsType[0];
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_LMS_TYPE) * sKeyGenTemplate->pHSS.uHSS_Levels;
+      PriTemplateSize++;
+
+      // Set hss level
+      PriTemplate[PriTemplateSize].type = CKA_HSS_LMOTS_TYPES;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->pHSS.uLmotsType[0];
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_LMOTS_TYPE) * sKeyGenTemplate->pHSS.uHSS_Levels;
+      PriTemplateSize++;
+
+      // LMS private not extratable on luna
+      sKeyGenTemplate->bCKA_Extractable = CK_FALSE;
+      break;
 
    default:
       printf("C_GenerateKey : invalid keytype : %i", sKeyGenTemplate->skeyType);
@@ -3162,7 +3314,6 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
    }
    case CKK_ML_DSA:
    {
-
       // Set public key value
       PubTemplate[PubTemplateSize].type = CKA_VALUE;
       PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlDsaPublicKey.sPublicKey;
@@ -3175,11 +3326,9 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
       PubTemplateSize++;
       break;
-
    }
    case CKK_ML_KEM:
    {
-
       // Set public key value
       PubTemplate[PubTemplateSize].type = CKA_VALUE;
       PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlKemPublicKey.sPublicKey;
@@ -3197,11 +3346,38 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplate[PubTemplateSize].pValue = &sImportPublicKeyTemplate->bCKA_Encapsulate;
       PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_BBOOL);
       PubTemplateSize++;
+      break;
+   }
+   case CKK_HSS:
+   {
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_HSS_LEVELS;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sLmsPublicKey.uHSS_Levels;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_HSS_LEVELS);
+      PubTemplateSize++;
+      
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_HSS_LMS_TYPE;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sLmsPublicKey.uLmsType;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CKA_HSS_LMS_TYPE);
+      PubTemplateSize++;
+
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_HSS_LMOTS_TYPE;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sLmsPublicKey.uLmotsType;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CKA_HSS_LMOTS_TYPE);
+      PubTemplateSize++;
+
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_VALUE;
+      PubTemplate[PubTemplateSize].pValue = sPublicKey->sLmsPublicKey.sPublicKey;
+      PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sLmsPublicKey.uPublicKeyLength;
+      PubTemplateSize++;
+
+      sImportPublicKeyTemplate->bCKA_Derive = CK_FALSE;
 
       break;
-
    }
-
    default:
       printf("C_CreateObject : invalid keytype : %i", sImportPublicKeyTemplate->skeyType);
       return CK_FALSE;
@@ -3226,7 +3402,6 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplate,
       PubTemplateSize,
       &hPublicKey);
-
 
    // check if successfull
    if (retCode == CKR_OK)

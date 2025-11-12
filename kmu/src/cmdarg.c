@@ -1972,3 +1972,216 @@ CK_CHAR_PTR cmdarg_GetKeyPassword()
    return NULL;
 
 }
+
+/*
+    FUNCTION:        CK_LONG cmdarg_GetHSSLevel()
+*/
+CK_LONG cmdarg_GetHSSLevel()
+{
+   PARSER_CURRENT_CMD_ARG* arg;
+   arg = parser_SearchArgument(ARG_TYPE_HSS_LEVEL);
+   CK_CHAR_PTR          sString = NULL;
+
+   if (arg == NULL)
+   {
+
+      printf("Enter HSS level (from 1 to 8) : ");
+      if (Console_RequestString() < 0)
+      {
+         return 0;
+      }
+
+      sString = Console_GetBuffer();
+   }
+   else
+   {
+      sString = arg->s_argPart2;
+   }
+
+   return (CK_ULONG)str_StringtoUnsignedInteger(sString);
+}
+
+/*
+    FUNCTION:        CK_BBOOL cmdarg_LMSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uHSSLevel)
+*/
+CK_BBOOL cmdarg_LMSType(CK_LMS_TYPE paLMSType[], CK_LONG uHSSLevel)
+{
+   PARSER_CURRENT_CMD_ARG* arg = NULL;
+   CK_CHAR_PTR          sString = NULL;
+   CK_CHAR_PTR          sCurrentArg  = NULL;
+   CK_CHAR_PTR          sNextArg = NULL;
+   CK_LMS_TYPE          uLmsType = 0;
+   CK_BYTE              bOffset = 0;
+
+   do
+   {
+      // Get argument -attribute
+      arg = parser_SearchArgument(ARG_TYPE_LMS_TYPE);
+
+      if (arg == NULL)
+      {
+         // request the user to enter a attribute name
+         P11Util_DisplaySupportedLMSType();
+         if (uHSSLevel == DEFAULT_LMS_LEVEL)
+         {
+            printf("Enter LMS type Name : ");
+         }
+         else
+         {
+            printf("Enter LMS type Name as a suite of LMS type separated with comma starting with level 1 :\n");
+         }
+
+         if (Console_RequestString() < 0)
+         {
+            return 0;
+         }
+         sString = Console_GetBuffer();
+      }
+      else
+      {
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      sCurrentArg = sString;
+      bOffset = 0;
+
+      do
+      {
+         // if null stop and returns error
+         if (sCurrentArg == NULL)
+         {
+            return CK_FALSE;
+         }
+
+         sNextArg = strchr(sCurrentArg, strComma);
+         if (sNextArg != NULL)
+         {
+            sNextArg[0] = 0x00;
+            sNextArg++;
+         }
+
+         // get LMS type value
+         uLmsType = P11Util_GetLMSType(sCurrentArg);
+
+         // Check if error
+         if (uLmsType == -1)
+         {
+            return CK_FALSE;
+         }
+         // push in the array list
+         paLMSType[bOffset] = uLmsType;
+         bOffset++;
+
+         // search for next comma
+         sCurrentArg = sNextArg;
+
+      } while (bOffset != uHSSLevel);
+
+      if (sNextArg != NULL)
+      {
+         break;
+      }
+      
+      return CK_TRUE;
+
+   } while (FALSE);
+
+      // convert the attribute type
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL cmdarg_LMSOTSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uHSSLevel)
+*/
+CK_BBOOL cmdarg_LMSOTSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uHSSLevel)
+{
+   PARSER_CURRENT_CMD_ARG* arg = NULL;
+   CK_CHAR_PTR          sString = NULL;
+   CK_CHAR_PTR          sCurrentArg = NULL;
+   CK_CHAR_PTR          sNextArg = NULL;
+   CK_LMOTS_TYPE        uLmsotsType = 0;
+   CK_BYTE              bOffset = 0;
+
+   do
+   {
+      // Get argument -attribute
+      arg = parser_SearchArgument(ARG_TYPE_LMOTS_TYPE);
+
+      if (arg == NULL)
+      {
+         // request the user to enter a attribute name
+         P11Util_DisplaySupportedLMSOTSType();
+         if (uHSSLevel == DEFAULT_LMS_LEVEL)
+         {
+            printf("Enter LMS-OT type Name : ");
+         }
+         else
+         {
+            printf("Enter LMS-OT type Name as a suite of LM-OTS type separated with comma starting with level 1 :\n");
+         }
+
+
+         if (Console_RequestString() < 0)
+         {
+            return 0;
+         }
+         sString = Console_GetBuffer();
+      }
+      else
+      {
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      sCurrentArg = sString;
+      bOffset = 0;
+
+      do
+      {
+         // if null stop and returns error
+         if (sCurrentArg == NULL)
+         {
+            return CK_FALSE;
+         }
+
+         sNextArg = strchr(sCurrentArg, strComma);
+         if (sNextArg != NULL)
+         {
+            sNextArg[0] = 0x00;
+            sNextArg++;
+         }
+
+         // get LMS type value
+         uLmsotsType = P11Util_GetLMSOTSType(sCurrentArg);
+
+         // Check if error
+         if (uLmsotsType == -1)
+         {
+            return CK_FALSE;
+         }
+         // push in the array list
+         paLMSOTType[bOffset] = uLmsotsType;
+         bOffset++;
+
+         // search for next comma
+         sCurrentArg = sNextArg;
+
+      } while (bOffset != uHSSLevel);
+
+      if (sNextArg != NULL)
+      {
+         break;
+      }
+
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   // convert the attribute type
+   return CK_FALSE;
+}

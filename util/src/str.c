@@ -34,6 +34,7 @@ const char strQuote = '"';
 const char strSpace = ' ';
 const char strEqual = '=';
 const char strDash = '-';
+const char strComma = ',';
 
 const char strBackSlashString[2] = {'\\', 0};
 
