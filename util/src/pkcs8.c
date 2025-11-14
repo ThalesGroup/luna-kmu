@@ -1997,6 +1997,12 @@ CK_BBOOL pksc8_Check_PublicKeyInfoLMS(LMS_PUBLIC_KEY* sMlKemPublicKey, CK_CHAR_P
       sMlKemPublicKey->sPublicKey = asn1_Check_GetCurrentValueBuffer();
       sMlKemPublicKey->uPublicKeyLength = asn1_Check_GetCurrentValueLen();
 
+      // Get LMS details from public key. 
+      // subjectpublickey migth be reworked
+      sMlKemPublicKey->uHSS_Levels = sMlKemPublicKey->sPublicKey[3];
+      sMlKemPublicKey->uLmsType = sMlKemPublicKey->sPublicKey[7];
+      sMlKemPublicKey->uLmotsType = sMlKemPublicKey->sPublicKey[11];
+
       // check no other tlv after
       if (asn1_Check_NoNextTlv() == CK_FALSE)
       {
