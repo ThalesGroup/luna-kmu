@@ -46,10 +46,9 @@ extern "C" {
 #define ARG_TYPE_CKA_PRIVATE        19
 #define ARG_TYPE_CKA_SENSITIVE      20
 #define ARG_TYPE_CKA_ID             21
-#define ARG_TYPE_ECC_CURVE          22
-#define ARG_TYPE_HANDLE             23
-#define ARG_TYPE_HANDLE_WRAPKEY     24
-#define ARG_TYPE_HANDLE_UNWRAPKEY   25
+#define ARG_TYPE_CKA_ENCAPSULATE    22
+#define ARG_TYPE_CKA_DECAPSULATE    23
+
 #define ARG_TYPE_FILE_OUTPUT        26
 #define ARG_TYPE_FILE_INPUT         27
 #define ARG_TYPE_WRAP_ALGO          28
@@ -85,6 +84,20 @@ extern "C" {
 #define ARG_TYPE_METHOD_KCV         58
 #define ARG_TYPE_CRYPTO_USER        59
 #define ARG_TYPE_KEY_COMP           60
+#define ARG_TYPE_ATTR_NAME          61
+#define ARG_TYPE_KEY_PASSWORD       62
+#define ARG_TYPE_SALT               63
+#define ARG_TYPE_ITERATION          64
+#define ARG_TYPE_PRF                65
+#define ARG_TYPE_LIMIT              66
+#define ARG_TYPE_PBE                67
+#define ARG_TYPE_ECC_CURVE          68
+#define ARG_TYPE_HANDLE             69
+#define ARG_TYPE_HANDLE_WRAPKEY     70
+#define ARG_TYPE_HANDLE_UNWRAPKEY   71
+#define ARG_TYPE_LMS_TYPE           72
+#define ARG_TYPE_LMOTS_TYPE         73
+#define ARG_TYPE_HSS_LEVEL          74
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -92,6 +105,14 @@ extern "C" {
 #define FILE_FORMAT_PKCS8           0x20
 #define FILE_FORMAT_PKCS12          0x40
 #define FILE_FORMAT_TR31            0x80
+
+#define TYPE_KEY_SIZE_AES           0x01
+#define TYPE_KEY_SIZE_DES           0x02
+#define TYPE_KEY_SIZE_HMAC_GEN      0x03
+#define TYPE_KEY_SIZE_RSA           0x04
+#define TYPE_KEY_SIZE_MLDSA         0x05
+#define TYPE_KEY_SIZE_MLKEM         0x06
+#define TYPE_KEY_SIZE_MZMK          0x07
 
 
 #define cmdarg_GetLabel(buffer, size)        cmdarg_SearchTypeString(ARG_TYPE_CKA_LABEL, buffer, size)
@@ -111,12 +132,17 @@ extern "C" {
 #define cmdarg_GetCKAUnwrap(p)               cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_UNWRAP, p, CK_TRUE)
 #define cmdarg_GetCKAModifiable(p)           cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_MODIFIABLE, p, CK_TRUE)
 #define cmdarg_GetCKAExtractable(p)          cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_EXTRACTABLE, p, CK_TRUE)
+#define cmdarg_GetCKAEncapsulate(p)          cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_ENCAPSULATE, p, CK_TRUE)
+#define cmdarg_GetCKADecapsulate(p)          cmdarg_SearchTypeBoolean(ARG_TYPE_CKA_DECAPSULATE, p, CK_TRUE)
 #define cmdarg_GetOutputFilePath(buf, size)  cmdarg_SearchTypeString(ARG_TYPE_FILE_OUTPUT, buf, size)
 #define cmdarg_GetInputFilePath(buf, size)   cmdarg_SearchTypeString(ARG_TYPE_FILE_INPUT, buf, size)
 #define cmdarg_ArgGetIV()                    cmdarg_SearchTypeString(ARG_TYPE_IV, NULL, 0)
 #define cmdarg_GetGCMAuthData()              cmdarg_SearchTypeString(ARG_TYPE_GCM_AUTH_DATA, NULL, 0)
+#define cmdarg_ArgGetSalt()                  cmdarg_SearchTypeString(ARG_TYPE_SALT, NULL, 0)
 #define cmdarg_GetGCMAuthTagLen()            cmdarg_SearchTypeInteger(ARG_TYPE_GCM_TAG_LEN)
 #define cmdarg_GetHash()                     cmdarg_SearchHash(ARG_TYPE_HASH_KEY)
+#define cmdarg_Limit()                       cmdarg_SearchTypeInteger(ARG_TYPE_LIMIT)
+#define cmdarg_GetIteration()                cmdarg_SearchTypeInteger(ARG_TYPE_ITERATION)
 
    _EXT  CK_CHAR_PTR             cmdarg_GetPassword();
    _EXT  CK_SLOT_ID              cmdarg_GetSlotID();
@@ -128,7 +154,7 @@ extern "C" {
    _EXT  CK_OBJECT_HANDLE        cmdarg_GetHandleValue(CK_BYTE bArgType);
    _EXT  CK_CHAR_PTR             cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK_ULONG sBufferSize);
    _EXT  CK_LONG                 cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString);
-   _EXT  CK_LONG                 cmdarg_GetKeySize();
+   _EXT  CK_LONG                 cmdarg_GetKeySize(CK_ULONG uKeyType);
    _EXT  P11_RSA_EXP*            cmdarg_GetPublicExponant();
    _EXT  CK_MECHANISM_TYPE       cmdarg_GetRSAGenMechParam();
    _EXT  CK_MECHANISM_TYPE       cmdarg_GetDHGenMechParam();
@@ -139,6 +165,7 @@ extern "C" {
    _EXT  P11_DERIVE_MECH*        cmdarg_SearchDerivationAlgoValue(BYTE bArgType);
    _EXT  P11_DERIVE_MECH*        cmdarg_GetDerivationMecansim(BYTE bArgType);
    _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetEncryptionMecansim(BYTE bArgType);
+   _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetPBEMecansim();
    _EXT  CK_KDF_PRF_TYPE         cmdarg_GetKdfType();
    _EXT  CK_KDF_PRF_ENCODING_SCHEME cmdarg_GetKdfScheme();
    _EXT  CK_LONG_64              cmdarg_GetKdfCounter();
@@ -146,8 +173,13 @@ extern "C" {
    _EXT  CK_LONG                 cmdarg_SearchTypeUnsignedInteger(CK_BYTE bArgType);
    _EXT  CK_LONG                 cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize);
    _EXT  BYTE                    cmdarg_GetKCVMethod();
+   _EXT  CK_ATTRIBUTE_TYPE       cmdarg_AttributeType();
    _EXT  CK_BBOOL                cmdarg_isCryptoUserLoginRequested();
    _EXT  CK_LONG                 cmdarg_GetCompomentsNumber();
+   _EXT  CK_CHAR_PTR             cmdarg_GetKeyPassword();
+   _EXT  CK_LONG                 cmdarg_GetHSSLevel();
+   _EXT  CK_BBOOL                cmdarg_LMSType(CK_LMS_TYPE paLMSType[], CK_LONG uMaxSize);
+   _EXT  CK_BBOOL                cmdarg_LMSOTSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uRequiredType);
 
 #undef _EXT
 

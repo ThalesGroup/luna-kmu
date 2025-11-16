@@ -11,22 +11,28 @@ It has been tested with both Luna Network HSMs and the [Luna Cloud HSM service](
 The purpose of KMU is to offer handful key management functions to import/export/derive cryptographic keys using transport keys (or "wrap keys", which can be private or secret keys) to address typical IOT and automotive use cases.
 
 KMU allows to:
--	Create data objects.
--	List objects in partitions.
--	Display and modify object attributes.
--	Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, SM2, SM4 or generic ones).
-- 	Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
--	Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
--	Export public keys in a binary file or a text file encoded using ASN1 DER and PKCS#8.
--	Import wrapped private/secret keys from a file (currently limited to RSA OAEP, AES variant wrap algorithms).
--   Import wrapped AES keys from a file encoded in TR31 format(partial support with AES key only as ZMK).
-- 	Import DES or AES keys as multiple clear key compoments and KCV (XOR method)
--	Import public keys from a binary file or a text text file encoded using ASN1 DER, PKCS#8.
--	Encrypt/decrypt from/to a file (currently limited to RSA OAEP and AES encryption algorithms).
--	Derive key (currently limited to SHAxxx derivation mechanisms and proprietary Thales Luna key derivation functions such as CKM_NIST_PRF_KDF).
--	Generate a digest for symetric keys.
--	Convert a file format to other file formats.
--	Compute KCV on a symetric key (currently limited to 3 KCV methods: PCI DSS, PKCS#11 and Global Platform).
+- Create data objects.
+- List objects in partitions.
+- Display and modify object attributes.
+- Create keys (including DES, AES, RSA, DSA, DH, ECDSA, EdDSA, Montgomery, ML-DSA, ML-KEM, SM2, SM4, HMAC or generic ones).
+- Create AES or DES keys as multiple clear key compoments and KCV (XOR method)
+- Export and wrap private/secret keys (currently limited to RSA OAEP, AES variant wrap algorithms) in a file.
+- Export private keys protected with password based encryption (PBKDF2) in a PEM-PKCS#8 file. 
+- Export public keys in a PEM-PKCS#8 file.
+- Export public keys in a binary file or a text file encoded in ASN1 DER.
+- Import wrapped private/secret keys from a file (currently limited to RSA OAEP, AES variant wrap algorithms).
+- Import wrapped AES keys from a file encoded in TR31 format(partial support with AES key only as ZMK).
+- Import private keys protected with password based encryption (PBKDF2) from a PEM-PKCS#8 file.
+- Import public keys from a PEM-PKCS#8 file.
+- Import public keys from a binary file and a text file encoded in ASN1 DER.
+- Import DES or AES keys as multiple clear key compoments and KCV (XOR method)
+- Encrypt/decrypt from/to a file (currently limited to RSA OAEP and AES encryption algorithms).
+- Derive key (currently limited to SHAxxx derivation mechanisms and proprietary Thales Luna key derivation functions such as CKM_NIST_PRF_KDF).
+- Generate a digest for symetric keys.
+- Convert a file format to other file formats.
+- Compute KCV on a symetric key (currently limited to 4 KCV methods: PCI DSS, PKCS#11, Global Platform and HMAC-SHA256).
+- Perform a remote MZMK setup with Thales TMD 
+- Get the HSM capabilities (limited rigth now to key generation mecanism)
 
 These operations require to create partitions, register clients, initialize user roles... These tasks can be performed using:
 - The [Luna Universal Client](https://thalesdocs.com/gphsm/luna/7/docs/network/Content/Utilities/Preface.htm), and esp.
@@ -46,6 +52,7 @@ KMU is available as a console and might be scriptable from a command line. The c
   - 2015 -2022 (refer to https://learn.microsoft.com/fr-fr/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022).
 - Thales Luna Universal Client:
   - 10.5.x or later.
+    - Note. Client 10.9.1 or later is recommanded to use PQC features. 
 - Environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
   - This environment variable is set when you install luna client.
   - KMU searches for a "cryptoki.dll" in the path pointed at by this environment variable.
@@ -54,16 +61,17 @@ KMU is available as a console and might be scriptable from a command line. The c
 ## Build
 - Requirements:
   - Base OS:
-    - Windows-10 or later.
+    - Windows 10 or later.
     - Windows Server 2019 or later.
   - Development environment:
     - Visual Studio 2015 or later with a C/C++ build chain.
     - Thales Luna Universal Client:
-      - 10.5.x or later.
+      - 10.9.1 or later.
     - Environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
 - Using Visual Studio:
   - Open the "kmu.sln" solution file.
   - Select the "release" configuration and build the solution.
+    - Note. An error may happen during compilation in cryptoki_v2.h. If happens replace #include "RSA/pkcs11.h" by #include "pkcs11.h".
 - Once built, "kmu.exe" can be used immediately.
 
 Note:
@@ -78,12 +86,15 @@ listslot                        This command lists all PKCS#11 slot
 login                           Login to selected slot
 logout                          Logout the current slot
 list                            This command lists all the keys in the selected slot
+getcapabilities                 This command returns the PKCS11 capabilities (limited to key generation)
 generatekey                     This command generates a symmetric or asymmetric key
 createdo                        This command creates a data object
 getattribute                    This command displays object attributes
 setattribute                    This command set attributes to an object
+readattribute                   This command read an attribute of a object and write in a file
+writeattribute                  This command write an attribute of a object read from a file
 export                          This command exports a key to a file
-import                          This command imports a key from a file
+import                          This command imports a key from a file or from key components
 encrypt                         This command encrypts a file
 decrypt                         This command decrypts a file
 derive                          This command derives a key
@@ -91,6 +102,7 @@ convert                         This command converts a file to a different form
 delete                          This command deletes an object
 digestkey                       This command return a message digest of secret key
 computekcv                      This command calculate the KCV of a symetric key
+remotemzmk                      This command generate and store a payshield TMD remote MZMK
 exit                            Exit console
 ```
 

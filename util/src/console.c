@@ -85,8 +85,8 @@ CK_ULONG             uConsoleBufferLength;
 #define              AUTO_COMPLETE_STOPPED         CK_FALSE
 #define              AUTO_COMPLETE_STARTED         CK_TRUE
 
-CK_CHAR_PTR          *pCoAutoCompleteList;
-CK_ULONG             uAutoCompleteListNumber; 
+CK_CHAR_PTR* pCoAutoCompleteList;
+CK_ULONG             uAutoCompleteListNumber;
 CK_CHAR_PTR          pAutoCompleteFirstCompleteBuffer;
 CK_ULONG             pAutoCompleteFirstOffsetComplete;
 CK_ULONG             pAutoCompleteCurrentIndex;
@@ -138,7 +138,7 @@ CK_BBOOL Console_Init()
    {
       pConsoleHistory[uLoop] = NULL;
    }
-   
+
    // Get Input and output handle
    hInput = GetStdHandle(STD_INPUT_HANDLE);
    hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -678,7 +678,7 @@ CK_BYTE Console_HistorySearch(CK_BYTE bmode)
 void Console_HistoryMove(CK_BYTE bDirection)
 {
    CK_BYTE bSavedHistoryIndex = bHistoryIndex;
-   
+
    switch (bDirection)
    {
    case EXTENDED_CODE_ARROW_UP:
@@ -786,7 +786,7 @@ CK_ULONG Console_AutoCompleteGetBeginingOfArgument(CK_ULONG uOffsetPreviousSpace
 /*
     FUNCTION:        CK_BBOOL Console_AutoCompleteSearchMatch(CONSOLE_AUTOCOMPLETE_MATCH * sAutoCompleteMatch, CK_ULONG uFirstIndex, CK_ULONG uLastIndex, CK_CHAR_PTR sBuffer, CK_ULONG uBufferLength, CK_BBOOL bIgnoreFullMatch)
 */
-CK_BBOOL Console_AutoCompleteSearchMatch(CONSOLE_AUTOCOMPLETE_MATCH * sAutoCompleteMatch, CK_ULONG uFirstIndex, CK_ULONG uLastIndex, CK_CHAR_PTR sBuffer, CK_ULONG uBufferLength, CK_BBOOL bIgnoreFullMatch)
+CK_BBOOL Console_AutoCompleteSearchMatch(CONSOLE_AUTOCOMPLETE_MATCH* sAutoCompleteMatch, CK_ULONG uFirstIndex, CK_ULONG uLastIndex, CK_CHAR_PTR sBuffer, CK_ULONG uBufferLength, CK_BBOOL bIgnoreFullMatch)
 {
    CK_ULONG uCommandListLength;
    // loop for each entry in the all complete list
@@ -862,12 +862,12 @@ void Console_AutoCompleteFirst()
    CK_ULONG uOffsetPreviousSpace;
    CONSOLE_AUTOCOMPLETE_MATCH sAutoCompleteMatch = { 0 };
    CK_CHAR_PTR uMatchCommandCommand;
-      
+
    // push the cursor to the end of the line
    Console_TerminalCursorMoveEndOfLine(),
 
-   // search begining of current argument
-   uOffsetPreviousSpace = Console_AutoCompleteGetBeginingOfArgument(uCursorOffset);
+      // search begining of current argument
+      uOffsetPreviousSpace = Console_AutoCompleteGetBeginingOfArgument(uCursorOffset);
 
    do
    {
@@ -1136,6 +1136,11 @@ void Console_TerminalDeleteCharactersEndOfLine(CK_ULONG uLength)
       {
          Console_TerminalCursorRigthN(1);
       }
+      else
+      {
+         Console_TerminalCursorRigthN(1);
+         Console_TerminalCursorLeftN(1);
+      }
 
       // update the console buffer, offset and length
       uConsoleBufferLength--;
@@ -1264,7 +1269,7 @@ void Console_TerminalWriteCharactersEndOfLine(CK_CHAR_PTR sString, CK_BBOOL bIns
 {
    CK_BBOOL bEndOfLine;
    CK_ULONG uLoop;
-   CK_CHAR sChar[2] = { 0 };
+   CK_CHAR sChar[3] = { 0 };
    CK_ULONG uSize = (CK_ULONG)strlen(sString);
 
    // copy the new string
@@ -1273,10 +1278,25 @@ void Console_TerminalWriteCharactersEndOfLine(CK_CHAR_PTR sString, CK_BBOOL bIns
       // Check if end of line is reach
       bEndOfLine = Console_TerminalCursorIsEndOfLine();
 
-      // Write the chartacter
-      sChar[0] = sString[uLoop];
-      printf("%s", &sChar[0]);
-      
+      // check if end of line
+      if (bEndOfLine)
+      {
+         // Strange behavior with windows 11, Console_TerminalCursorLeftN does work when reaching end of line and end of screen console at bottom
+         // it works if we insert 3 caracters at the end
+         sChar[0] = sString[uLoop];
+         sChar[1] = ' ';
+         printf("%s", &sChar[0]);
+         Console_TerminalCursorRigthN(1);
+         bEndOfLine = CK_FALSE;
+      }
+      else
+      {
+         // Write the chartacter
+         sChar[0] = sString[uLoop];
+         sChar[1] = 0;
+         printf("%s", &sChar[0]);
+      }
+
       //push buffer in buffer
       pConsoleBuffer[uCursorOffset] = sString[uLoop];
 
@@ -1294,10 +1314,10 @@ void Console_TerminalWriteCharactersEndOfLine(CK_CHAR_PTR sString, CK_BBOOL bIns
       pConsoleBuffer[uCursorOffset] = 0;
 
       // if end of line, move the cursor the next line
-      if (bEndOfLine == CK_TRUE)
+/*    if (bEndOfLine == CK_TRUE)
       {
          Console_TerminalCursorLeftN(1);
-      }
+      }*/
    }
 }
 
@@ -1310,7 +1330,7 @@ void Console_TerminalWriteCharactersMiddleOfLine(CK_CHAR_PTR sString)
    CK_ULONG uShiftSize;
    CK_BBOOL bEndOfLine;
    CK_ULONG uLoop;
-   CK_CHAR sChar[2] = { 0 };
+   CK_CHAR sChar[3] = { 0 };
 
    // shift on one byte to the left
    uShiftSize = (uConsoleBufferLength - uCursorOffset + uSize);
@@ -1330,15 +1350,31 @@ void Console_TerminalWriteCharactersMiddleOfLine(CK_CHAR_PTR sString)
       // Check if end of line is reach
       bEndOfLine = Console_TerminalCursorIsEndOfLine();
 
-      // Write the chartacter
-      sChar[0] = pConsoleBuffer[uCursorOffset + uLoop];
-      printf("%s", &sChar[0]);
+      // check if end of line
+      if (bEndOfLine == CK_TRUE)
+      {
+         // Strange behavior with windows 11, Console_TerminalCursorLeftN does work when reaching end of line and end of screen console at bottom
+         // it works if we insert 3 caracters at the end
+         sChar[0] = pConsoleBuffer[uCursorOffset + uLoop];
+         sChar[1] = ' ';
+         printf("%s", &sChar[0]);
+         Console_TerminalCursorRigthN(1);
+      }
+      else
+      {
+         // Write the chartacter
+         sChar[0] = pConsoleBuffer[uCursorOffset + uLoop];
+         sChar[1] = 0;
+         printf("%s", &sChar[0]);
+      }
 
+
+      /*
       // if end of line, move the cursor the next line
       if (bEndOfLine == CK_TRUE)
       {
          Console_TerminalCursorLeftN(1);
-      }
+      }*/
    }
    // increment cursor offset
    uCursorOffset++;
@@ -1417,6 +1453,7 @@ CK_BBOOL Console_TerminalCursorMove(CK_BBOOL bDirection, CK_ULONG sValue)
    CONSOLE_SCREEN_BUFFER_INFO screeninfo;
    CK_BBOOL bIsCrossLine = CK_FALSE;
    SHORT uShift = 0;
+   CK_BBOOL bresult;
 
    if (sValue == 0)
    {
@@ -1505,7 +1542,7 @@ CK_BBOOL Console_TerminalCursorMove(CK_BBOOL bDirection, CK_ULONG sValue)
          }
       }
       // set new cursor position
-      SetConsoleCursorPosition(hOutput, screeninfo.dwCursorPosition);
+      bresult = SetConsoleCursorPosition(hOutput, screeninfo.dwCursorPosition);
    }
    return bIsCrossLine;
 }

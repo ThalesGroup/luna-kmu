@@ -34,6 +34,7 @@
 #include "pkcs8.h"
 #include "console.h"
 #include "tr31.h"
+#include "tmd.h"
 
 #define MAX_LABEL_SIZE        100
 CK_CHAR  cmd_Label[MAX_LABEL_SIZE];
@@ -70,12 +71,26 @@ CK_BBOOL cmd_IsLoggedIn()
 */
 CK_BBOOL cmd_kmu_list(CK_BBOOL bIsConsole)
 {
+   CK_LONG uLimit = 0;
    if (cmd_IsLoggedIn() == CK_FALSE)
    {
       return CK_FALSE;
    }
 
-   return P11_FindAllObjects();
+   // get limit
+   uLimit = cmdarg_Limit();
+
+   // check if limit is set with correct integer value or absent.
+   if (uLimit < 0)
+   {
+      if (uLimit != CK_NULL_ELEMENT)
+      {
+         printf("Invalid argument value, must be an integer: -limit\n");
+         return CK_FALSE;
+      }
+   }
+
+   return P11_FindAllObjects(uLimit);
 }
 
 /*
@@ -223,6 +238,40 @@ CK_BBOOL cmd_kmu_logout(CK_BBOOL bIsConsole)
 }
 
 /*
+    FUNCTION:        CK_BBOOL cmd_kmu_getcapabilies(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_getcapabilities(CK_BBOOL bIsConsole)
+{
+   CK_SLOT_ID u32_SlotID = 0;
+   CK_SLOT_INFO slotInfo = { 0 };
+   do
+   {
+      // get the slot ID
+      u32_SlotID = cmdarg_GetSlotID();
+
+      // if not slot ID provided, use slot 0
+      if (u32_SlotID == CK_NULL_ELEMENT)
+      {
+         u32_SlotID = 0;
+      }
+      
+      // check if slot exist
+      if (p11_GetSlotInfo(u32_SlotID, &slotInfo) == CK_FALSE)
+      {
+         printf("invalid slot ID \n");
+         break;
+      }
+
+      // display the mecansim info
+      P11Util_DisplayKeyGenMecanismInfo(u32_SlotID);
+
+      return CK_TRUE;
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
 */
 CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
@@ -255,6 +304,8 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
       cmdarg_GetCKADerive(&sKeyGenTemplate.bCKA_Derive);
       cmdarg_GetCKAExtractable(&sKeyGenTemplate.bCKA_Extractable);
       cmdarg_GetCKAModifiable(&sKeyGenTemplate.bCKA_Modifiable);
+      cmdarg_GetCKAEncapsulate(&sKeyGenTemplate.bCKA_Encapsulate);
+      cmdarg_GetCKADecapsulate(&sKeyGenTemplate.bCKA_Decapsulate);
 
       // Get CKA id
       sKeyGenTemplate.pCKA_ID = cmd_cka_ID;
@@ -298,6 +349,12 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
             // get label public
             sKeyGenTemplate.pKeyLabelPublic = cmdarg_GetLabelPublic(cmd_Label_public, MAX_LABEL_SIZE);
 
+            if ((sKeyGenTemplate.pKeyLabelPrivate == NULL) && (sKeyGenTemplate.pKeyLabelPublic == NULL))
+            {
+               printf("Missing argument : -LabelPrivate and LabelPublic \n");
+               break;
+            }
+
          }
          else
          {
@@ -310,7 +367,7 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
          {
          case CKK_RSA:
             // get arg size
-            sKeyGenTemplate.skeySize = cmdarg_GetKeySize();
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_RSA);
 
             if (sKeyGenTemplate.skeySize == 0)
             {
@@ -378,11 +435,105 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
                return CK_FALSE;
             }
             break;
+
+         case CKK_ML_DSA:
+
+            // get arg size
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_MLDSA);
+
+            if (sKeyGenTemplate.skeySize == 0)
+            {
+               printf("Invalid or missing arg  : -keysize\n");
+               return CK_FALSE;
+            }
+
+            // get parameter set from key size
+            sKeyGenTemplate.pML_DSA = P11Util_GetML_DSA_ParameterFromKeySize(sKeyGenTemplate.skeySize);
+
+            if (sKeyGenTemplate.pML_DSA == NULL)
+            {
+               printf("Invalid size  : -keysize\n");
+               return CK_FALSE;
+            }
+            break;
+
+         case CKK_ML_KEM:
+
+            // get arg size
+            sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_MLKEM);
+
+            if (sKeyGenTemplate.skeySize == 0)
+            {
+               printf("Invalid or missing arg  : -keysize\n");
+               return CK_FALSE;
+            }
+
+            // get parameter set from key size
+            sKeyGenTemplate.pML_KEM = P11Util_GetML_KEM_ParameterFromKeySize(sKeyGenTemplate.skeySize);
+
+            if (sKeyGenTemplate.pML_KEM == NULL)
+            {
+               printf("Invalid size  : -keysize\n");
+               return CK_FALSE;
+            }
+            break;
+
+         case CKK_HSS:
+         case CKK_LMS:
+
+            if (sKeyGenTemplate.skeyType == CKK_HSS)
+            {
+               // get HSS level
+               sKeyGenTemplate.pHSS.uHSS_Levels = cmdarg_GetHSSLevel();
+
+               // if absent set by default
+               if (sKeyGenTemplate.pHSS.uHSS_Levels == CK_NULL_ELEMENT)
+               {
+                  printf("Invalid HSS level value : -hss-level\n");
+                  return CK_FALSE;
+               }
+
+               // check level
+               if (sKeyGenTemplate.pHSS.uHSS_Levels > MAX_HSS_LEVEL)
+               {
+                  printf("Invalid HSS level value : -hss-level\n");
+                  return CK_FALSE;
+               }
+               // check level
+               if (sKeyGenTemplate.pHSS.uHSS_Levels <= 0)
+               {
+                  printf("Invalid HSS level value : -hss-level\n");
+                  return CK_FALSE;
+               }
+            }
+            else
+            {
+               // LMS default level to 1
+               sKeyGenTemplate.pHSS.uHSS_Levels = DEFAULT_LMS_LEVEL;
+               sKeyGenTemplate.skeyType = CKK_HSS;
+            }
+
+
+            // get LMS type array
+            if (cmdarg_LMSType(&sKeyGenTemplate.pHSS.uLmsType[0], sKeyGenTemplate.pHSS.uHSS_Levels) == CK_FALSE)
+            {
+               printf("Invalid LMS Type value  : -lms-type\n");
+               return CK_FALSE;
+            }
+
+            // get LMS-OTS type array
+            if (cmdarg_LMSOTSType(&sKeyGenTemplate.pHSS.uLmotsType[0], sKeyGenTemplate.pHSS.uHSS_Levels) == CK_FALSE)
+            {
+               printf("Invalid LMS-OTS Type value  : -lmots-type\n");
+               return CK_FALSE;
+            }
+            break;
+
          default:
             return CK_FALSE;
          }
          // generate key pair
-         return P11_GenerateKeyPair(&sKeyGenTemplate);
+         return P11_GenerateKeyPair(&sKeyGenTemplate, NULL, NULL, CK_TRUE);
       }
       else // keygen
       {
@@ -398,10 +549,25 @@ CK_BBOOL cmd_kmu_generateKey(CK_BBOOL bIsConsole)
          switch (sKeyGenTemplate.skeyType)
          {
          case CKK_AES:
+            // for AES and hmac, key length is required
+            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES)) == 0)
+            {
+               printf("Invalid or missing argument  : -keysize \n");
+               return CK_FALSE;
+            }
+            break;
+
          case CKK_GENERIC_SECRET:   
+            // for AES and hmac, key length is required
+            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_HMAC_GEN)) == 0)
+            {
+               printf("Invalid or missing argument  : -keysize \n");
+               return CK_FALSE;
+            }
+            break;
          case CKK_DES:
             // for AES and hmac, key length is required
-            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize()) == 0)
+            if ((sKeyGenTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_DES)) == 0)
             {
                printf("Invalid or missing argument  : -keysize \n");
                return CK_FALSE;
@@ -540,6 +706,187 @@ CK_BBOOL cmd_kmu_getattribute(CK_BBOOL bIsConsole)
 
    return CK_FALSE;
 }
+/*
+readattribute -handle=336 -outputfile=output.bin -attribute=value
+*/
+
+/*
+    FUNCTION:        CK_BBOOL cmd_kmu_readattribute(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_readattribute(CK_BBOOL bIsConsole)
+{
+   CK_OBJECT_HANDLE  hHandle = 0;
+   CK_CHAR_PTR       sFilePath = NULL;
+   CK_ATTRIBUTE_TYPE cAttribute;
+   CK_CHAR_PTR       sFileArray = NULL;
+   CK_ULONG          sFileLength = 0;
+   CK_BBOOL          bIsBinary = CK_FALSE;
+   CK_ULONG          uWrittenSize = 0;
+
+   do
+   {
+      // check if loggued to the slot
+      if (cmd_IsLoggedIn() == CK_FALSE)
+      {
+         break;
+      }
+
+      // get handle
+      hHandle = cmdarg_GetHandleValue(ARG_TYPE_HANDLE);
+      if (hHandle == CK_NULL_ELEMENT)
+      {
+         printf("wrong argument : -handle \n");
+         break;
+      }
+
+      // search for object handle
+      if (P11_FindObject(hHandle) == CK_FALSE)
+      {
+         printf("object with handle %i not found.\n", hHandle);
+         break;
+      }
+
+      // get output file path
+      sFilePath = cmdarg_GetOutputFilePath(cmd_OutputFile, MAX_FILE_NAME_SIZE);
+      if (sFilePath == NULL)
+      {
+         printf("wrong or missing argument : -outputfile \n");
+         break;
+      }
+
+      // getattribute type
+      cAttribute = cmdarg_AttributeType();
+
+      // read attributes
+      if (P11_GetAttributesArray(hHandle, cAttribute, &sFileArray, &sFileLength) == CK_TRUE)
+      {
+         // check attribute type and set binary flag
+         switch (cAttribute)
+         {
+         case CKA_ID:
+         case CKA_VALUE:
+            bIsBinary = CK_TRUE;
+            break;
+         }
+
+         // write the file
+         uWrittenSize = File_Write(sFilePath, sFileArray, sFileLength, bIsBinary);
+
+         // free memory
+         free(sFileArray);
+
+         // Check of file is written
+         if (uWrittenSize > 0)
+         {
+            printf("\n");
+            printf("Successfull: %i bytes written in file : %s \n", uWrittenSize, sFilePath);
+            return CK_TRUE;
+         }
+
+         printf("Error: Cannot write file : %s \n", sFilePath);
+      }
+
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+/*
+writeattribute -handle=336 -inputfile=id.bin -attribute=value
+writeattribute -handle=336 -inputfile=id.bin -attribute=application
+writeattribute -handle=336 -inputfile=id.bin -attribute=application
+writeattribute -handle=336 -inputfile=application.txt -attribute=application
+*/
+/*
+    FUNCTION:        CK_BBOOL cmd_kmu_writeattribute(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_writeattribute(CK_BBOOL bIsConsole)
+{
+   CK_OBJECT_HANDLE  hHandle = 0;
+   CK_CHAR_PTR       sFilePath = NULL;
+   CK_ATTRIBUTE_TYPE cAttribute;
+   CK_CHAR_PTR       sFileArray = NULL;
+   CK_ULONG          sFileLength = 0;
+   CK_BBOOL          bResult = CK_FALSE;
+   CK_BBOOL          bValidFormat = CK_FALSE;
+
+   do
+   {
+      // check if loggued to the slot
+      if (cmd_IsLoggedIn() == CK_FALSE)
+      {
+         return CK_FALSE;
+      }
+
+      // get handle
+      hHandle = cmdarg_GetHandleValue(ARG_TYPE_HANDLE);
+      if (hHandle == CK_NULL_ELEMENT)
+      {
+         printf("wrong argument : -handle \n");
+         return CK_FALSE;
+      }
+
+      // search for object handle
+      if (P11_FindObject(hHandle) == CK_FALSE)
+      {
+         printf("object with handle %i not found.\n", hHandle);
+         return CK_FALSE;
+      }
+
+      // get output file path
+      sFilePath = cmdarg_GetInputFilePath(cmd_InputFile, MAX_FILE_NAME_SIZE);
+      if (sFilePath == NULL)
+      {
+         printf("wrong or missing argument : -inputfile \n");
+         return CK_FALSE;
+      }
+
+      // getattribute type
+      cAttribute = cmdarg_AttributeType();
+
+      switch (cAttribute)
+      {
+      case CKA_ID:
+      case CKA_VALUE:
+         // read the file as binary
+         sFileLength = File_Read(sFilePath, &sFileArray, CK_TRUE);
+         bValidFormat = CK_TRUE;
+         break;
+      case CKA_APPLICATION:
+         // read the file as non binary
+         sFileLength = File_Read(sFilePath, &sFileArray, CK_FALSE);
+         
+         // check format ascii
+         bValidFormat = str_CheckASCII(sFileArray, sFileLength);
+         break;
+      default:
+         printf("invalid attribute name:\n");
+         return CK_FALSE;
+      }
+
+      // check file
+      if (sFileLength == 0)
+      {
+         printf("cannot read file : %s \n", sFilePath);
+         break;
+      }
+
+      // check format
+      if (bValidFormat == CK_FALSE)
+      {
+         printf("Invalid file format\n");
+         break;
+      }
+
+      // set attribute in object
+      bResult = P11_SetAttributeArray(hHandle, cAttribute, sFileArray, sFileLength);
+
+   } while (FALSE);
+
+   // release memory
+   free(sFileArray);
+
+   return bResult;
+}
 
 /*
     FUNCTION:        CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
@@ -585,25 +932,27 @@ CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
       case CKO_PRIVATE_KEY:
 
          // update key attributes
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_SIGN, CKA_SIGN);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_VERIFY, CKA_VERIFY);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_WRAP, CKA_WRAP);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_UNWRAP, CKA_UNWRAP);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCRYPT, CKA_ENCRYPT);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECRYPT, CKA_DECRYPT);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_DERIVE, CKA_DERIVE);
-         bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_EXTRACTABLE, CKA_EXTRACTABLE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_SIGN, CKA_SIGN);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_VERIFY, CKA_VERIFY);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_WRAP, CKA_WRAP);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_UNWRAP, CKA_UNWRAP);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCRYPT, CKA_ENCRYPT);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECRYPT, CKA_DECRYPT);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_ENCAPSULATE, CKA_ENCAPSULATE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DECAPSULATE, CKA_DECAPSULATE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_DERIVE, CKA_DERIVE);
+         bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_EXTRACTABLE, CKA_EXTRACTABLE);
 
          // update id
-         bUpdateNumber += cmd_kmu_setattributeArray(hHandle, ARG_TYPE_CKA_ID, CKA_ID);
+         bUpdateNumber += cmd_setattributeArray(hHandle, ARG_TYPE_CKA_ID, CKA_ID);
 
          break;
       case CKO_DATA:
 
          // update value
-         bUpdateNumber += cmd_kmu_setattributeArray(hHandle, ARG_TYPE_CKA_VALUE, CKA_VALUE);
+         bUpdateNumber += cmd_setattributeArray(hHandle, ARG_TYPE_CKA_VALUE, CKA_VALUE);
          // update application
-         bUpdateNumber += cmd_kmu_setattributeString(hHandle, ARG_TYPE_CKA_APPLICATION, CKA_APPLICATION);
+         bUpdateNumber += cmd_setattributeString(hHandle, ARG_TYPE_CKA_APPLICATION, CKA_APPLICATION);
 
          break;
       default:
@@ -612,11 +961,11 @@ CK_BBOOL cmd_kmu_setattribute(CK_BBOOL bIsConsole)
       }
 
       // update generic object attribute
-      bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_PRIVATE, CKA_PRIVATE);
-      bUpdateNumber += cmd_kmu_setattributeBoolean(hHandle, ARG_TYPE_CKA_MODIFIABLE, CKA_MODIFIABLE);
+      bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_PRIVATE, CKA_PRIVATE);
+      bUpdateNumber += cmd_setattributeBoolean(hHandle, ARG_TYPE_CKA_MODIFIABLE, CKA_MODIFIABLE);
 
       // update label
-      bUpdateNumber += cmd_kmu_setattributeString(hHandle, ARG_TYPE_CKA_LABEL, CKA_LABEL);
+      bUpdateNumber += cmd_setattributeString(hHandle, ARG_TYPE_CKA_LABEL, CKA_LABEL);
 
       
       // print number of attributes updated
@@ -674,6 +1023,8 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       cmdarg_GetCKADerive(&sUnwrapTemplate.bCKA_Derive);
       cmdarg_GetCKAExtractable(&sUnwrapTemplate.bCKA_Extractable);
       cmdarg_GetCKAModifiable(&sUnwrapTemplate.bCKA_Modifiable);
+      cmdarg_GetCKAEncapsulate(&sUnwrapTemplate.bCKA_Encapsulate);
+      cmdarg_GetCKADecapsulate(&sUnwrapTemplate.bCKA_Decapsulate);
       
       // Get CKA id
       sUnwrapTemplate.pCKA_ID = cmd_cka_ID;
@@ -708,7 +1059,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
          if (sUnwrapTemplate.skeyType == CKK_AES)
          {
             // get key size
-            sUnwrapTemplate.skeySize = cmdarg_GetKeySize();
+            sUnwrapTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES);
 
             if (sUnwrapTemplate.skeySize == 0)
             {
@@ -767,6 +1118,14 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
       switch (sUnwrapTemplate.sClass)
       {
       case CKO_PRIVATE_KEY:
+         if (FileFormat == FILE_FORMAT_PKCS8)
+         {
+            // To do : detect type from pem file
+
+            sUnwrapTemplate.bPbe = CK_TRUE;
+            return cmd_UnwrapPrivateSecretkey(&sUnwrapTemplate, sFilePath, FileFormat);
+         }
+         // continue
       case CKO_SECRET_KEY:
          // get handle for wrap key
          sUnwrapTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_UNWRAPKEY);
@@ -799,6 +1158,13 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
                printf("wrong or missing argument : -algo \n");
                break;
             }
+
+            // if wrap algo is AES KW, the input key size if required
+            if (sUnwrapTemplate.wrapmech->ckMechType == CKM_AES_KW)
+            {
+               // get key size
+               sUnwrapTemplate.skeySize = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES);
+            }
          }
 
          return cmd_UnwrapPrivateSecretkey(&sUnwrapTemplate, sFilePath, FileFormat);
@@ -812,7 +1178,6 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
 
    return CK_FALSE;
 }
-
 /*
     FUNCTION:        CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
 */
@@ -869,7 +1234,79 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
       switch (sExportTemplate.sClass)
       {
       case CKO_PRIVATE_KEY:
+
+         // Check if key to export is extractable
+         if (P11_GetBooleanAttribute(sExportTemplate.hKeyToExport, CKA_EXTRACTABLE) == CK_FALSE)
+         {
+            printf("key with handle %i is not extractable.\n", sExportTemplate.hKeyToExport);
+            break;
+         }
+
+         // check if format is pkcs8. 
+         // pkcs8 for private key is based on password based encryption
+         if (FileFormat == FILE_FORMAT_PKCS8)
+         {
+            // get wrap algo
+            sExportTemplate.wrap_key_mech = cmdarg_GetPBEMecansim();
+            if (sExportTemplate.wrap_key_mech == NULL)
+            {
+               printf("wrong or missing argument : -algo \n");
+               break;
+            }
+
+            // Set PBE mode
+            sExportTemplate.bPbe = CK_TRUE;
+         }
+         else
+         {
+            // get wrap algo
+            sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
+            if (sExportTemplate.wrap_key_mech == NULL)
+            {
+               printf("wrong or missing argument : -algo \n");
+               break;
+            }
+
+            // get handle for wrap key
+            sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
+            if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
+            {
+               printf("wrong argument : -key \n");
+               break;
+            }
+
+            // search for object handle
+            if (P11_FindKeyObject(sExportTemplate.hWrappingKey) == CK_FALSE)
+            {
+               printf("key with handle %i not found.\n", sExportTemplate.hWrappingKey);
+               break;
+            }
+
+            // Check if wrapping key has wrap attribute
+            if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
+            {
+               printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
+               break;
+            }
+         }
+         return cmd_WrapPrivateSecretkey(&sExportTemplate, sFilePath, FileFormat);
+
       case CKO_SECRET_KEY:
+
+         // Check if key to export is extractable
+         if (P11_GetBooleanAttribute(sExportTemplate.hKeyToExport, CKA_EXTRACTABLE) == CK_FALSE)
+         {
+            printf("key with handle %i is not extractable.\n", sExportTemplate.hKeyToExport);
+            break;
+         }
+
+         // get wrap algo
+         sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
+         if (sExportTemplate.wrap_key_mech == NULL)
+         {
+            printf("wrong or missing argument : -algo \n");
+            break;
+         }
 
          // get handle for wrap key
          sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
@@ -890,21 +1327,6 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
          {
             printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
-            break;
-         }
-
-         // Check if key to export is extractable
-         if (P11_GetBooleanAttribute(sExportTemplate.hKeyToExport, CKA_EXTRACTABLE) == CK_FALSE)
-         {
-            printf("key with handle %i is not extractable.\n", sExportTemplate.hKeyToExport);
-            break;
-         }
-
-         // get wrap algo
-         sExportTemplate.wrap_key_mech = cmdarg_GetEncryptionMecansim(ARG_TYPE_WRAP_ALGO);
-         if (sExportTemplate.wrap_key_mech == NULL)
-         {
-            printf("wrong or missing argument : -algo \n");
             break;
          }
 
@@ -1193,12 +1615,6 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
          break;
       }
 
-      // get key type (CK_KEY_TYPE)
-      if ((sDeriveTemplate.sderivedKeyType = cmdarg_GetKeytype(CK_TRUE, KEY_TYPE_DERIVEKEY)) == CK_NULL_ELEMENT)
-      {
-         printf("wrong or missing argument : -keytype \n");
-         break;
-      }
       // get key class 
       sDeriveTemplate.sDerivedClass = cmdarg_GetClassFromkeyType(KEY_TYPE_DERIVEKEY);
       if (sDeriveTemplate.sDerivedClass == CK_NULL_ELEMENT)
@@ -1207,8 +1623,34 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
          break;
       }
 
+      // get key type (CK_KEY_TYPE)
+      if ((sDeriveTemplate.sderivedKeyType = cmdarg_GetKeytype(CK_FALSE, KEY_TYPE_DERIVEKEY)) == CK_NULL_ELEMENT)
+      {
+         printf("wrong or missing argument : -keytype \n");
+         break;
+      }
+
+      // get size according key type
+      switch (sDeriveTemplate.sderivedKeyType)
+      {
+      case CKK_AES:
+         sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_AES);
+         break;
+      case CKK_DES:
+      case CKK_DES2:
+      case CKK_DES3:
+         sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_DES);
+         break;
+      case CKK_GENERIC_SECRET:
+         sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_HMAC_GEN);
+         break;
+      default:
+         printf("Invalid key type\n");
+         return CK_FALSE;
+      }
+
       // get derived key length
-      if ((sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize()) == 0)
+      if (sDeriveTemplate.sderivedKeyLength == 0)
       {
          printf("Invalid or missing argument  : -keysize \n");
          return CK_FALSE;
@@ -1229,7 +1671,7 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
       }
 
       // derive the key
-      return P11_DeriveKey(&sDeriveTemplate);
+      return P11_DeriveKey(&sDeriveTemplate, NULL, CK_TRUE);
 
       return CK_TRUE;
    } while (FALSE);
@@ -1473,21 +1915,288 @@ CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
    return CK_FALSE;
 }
 
+/*
+    FUNCTION:        CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
+*/
+CK_BBOOL cmd_kmu_remote_mzmk(CK_BBOOL bIsConsole)
+{
+   CK_CHAR_PTR             sInputFilePath = NULL;
+   CK_CHAR_PTR             sInputFile = NULL;
+   CK_CHAR_PTR             sOutPutFile = NULL;
+   CK_CHAR_PTR             sHsmPublicKeyAsn1 = NULL;
+   CK_BYTE_PTR             pKcvBuffer = NULL;
+   CK_BYTE_PTR             pKcv = NULL;
+   EC_PUBLIC_KEY           sTmdEcPublicKey = {0};
+   EC_PUBLIC_KEY           sHsmEcPublicKey = { 0 };
+   P11_KEYGENTEMPLATE      sKeyGenTemplate = { 0 };
+   P11_DERIVETEMPLATE      sDeriveTemplate = { 0 };
+   P11_DERIVE_MECH         sDeriveMech = { 0 };
+   CK_OBJECT_HANDLE        hPrivateKey = 0;
+   CK_OBJECT_HANDLE        hPublicKey = 0;
+   CK_OBJECT_HANDLE        hMZMKKey = 0;
+   CK_ULONG                sHsmPublicKeyAsn1Length = 0;
+   CK_ULONG                sInputFileLength = 0;
+   CK_BBOOL                bResult = CK_FALSE;
+
+   do
+   {
+      // check if loggued to the slot
+      if (cmd_IsLoggedIn() == CK_FALSE)
+      {
+         break;
+      }
+
+      // set attribute token, private ans sensitive to true as default value
+      cmdarg_GetCKAToken(&sDeriveTemplate.bCKA_Token);
+      cmdarg_GetCKAPrivate(&sDeriveTemplate.bCKA_Private);
+      cmdarg_GetCKASensitive(&sDeriveTemplate.bCKA_Sensitive);
+
+      // Get attribute value from argument
+      cmdarg_GetCKADecrypt(&sDeriveTemplate.bCKA_Decrypt);
+      cmdarg_GetCKAEncrypt(&sDeriveTemplate.bCKA_Encrypt);
+      cmdarg_GetCKASign(&sDeriveTemplate.bCKA_Sign);
+      cmdarg_GetCKAVerify(&sDeriveTemplate.bCKA_Verify);
+      cmdarg_GetCKAWrap(&sDeriveTemplate.bCKA_Wrap);
+      cmdarg_GetCKAUnwrap(&sDeriveTemplate.bCKA_Unwrap);
+      cmdarg_GetCKADerive(&sDeriveTemplate.bCKA_Derive);
+      cmdarg_GetCKAExtractable(&sDeriveTemplate.bCKA_Extractable);
+      cmdarg_GetCKAModifiable(&sDeriveTemplate.bCKA_Modifiable);
+
+      // Get CKA id
+      sDeriveTemplate.pCKA_ID = cmd_cka_ID;
+      sDeriveTemplate.uCKA_ID_Length = cmdarg_GetCKA_ID(sKeyGenTemplate.pCKA_ID, MAX_CKA_ID_SIZE);
+      if (sDeriveTemplate.uCKA_ID_Length == CK_NULL_ELEMENT)
+      {
+         break;
+      }
+
+      // get MZMK key type 
+      if ((sDeriveTemplate.sderivedKeyType = cmdarg_GetKeytype(CK_TRUE, KEY_TYPE_MZMK)) == CK_NULL_ELEMENT)
+      {
+         printf("wrong or missing argument : -keytype \n");
+         break;
+      }
+
+      // get MZMK get size
+      if ((sDeriveTemplate.sderivedKeyLength = cmdarg_GetKeySize(TYPE_KEY_SIZE_MZMK)) == 0)
+      {
+         printf("Invalid or missing argument  : -keysize \n");
+         return CK_FALSE;
+      }
+
+      // check key type and size
+      switch (sDeriveTemplate.sderivedKeyType)
+      {
+      case CKK_AES:
+
+         if ((sDeriveTemplate.sderivedKeyLength == AES_128_KEY_LENGTH) || (sDeriveTemplate.sderivedKeyLength == AES_192_KEY_LENGTH) || (sDeriveTemplate.sderivedKeyLength == AES_256_KEY_LENGTH))
+         {
+            break;
+         }
+         printf("Wrong key size\n");
+         return CK_FALSE;
+
+      case CKK_DES:
+         if (sDeriveTemplate.sderivedKeyLength == DES3_KEY_LENGTH)
+         {
+            sDeriveTemplate.sderivedKeyType = CKK_DES3;
+            break;
+         }
+
+         printf("Wrong key size\n");
+         return CK_FALSE;
+      }
+
+      if ((sDeriveTemplate.pDerivedKeyLabel = cmdarg_GetLabel(cmd_Label, MAX_LABEL_SIZE)) == NULL)
+      {
+         printf("Missing argument : -label \n");
+         break;
+      }
+
+      // get output file path
+      sInputFilePath = cmdarg_GetInputFilePath(cmd_InputFile, MAX_FILE_NAME_SIZE);
+      if (sInputFilePath == NULL)
+      {
+         printf("wrong or missing argument : -outputfile \n");
+         break;
+      }
+
+      // read input file
+      if ((sInputFileLength = File_Read(sInputFilePath, &sInputFile, CK_FALSE)) == 0)
+      {
+         printf("cannot read input file : %s \n", sInputFilePath);
+         break;
+      }
+
+      // convert to byte array
+      sInputFileLength = str_StringtoByteArray(sInputFile, sInputFileLength);
+
+      // Check if EC public key and get parameters. 
+      if (pksc8_Check_PublicKeyInfoEC(&sTmdEcPublicKey, sInputFile, sInputFileLength, CKK_ECDSA) == CK_FALSE)
+      {
+         break;
+      }
+
+      // create a session ECDSA public key
+      sKeyGenTemplate.skeyType = CKK_ECDSA;
+      sKeyGenTemplate.sClass = CKO_PRIVATE_KEY;
+      sKeyGenTemplate.sClassPublic = CKO_PUBLIC_KEY;
+      sKeyGenTemplate.bCKA_Token = CK_FALSE;
+      sKeyGenTemplate.bCKA_Private = CK_TRUE;
+      sKeyGenTemplate.bCKA_Sensitive = CK_TRUE;
+      sKeyGenTemplate.bCKA_Derive = CK_TRUE;
+      sKeyGenTemplate.bCKA_Modifiable = CK_TRUE;
+      sKeyGenTemplate.pCKA_ID = "";
+      sKeyGenTemplate.uCKA_ID_Length = 0;
+      sKeyGenTemplate.pECCurveOID = P11Util_GetEcCurveOID(sTmdEcPublicKey.sOid, sTmdEcPublicKey.uOidSize);
+      sKeyGenTemplate.pKeyLabelPrivate = "tmd_temp_ecc_private";
+      sKeyGenTemplate.pKeyLabelPublic = "tmd_temp_ecc_public";
+      if (P11_GenerateKeyPair(&sKeyGenTemplate, &hPrivateKey, &hPublicKey, CK_FALSE) == CK_FALSE)
+      {
+         break;
+      }
+
+      // Derive MZMK Key with ECDH and SHA256 KDF, X9.63 derivation
+      sDeriveTemplate.sDerivedClass = CKO_SECRET_KEY;
+      sDeriveTemplate.hMasterKey = hPrivateKey;
+      sDeriveTemplate.sDeriveMech = &sDeriveMech;
+      sDeriveTemplate.sDeriveMech->ckMechType = CKM_ECDH1_DERIVE;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.kdf = CKD_SHA256_KDF;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pSharedData = tmd_getShareinfo();
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.ulSharedDataLen = tmd_getShareinfoLength();
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pPublicData = sTmdEcPublicKey.sPublicPoint;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.ulPublicDataLen = sTmdEcPublicKey.uPublicPointLength;
+      if (P11_DeriveKey(&sDeriveTemplate, &hMZMKKey, CK_TRUE) == CK_FALSE)
+      {
+         break;
+      }
+
+      // compute KCV for MZMK
+      if (P11_ComputeKCV(KCV_PCI, hMZMKKey, &pKcvBuffer) == CK_FALSE)
+      {
+         break;
+      }
+
+      // display KCV
+      str_DisplayByteArraytoString("MZMK Key check value : ", pKcvBuffer, 3);  
+      
+      // get ECDSA public key
+      P11_GetEccPublicKey(hPublicKey, &sHsmEcPublicKey, CKK_ECDSA);
+
+      // build public key info object
+      pksc8_Build_PublicKeyInfoEC(&sHsmEcPublicKey, CKK_ECDSA);
+      
+      // convert to string array
+      sHsmPublicKeyAsn1 = str_ByteArraytoString(asn1_BuildGetBuffer(), asn1_GetBufferSize());
+
+      // get the path from the input file
+      if (strlen(sInputFilePath) > MAX_PATH)
+      {
+         break;
+      }
+
+      // allocate buffer for output path
+      sOutPutFile = malloc(MAX_PATH);
+      if (sOutPutFile == NULL)
+      {
+         break;
+      }
+
+      // copy input path in out put and get the parent folder
+      strcpy(sOutPutFile, sInputFilePath);
+      str_PathRemoveFile(sOutPutFile, (CK_ULONG)strlen(sOutPutFile));
+      pKcv = str_ByteArraytoString(pKcvBuffer, 3);
+
+      // generate csv file for tmd
+      if (tmd_generateCSVFile(sHsmPublicKeyAsn1, sDeriveTemplate.sderivedKeyType, sDeriveTemplate.sderivedKeyLength, pKcv, sOutPutFile) == CK_FALSE)
+      {
+         break;
+      }
+
+      bResult = CK_TRUE;
+   } while (FALSE);
+
+
+   // free memory
+   if (sHsmPublicKeyAsn1 != NULL)
+   {
+      free(sHsmPublicKeyAsn1);
+   }
+
+   // free memory
+   if (sInputFile != NULL)
+   {
+      free(sInputFile);
+   }
+  
+   // free memory
+   if (pKcvBuffer != NULL)
+   {
+      free(pKcvBuffer);
+   }   
+
+   // free memory
+   if (pKcv != NULL)
+   {
+      free(pKcv);
+   }
+
+   // free memory
+   if (sOutPutFile != NULL)
+   {
+      free(sOutPutFile);
+   }
+
+   // delete key pair
+   if (hPrivateKey != 0)
+   {
+      P11_DeleteObject(hPrivateKey);
+   }
+   if (hPublicKey != 0)
+   {
+      P11_DeleteObject(hPublicKey);
+   }
+   return bResult;
+}
 
 /*
     FUNCTION:        CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat)
 */
 CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat)
 {
-   CK_LONG           KeyToWrapSize = 0;
-   CK_LONG           WrappingKeySize = 0;
-   CK_CHAR_PTR       sWrappedkeyBuffer = NULL;
-   CK_BBOOL          bResult = CK_FALSE;
+   CK_LONG              KeyToWrapSize = 0;
+   CK_LONG              WrappingKeySize = 0;
+   CK_CHAR_PTR          sWrappedkeyBuffer = NULL;
+   CK_BBOOL             bResult = CK_FALSE;
+   P11_KEYGENTEMPLATE   sKeyGenTemplate = { 0 };
 
    do
    {
+
+      // pbe is activated, generate the pbe wrap key
+      if (sWrapTemplate->bPbe == CK_TRUE)
+      {
+         // Create key gen template
+         sKeyGenTemplate.sClass = sWrapTemplate->wrap_key_mech->pbe_param.sEncClass;
+         sKeyGenTemplate.skeyType = sWrapTemplate->wrap_key_mech->pbe_param.sEnckeyType;
+         sKeyGenTemplate.skeySize = sWrapTemplate->wrap_key_mech->pbe_param.sEnckeySize;
+         sKeyGenTemplate.bCKA_Wrap = CK_TRUE;
+         sKeyGenTemplate.bCKA_Unwrap = CK_TRUE;
+         sKeyGenTemplate.pKeyLabel = "pbe_temp";
+         sKeyGenTemplate.bCKA_Private = CK_TRUE;
+         sKeyGenTemplate.bCKA_Sensitive = CK_TRUE;
+         sKeyGenTemplate.bCKA_Token = CK_FALSE;
+
+         // generate pbe wrap key
+         if (P11_GenerateKeyPbe(&sKeyGenTemplate, &sWrapTemplate->hWrappingKey, &sWrapTemplate->wrap_key_mech->pbe_param, CK_FALSE) == CK_FALSE)
+         {
+            printf("C_WrapKey cannot generate pbe wrap key\n");
+            break;
+         }
+      }
+
       // check format is text or binary
-      if (!((FileFormat == FILE_FORMAT_TEXT) || (FileFormat == FILE_FORMAT_BINARY)))
+      if (!((FileFormat == FILE_FORMAT_TEXT) || (FileFormat == FILE_FORMAT_BINARY) || (FileFormat == FILE_FORMAT_PKCS8)))
       {
          printf("Wrong file format");
          break;
@@ -1516,9 +2225,36 @@ CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR
          {
             CK_LONG writtenSize = 0;
 
-            // Write hex File
-            writtenSize = File_WriteHexFile(sFilePath, sWrappedkeyBuffer, AllocateSize, (CK_BBOOL)(FileFormat & MASK_BINARY));
+            if (FileFormat == FILE_FORMAT_PKCS8)
+            {
+               CK_CHAR_PTR buffer;
+               CK_BBOOL bResult;
 
+               if (sWrapTemplate->bPbe == CK_TRUE)
+               {
+                  // create encrypted private key info
+                  sWrapTemplate->wrap_key_mech->pbe_param.pWrappedKey = sWrappedkeyBuffer;
+                  sWrapTemplate->wrap_key_mech->pbe_param.ulWrappedKeyLen = AllocateSize;
+                  bResult = pksc8_Build_EncryptedPrivateKeyInfoPbe(&sWrapTemplate->wrap_key_mech->pbe_param);
+
+                  if (bResult == CK_TRUE)
+                  {
+                     // Encode the asn1 string to pkcs8 pem
+                     buffer = pkcs8_EncodeEncryptedPrivateKeyToPem(asn1_BuildGetBuffer(), asn1_GetBufferSize());
+
+                     // write in file as string
+                     writtenSize = File_Write(sFilePath, buffer, (CK_ULONG)strlen(buffer), CK_FALSE);
+
+                     // release allocated buffer by pkcs8_EncodePublicKeyToPem
+                     free(buffer);
+                  }
+               }
+            }
+            else
+            {
+               // Write hex File
+               writtenSize = File_WriteHexFile(sFilePath, sWrappedkeyBuffer, AllocateSize, (CK_BBOOL)(FileFormat & MASK_BINARY));
+            }
             if (writtenSize > 0)
             {
                bResult = CK_TRUE;
@@ -1532,13 +2268,19 @@ CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR
          }
          else
          {
-            printf("C_WrapKey command error");
+            printf("C_WrapKey command error\n");
          }
 
          // release allocated buffer
          free(sWrappedkeyBuffer);
       }
    } while (FALSE);
+
+   if (sWrapTemplate->bPbe == CK_TRUE)
+   {
+      // delete pbe wrap key, generated before
+      P11_DeleteObject(sWrapTemplate->hWrappingKey);
+   }
 
    return bResult;
 }
@@ -1548,11 +2290,13 @@ CK_BBOOL cmd_WrapPrivateSecretkey(P11_WRAPTEMPLATE *  sWrapTemplate, CK_CHAR_PTR
 */
 CK_BBOOL cmd_UnwrapPrivateSecretkey(P11_UNWRAPTEMPLATE* sUnwrapTemplate,  CK_CHAR_PTR sFilePath, CK_BYTE FileFormat)
 {
-   CK_BBOOL bIsBinary = CK_FALSE;
-   CK_CHAR_PTR       sWrappedKey;
-   CK_ULONG          sWrappedKeyLength;
-   CK_BBOOL          bResult = CK_FALSE;
-   CK_OBJECT_HANDLE  hKey = 0;
+   CK_BBOOL             bIsBinary = CK_FALSE;
+   CK_CHAR_PTR          sWrappedKey = NULL;
+   CK_ULONG             sWrappedKeyLength = 0;
+   CK_BBOOL             bResult = CK_FALSE;
+   CK_OBJECT_HANDLE     hKey = 0;
+   P11_ENCRYPTION_MECH  wrapalgo = { 0 };
+   P11_KEYGENTEMPLATE   sKeyGenTemplate = { 0 };
 
    do
    {
@@ -1564,20 +2308,12 @@ CK_BBOOL cmd_UnwrapPrivateSecretkey(P11_UNWRAPTEMPLATE* sUnwrapTemplate,  CK_CHA
          // Read hex file
          if (File_ReadHexFile(sFilePath, &sWrappedKey, &sWrappedKeyLength, (CK_BBOOL)(FileFormat & MASK_BINARY)) == CK_FALSE)
          {
+            printf("Cannot read file \n");
             break;
          }
 
          // call unwrap key fonction
          bResult = P11_UnwrapPrivateSecretKey(sUnwrapTemplate, sWrappedKey, sWrappedKeyLength, &hKey);
-
-         // release allocated buffer when reading file
-         free(sWrappedKey);
-
-         // check if successfull
-         if (bResult == CK_TRUE)
-         {
-            printf("Key successfully unwrapped: handle is : %i, label is : %s \n", hKey, sUnwrapTemplate->pKeyLabel);
-         }
          break;
 
       case FILE_FORMAT_TR31:
@@ -1585,25 +2321,101 @@ CK_BBOOL cmd_UnwrapPrivateSecretkey(P11_UNWRAPTEMPLATE* sUnwrapTemplate,  CK_CHA
          // read ascii file
          if (File_Read(sFilePath, &sWrappedKey, (CK_BBOOL)(FileFormat & MASK_BINARY)) == CK_FALSE)
          {
+            printf("Cannot read file \n");
             break;
          }
 
          // call unwrap key fonction for TR 31
          bResult = TR31_UnwrapPrivateSecretKey(sUnwrapTemplate, sWrappedKey, &hKey);
-
-         // release allocated buffer when reading file
-         free(sWrappedKey);
-
-         // check if successfull
-         if (bResult == CK_TRUE)
-         {
-            printf("Key successfully unwrapped: handle is : %i, label is : %s \n", hKey, sUnwrapTemplate->pKeyLabel);
-         }
          break;
+      case FILE_FORMAT_PKCS8: 
+         // check key type is private key
+         if (sUnwrapTemplate->sClass != CKO_PRIVATE_KEY)
+         {
+            break;
+         }
+
+         // Read file
+         sWrappedKeyLength = File_Read(sFilePath, &sWrappedKey, CK_FALSE);
+         if (sWrappedKeyLength == CK_FALSE)
+         {
+            printf("Cannot read file \n");
+            break;
+         }
+
+         if (sUnwrapTemplate->bPbe == CK_TRUE)
+         {
+            // Get private key from file
+            sWrappedKeyLength = pkcs8_DecodeEncryptedPrivateKeyFromPem(sWrappedKey, sWrappedKeyLength);
+            if (sWrappedKeyLength == 0)
+            {
+               printf("Cannot decode PKCS8 file \n");
+               break;
+            }
+
+            // check encrypted private key
+            if (pkcs8_Check_EncryptedPrivateKeyInfoPbe(&wrapalgo.pbe_param, sWrappedKey, sWrappedKeyLength) == CK_FALSE)
+            {
+               printf("Error when decoding EncryptedPrivateKeyInfo \n");
+               break;
+            }
+
+            // get password
+            wrapalgo.pbe_param.pbkdf2.pbfkd2_param.pPassword = cmdarg_GetKeyPassword();
+            wrapalgo.pbe_param.pbkdf2.pbfkd2_param.usPasswordLen = (CK_ULONG)strlen((CK_BYTE_PTR)wrapalgo.pbe_param.pbkdf2.pbfkd2_param.pPassword);
+
+            sKeyGenTemplate.sClass = wrapalgo.pbe_param.sEncClass;
+            sKeyGenTemplate.skeyType = wrapalgo.pbe_param.sEnckeyType;
+            sKeyGenTemplate.skeySize = wrapalgo.pbe_param.sEnckeySize;
+            sKeyGenTemplate.bCKA_Wrap = CK_TRUE;
+            sKeyGenTemplate.bCKA_Unwrap = CK_TRUE;
+            sKeyGenTemplate.pKeyLabel = "pbkdf2_temp";
+            sKeyGenTemplate.bCKA_Private = CK_TRUE;
+            sKeyGenTemplate.bCKA_Sensitive = CK_TRUE;
+
+            // generate pbe wrap key
+            if (P11_GenerateKeyPbe(&sKeyGenTemplate, &sUnwrapTemplate->hWrappingKey, &wrapalgo.pbe_param, CK_FALSE) == CK_FALSE)
+            {
+               break;
+            }
+
+            sUnwrapTemplate->wrapmech = &wrapalgo;
+            sUnwrapTemplate->wrapmech->ckMechType = wrapalgo.pbe_param.ckEncMechType;
+         }
+         else
+         {
+            // to do : other format not yet supported
+            break;
+         }
+
+         // call unwrap key fonction
+         bResult = P11_UnwrapPrivateSecretKey(sUnwrapTemplate, wrapalgo.pbe_param.pWrappedKey, wrapalgo.pbe_param.ulWrappedKeyLen, &hKey);
+
+         break;
+
       default:
          printf("Wrong file format");
       }
    } while (FALSE);
+
+
+   // check if successfull
+   if (bResult == CK_TRUE)
+   {
+      printf("Key successfully unwrapped: handle is : %i, label is : %s \n", hKey, sUnwrapTemplate->pKeyLabel);
+   }
+
+   // release allocated buffer when reading file
+   if (sWrappedKey != NULL)
+   {
+      free(sWrappedKey);
+   }
+
+   if (sUnwrapTemplate->bPbe == CK_TRUE)
+   {
+      // delete pbe wrap key, generated before
+      P11_DeleteObject(sUnwrapTemplate->hWrappingKey);
+   }
 
    return bResult;
 }
@@ -1669,16 +2481,16 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
       {
       case CKK_RSA:
          // check RSApublicKeyInfo
-         bResult = asn1_Check_RSApublicKeyInfo(&uPublicKey.sRsaPublicKey, sPublicKey, sPblicKeyLength);
+         bResult = pksc8_Check_PublicKeyInfoRSA(&uPublicKey.sRsaPublicKey, sPublicKey, sPblicKeyLength);
          break;
 
       case CKK_DSA:
          // check RSApublicKeyInfo
-         bResult = asn1_Check_DSApublicKeyInfo(&uPublicKey.sDsaPublicKey, sPublicKey, sPblicKeyLength);
+         bResult = pksc8_Check_PublicKeyInfoDSA(&uPublicKey.sDsaPublicKey, sPublicKey, sPblicKeyLength);
          break;
       case CKK_DH:
          // check RSApublicKeyInfo
-         bResult = asn1_Check_DHpublicKeyInfo(&uPublicKey.sDhPublicKey, sPublicKey, sPblicKeyLength);
+         bResult = pksc8_Check_PublicKeyInfoDH(&uPublicKey.sDhPublicKey, sPublicKey, sPblicKeyLength);
          break;
 
       case CKK_ECDSA:
@@ -1688,8 +2500,24 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
       case CKK_EC_MONTGOMERY_OLD:
       case CKK_SM2:
          // check ECpublicKeyInfo
-         bResult = asn1_Check_ECpublicKeyInfo(&uPublicKey.sEcPublicKey, sPublicKey, sPblicKeyLength, sImportTemplate->skeyType);
+         bResult = pksc8_Check_PublicKeyInfoEC(&uPublicKey.sEcPublicKey, sPublicKey, sPblicKeyLength, sImportTemplate->skeyType);
          break;
+
+      case CKK_ML_DSA:
+         // check MLDSApublicKeyInfo
+         bResult = pksc8_Check_PublicKeyInfoMLDSA(&uPublicKey.sMlDsaPublicKey, sPublicKey, sPblicKeyLength);
+         break;
+
+      case CKK_ML_KEM:
+         // check MLKEMpublicKeyInfo
+         bResult = pksc8_Check_PublicKeyInfoMLKEM(&uPublicKey.sMlKemPublicKey, sPublicKey, sPblicKeyLength);
+         break;
+      
+      case CKK_HSS:
+         // check HSSpublicKeyInfo
+         bResult = pksc8_Check_PublicKeyInfoLMS(&uPublicKey.sLmsPublicKey, sPublicKey, sPblicKeyLength);
+         break;
+
       default:
          break;
       }
@@ -1719,7 +2547,7 @@ CK_BBOOL cmd_ImportPublickey(P11_UNWRAPTEMPLATE* sImportTemplate, CK_CHAR_PTR sF
 CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFilePath, CK_BYTE FileFormat)
 {
    PUBLIC_KEY        sPublicKey = { 0 };
-   CK_LONG writtenSize = 0;
+   CK_LONG           writtenSize = 0;
    // temp
 
    switch (sExportTemplate->skeyType)
@@ -1730,7 +2558,7 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
       if (P11_GetRsaPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sRsaPublicKey) == CK_TRUE)
       {
          // build RSA public key info
-         asn1_Build_RSApublicKeyInfo(&sPublicKey.sRsaPublicKey);
+         pksc8_Build_PublicKeyInfoRSA(&sPublicKey.sRsaPublicKey);
          break;
       }
 
@@ -1742,7 +2570,7 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
       if (P11_GetDsaPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sDsaPublicKey) == CK_TRUE)
       {
          // build RSA public key info
-         asn1_Build_DSApublicKeyInfo(&sPublicKey.sDsaPublicKey);
+         pksc8_Build_PublicKeyInfoDSA(&sPublicKey.sDsaPublicKey);
          break;
       }
 
@@ -1755,7 +2583,7 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
       if (P11_GetDHPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sDhPublicKey, sExportTemplate->skeyType) == CK_TRUE)
       {
          // build RSA public key info
-         asn1_Build_DHpublicKeyInfo(&sPublicKey.sDhPublicKey);
+         pksc8_Build_PublicKeyInfoDH(&sPublicKey.sDhPublicKey);
          break;
       }
       printf("Error: Cannot read DH public key");
@@ -1769,12 +2597,44 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
       if (P11_GetEccPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sEcPublicKey, sExportTemplate->skeyType) == CK_TRUE)
       {
          // build EC public key info
-         asn1_Build_ECpublicKeyInfo(&sPublicKey.sEcPublicKey, sExportTemplate->skeyType);
+         pksc8_Build_PublicKeyInfoEC(&sPublicKey.sEcPublicKey, sExportTemplate->skeyType);
          break;
       }
 
       printf("Error: Cannot read ECC public key");
       return CK_FALSE;
+   case CKK_ML_DSA:
+      if (P11_GetMLDSAPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sMlDsaPublicKey) == CK_TRUE)
+      {
+         // build ML DSA public key info
+         pksc8_Build_PublicKeyInfoMLDSA(&sPublicKey.sMlDsaPublicKey);
+         break;
+      }
+
+      printf("Error: Cannot read ML-DSA public key");
+      return CK_FALSE;
+   case CKK_ML_KEM:
+      if (P11_GetMLKEMPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sMlKemPublicKey) == CK_TRUE)
+      {
+         // build ML KEM public key info
+         pksc8_Build_PublicKeyInfoMLKEM(&sPublicKey.sMlKemPublicKey);
+         break;
+      }
+
+      printf("Error: Cannot read ML-KEM: public key");
+      return CK_FALSE;
+
+   case CKK_HSS:
+      if (P11_GetLMSPublicKey(sExportTemplate->hKeyToExport, &sPublicKey.sLmsPublicKey) == CK_TRUE)
+      {
+         printf("Warning: The ASN1 format is preliminary and subject to change in standard\n");
+         pksc8_Build_PublicKeyInfoLMS(&sPublicKey.sLmsPublicKey);
+         break;
+      }
+
+      printf("Error: Cannot read LMS-HSS: public key");
+      return CK_FALSE;
+
    default:
       return CK_FALSE;
    }
@@ -1822,9 +2682,9 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_BBOOL bIsPresent;
    CK_BBOOL bValue;
@@ -1846,9 +2706,9 @@ CK_BYTE cmd_kmu_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
 
@@ -1864,9 +2724,9 @@ CK_BYTE cmd_kmu_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_A
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
    CK_ULONG          sStringLength;
@@ -1877,6 +2737,10 @@ CK_BYTE cmd_kmu_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_AT
    {
       // if string as input, update the attribute
       P11_SetAttributeArray(hHandle, cAttribute, sString, sStringLength);
+
+      // display attribute updated and value
+      printf("Value = ");
+      str_DisplayByteArraytoString("", sString, sStringLength);
       return 1;
    }
 
@@ -1914,7 +2778,7 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
 
       // generate a AES 256 session wrap key (use to encrypt clear key value)
       hWrapKey = P11_GenerateAESWrapKey(CK_FALSE, AES_256_KEY_LENGTH, "AES_KEY_WRAP_KEY_COMP");
-
+      
       sKeyLength = sKeyGenTemplate->skeySize;
 
       // allocate a buffer for compoments generation
@@ -1953,10 +2817,12 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
          // load key compoment in the HSM as session key (only needed to compute KCV)
          sKeyTemplate.sClass = sKeyGenTemplate->sClass;
          sKeyTemplate.skeyType = sKeyGenTemplate->skeyType;
-         sKeyTemplate.skeySize = sKeyGenTemplate->skeySize;
+         //sKeyTemplate.skeySize = sKeyGenTemplate->skeySize;
          sKeyTemplate.pKeyLabel = "";
          sKeyTemplate.bCKA_Sign = CK_TRUE;
          sKeyTemplate.bCKA_Verify = CK_TRUE;
+         sKeyTemplate.bCKA_Encrypt = CK_TRUE;
+         sKeyTemplate.bCKA_Decrypt = CK_TRUE;
          sKeyTemplate.bCKA_Token = CK_FALSE;
          sKeyTemplate.bCKA_Sensitive = CK_TRUE;
          sKeyTemplate.bCKA_Private = CK_TRUE;
@@ -2027,6 +2893,12 @@ CK_BBOOL cmd_GenerateSecretKeyWithComponent(P11_KEYGENTEMPLATE* sKeyGenTemplate,
          sKeyTemplate.pCKA_ID = sKeyGenTemplate->pCKA_ID;
          sKeyTemplate.uCKA_ID_Length = sKeyGenTemplate->uCKA_ID_Length;
          sKeyTemplate.hWrappingKey = hWrapKey;
+
+         // if des key, compute parity bit, checked by hsm when unwrapping the key
+         if (sKeyGenTemplate->skeyType != CKK_AES)
+         {
+            str_ByteArrayComputeParityBit(pbKey, sKeyLength);
+         }
 
          // import key (xor of all key components)
          hKey = P11_ImportClearSymetricKey(&sKeyTemplate, pbKey, sKeyLength);

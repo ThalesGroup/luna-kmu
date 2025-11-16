@@ -25,6 +25,7 @@
 #include "str.h"
 #include "p11util.h"
 #include "asn1.h"
+#include "pkcs8.h"
 
 
 #ifdef _WIN32
@@ -57,6 +58,7 @@ CK_CHAR        LibPath[4096];
 
 // Temp buffer 
 #define MAX_COMPONENT_SIZE          1024 // max RSA 8k with ASN1 TLV
+#define MAX_COMPONENT_PQC_SIZE      4096 // max RSA 8k with ASN1 TLV
 #define MAX_CERTIFICATE_SIZE        10240
 #define TEMP_BUFFER_SIZE            (2*MAX_CERTIFICATE_SIZE)
 #define TEMP_BUFFER_OFFSET_CMP_1    0
@@ -78,7 +80,15 @@ CK_CHAR        LibPath[4096];
 #define TEMP_BUFFER_OFFSET_CERT_1    0
 #define TEMP_BUFFER_OFFSET_CERT_2    MAX_CERTIFICATE_SIZE
 
+#define TEMP_BUFFER_OFFSET_MLDSA_PARAM       0
+#define TEMP_BUFFER_OFFSET_MLDSA_PK_INFO     4
+#define TEMP_BUFFER_OFFSET_MLDSA_VALUE       (TEMP_BUFFER_OFFSET_MLDSA_PK_INFO + MAX_COMPONENT_PQC_SIZE)
 
+#define TEMP_BUFFER_OFFSET_MLKEM_PARAM       0
+#define TEMP_BUFFER_OFFSET_MLKEM_PK_INFO     4
+#define TEMP_BUFFER_OFFSET_MLKEM_VALUE       (TEMP_BUFFER_OFFSET_MLKEM_PK_INFO + MAX_COMPONENT_PQC_SIZE)
+
+#define TEMP_BUFFER_OFFSET_HSS_PARAM         0
 
 CK_CHAR           pTempBuffer[TEMP_BUFFER_SIZE];
 
@@ -385,17 +395,11 @@ CK_BBOOL P11_LoadSfntExtensionFunctions()
 */
 CK_LONG P11_ListStot()
 {
-   // CK_SLOT_ID pSlotList[10] = {0};
-
    CK_RV retCode = CKR_OK;
    unsigned char bloop;
    CK_TOKEN_INFO sTokenInfo = { 0 };
    CK_SLOT_INFO sSlotInfo = { 0 };
-   CK_BBOOL bFound = CK_FALSE;
-   /*
-   CK_MECHANISM_TYPE_PTR pMechanismList;
-   CK_MECHANISM_INFO info;
-   */
+
    do
    {
       if (P11Functions == NULL)
@@ -403,6 +407,7 @@ CK_LONG P11_ListStot()
          break;
       }
 
+      // Get slot list number
       retCode = P11Functions->C_GetSlotList(CK_TRUE, NULL, &uSlotCount);
       if (retCode != CKR_OK)
          break;
@@ -410,23 +415,15 @@ CK_LONG P11_ListStot()
       if (uSlotCount == 0)
          break;
 
+      // alloc buffer in memory of the size of the slot count
       pSlotList = (CK_SLOT_ID_PTR)calloc(uSlotCount, sizeof(CK_SLOT_ID));
       if (pSlotList == NULL)
          break;
 
+      // get the slot list
       retCode = P11Functions->C_GetSlotList(CK_TRUE, pSlotList, &uSlotCount);
       if (retCode != CKR_OK)
          break;
-      /*
-      retCode = P11Functions->C_GetMechanismList(u32_SlotID, NULL_PTR, &uSlotCount);
-
-      pMechanismList = (CK_MECHANISM_TYPE_PTR)malloc(uSlotCount * sizeof(CK_MECHANISM_TYPE));
-
-      retCode = P11Functions->C_GetMechanismList(u32_SlotID, pMechanismList, &uSlotCount);
-
-      retCode = P11Functions->C_GetMechanismInfo(u32_SlotID, CKM_SHA3_256, &info);
-      */
-
 
       printf("Slot list : \n");
 
@@ -435,27 +432,27 @@ CK_LONG P11_ListStot()
       for (bloop = 0; bloop < uSlotCount; bloop++)
       {
 
-         //retCode = P11Functions->C_GetSlotInfo(pList[0], &sSlotInfo);
-
+         // get token info on the slot
          retCode = P11Functions->C_GetTokenInfo(pList[0], &sTokenInfo);
 
-         // truncate return string
-         //sTokenInfo.label[31] = 0;
-         //sSlotInfo.slotDescription[0x10] = 0;
-
-
-            // list partition info
-         str_TruncateString(sSlotInfo.slotDescription, sizeof(sSlotInfo.slotDescription));
+         // truncate string
          str_TruncateString(sTokenInfo.label, sizeof(sTokenInfo.label));
-         printf("[%X] %s : %s\n", pList[0], sSlotInfo.slotDescription, sTokenInfo.label);
-         /*
-         memset(sTokenInfo.label, 0x00, 32);
-         memset(sSlotInfo.slotDescription, 0x00, 64);
 
-         */
-         bFound = CK_TRUE;
-         //printf("Missing option : -slot\n");
-         //break;
+         // prinft the slot number in decimal
+         printf("[%d]", pList[0]);
+
+         // add space depending of slot size value for allignement in the console
+         if (pList[0] < 10)
+         {
+            printf("  ");
+         }
+         else if (pList[0] < 100)
+         {
+            printf(" ");
+         }
+         // print label value
+         printf(": % s\n", sTokenInfo.label);
+
          pList++;
       }
 
@@ -487,7 +484,6 @@ CK_SLOT_ID P11_SelectStot(CK_SLOT_ID u32_SlotList)
 
       if(pSlotList == NULL)
       { 
-
          retCode = P11Functions->C_GetSlotList(CK_TRUE, NULL, &uSlotCount);
          if (retCode != CKR_OK)
             break;
@@ -563,6 +559,44 @@ CK_SLOT_ID P11_SelectStot(CK_SLOT_ID u32_SlotList)
       pSlotList = NULL;
    }
    return u32_SlotID;
+}
+
+/*
+    FUNCTION:        CK_BBOOL p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO * slotInfo)
+*/
+CK_BBOOL p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO * slotInfo)
+{
+   CK_RV retCode = CKR_GENERAL_ERROR;
+
+   // get slot info
+   retCode = P11Functions->C_GetSlotInfo(u32_SlotID, slotInfo);
+
+   // if call OK, return CK_TRUE
+   if (retCode == CKR_OK)
+   {
+      return CK_TRUE;
+   }
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL p11_GetMecanismInfo(CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO * info)
+*/
+CK_BBOOL p11_GetMecanismInfo(CK_SLOT_ID u32_SlotID, CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO* info)
+{
+   CK_RV retCode = CKR_SESSION_CLOSED;
+
+   // get mecanism info
+   retCode = P11Functions->C_GetMechanismInfo(u32_SlotID, sMech, info);
+
+   // if call OK, return CK_TRUE
+   if (retCode == CKR_OK)
+   {
+      return CK_TRUE;
+   }
+
+   return CK_FALSE;
 }
 
 /*
@@ -679,9 +713,9 @@ CK_RV P11_Logout()
 }
 
 /*
-    FUNCTION:        CK_RV P11_FindAllObjects()
+    FUNCTION:        CK_RV P11_FindAllObjects(CK_LONG uLimit)
 */
-CK_BBOOL P11_FindAllObjects()
+CK_BBOOL P11_FindAllObjects(CK_LONG uLimit)
 {
    CK_ATTRIBUTE_PTR  pTemplate = NULL;
    CK_ULONG          usTemplateLen = 0;
@@ -736,6 +770,16 @@ CK_BBOOL P11_FindAllObjects()
          pTempBuffer[sAttributeTemplate[1].usValueLen] = 0;
       }
       printf("Label=%s\n", pTempBuffer);
+
+      // check if limit the number of objects to display
+      if (uLimit != CK_NULL_ELEMENT)
+      {
+         // if reach max number of object, stop the loop
+         if (TotalObject >= (CK_ULONG)uLimit)
+         {
+            break;
+         }
+      }
 
    }
 
@@ -1245,6 +1289,126 @@ CK_BBOOL P11_GetEccPublicKey(CK_OBJECT_HANDLE Handle, EC_PUBLIC_KEY* eccpublicke
 }
 
 /*
+    FUNCTION:        CK_BBOOL P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey)
+*/
+CK_BBOOL P11_GetMLDSAPublicKey(CK_OBJECT_HANDLE Handle, ML_DSA_PUBLIC_KEY* smldsapublickey)
+{
+   CK_RV                retCode = CKR_SESSION_CLOSED;
+   CK_ATTRIBUTE pubMLDSATemplate[] = {
+      {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+      {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE],      MAX_COMPONENT_PQC_SIZE},
+   };
+
+   do
+   {
+      // call this function. Required if slot is HA, otherwise getattribute return error. 
+      retCode = P11Functions->C_FindObjectsInit(hSession, NULL, 0);
+
+      // Get object attribute
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
+
+      // check if error. 
+      if (retCode != CKR_OK)
+      {
+         printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+         break;
+      }
+
+      // update mldsapublickey
+      smldsapublickey->sPublicKey = &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE];
+      smldsapublickey->uPublicKeyLength = pubMLDSATemplate[1].usValueLen;
+      smldsapublickey->uML_DSA_Parameter_Set = pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM];
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL P11_GetMLKEMPublicKey(CK_OBJECT_HANDLE Handle, ML_KEM_PUBLIC_KEY* smlkempublickey)
+*/
+CK_BBOOL P11_GetMLKEMPublicKey(CK_OBJECT_HANDLE Handle, ML_KEM_PUBLIC_KEY* smlkempublickey)
+{
+   CK_RV                retCode = CKR_SESSION_CLOSED;
+   CK_ATTRIBUTE pubMLKEMTemplate[] = {
+      {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PARAM],      sizeof(CK_ML_KEM_PARAMETER_SET_TYPE)},
+      {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_VALUE],      MAX_COMPONENT_PQC_SIZE},
+   };
+
+   do
+   {
+      // call this function. Required if slot is HA, otherwise getattribute return error. 
+      retCode = P11Functions->C_FindObjectsInit(hSession, NULL, 0);
+
+      // Get object attribute
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLKEMTemplate, DIM(pubMLKEMTemplate));
+
+      // check if error. 
+      if (retCode != CKR_OK)
+      {
+         printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+         break;
+      }
+
+      // update mlkempublickey
+      smlkempublickey->sPublicKey = &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_VALUE];
+      smlkempublickey->uPublicKeyLength = pubMLKEMTemplate[1].usValueLen;
+      smlkempublickey->uML_KEM_Parameter_Set = pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PARAM];
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL P11_GetLMSPublicKey(CK_OBJECT_HANDLE Handle, LMS_PUBLIC_KEY* sLmspublickey)
+*/
+CK_BBOOL P11_GetLMSPublicKey(CK_OBJECT_HANDLE Handle, LMS_PUBLIC_KEY* sLmspublickey)
+{
+   CK_RV                retCode = CKR_SESSION_CLOSED;
+   CK_ULONG             uHSS_level = 0;
+   CK_LMS_TYPE          uLMS_Type = 0;
+   CK_LMOTS_TYPE        uLMOTS_level = 0;
+
+   CK_ATTRIBUTE pubLMSTemplate[] = {
+      {CKA_HSS_LEVELS,           &uHSS_level,                                 sizeof(CK_HSS_LEVELS)},
+      {CKA_HSS_LMS_TYPE,         &uLMS_Type,                                  sizeof(CK_LMS_TYPE)},
+      {CKA_HSS_LMOTS_TYPE,       &uLMOTS_level,                               sizeof(CK_LMOTS_TYPE)},
+      {CKA_VALUE,                &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM],  TEMP_BUFFER_SIZE},
+   };
+
+   do
+   {
+      // call this function. Required if slot is HA, otherwise getattribute return error. 
+      retCode = P11Functions->C_FindObjectsInit(hSession, NULL, 0);
+
+      // Get object attribute
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubLMSTemplate, DIM(pubLMSTemplate));
+
+      // check if error. 
+      if (retCode != CKR_OK)
+      {
+         printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+         break;
+      }
+
+      // update mlkempublickey
+      sLmspublickey->sPublicKey = &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM];
+      sLmspublickey->uPublicKeyLength = pubLMSTemplate[3].usValueLen;
+      sLmspublickey->uHSS_Levels = uHSS_level;
+      sLmspublickey->uLmsType = uLMS_Type;
+      sLmspublickey->uLmotsType = uLMOTS_level;
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   return CK_FALSE;
+
+}
+
+/*
     FUNCTION:        void P11_DisplayCertificate(CK_KEY_TYPE  skeyType)
 */
 void P11_DisplayCertificate(CK_OBJECT_HANDLE Handle)
@@ -1310,9 +1474,25 @@ void P11_DisplayDataObject(CK_OBJECT_HANDLE Handle)
    retCode = P11Functions->C_GetAttributeValue(hSession, Handle, &DataObject[0], DIM(DataObject));
 
    // Set the end of string to the end of buffer
-   pTempBuffer[DataObject[0].usValueLen] = 0;
-   printf("Application=%s\n", pTempBuffer);
-   str_DisplayByteArraytoString("Value=", &pTempBuffer[TEMP_BUFFER_OFFSET_CERT_2], DataObject[1].usValueLen);
+   if (DataObject[0].usValueLen >= MAX_CERTIFICATE_SIZE)
+   {
+      printf("Application= Cannot print value, size too big, you can use readattribute command instead\n");
+   }
+   else
+   {
+      pTempBuffer[DataObject[0].usValueLen] = 0;
+      printf("Application=%s\n", pTempBuffer);
+   }
+
+   if (DataObject[1].usValueLen >= MAX_CERTIFICATE_SIZE)
+   {
+      printf("Value= Cannot print value, size too big, you can use readattribute command instead\n");
+   }
+   else
+   {
+      str_DisplayByteArraytoString("Value=", &pTempBuffer[TEMP_BUFFER_OFFSET_CERT_2], DataObject[1].usValueLen);
+   }
+
 }
 
 /*
@@ -1541,8 +1721,108 @@ void P11_DisplayPrivateKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       {
          str_DisplayByteArraytoString("SubPrime=", &pTempBuffer[TEMP_BUFFER_OFFSET_SUBPRIME], pubDHTemplate[2].usValueLen);
       }
-
       break;
+
+   //  if ml dsa key
+   case CKK_ML_DSA:
+   {
+      P11_ML_DSA_KEY* sML_DSA_Key;
+      ML_DSA_PUBLIC_KEY sML_DSA_PublicKey = {0};
+      CK_ATTRIBUTE pubMLDSATemplate[] = {
+               {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+               {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
+      };
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
+
+      sML_DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE*)(pubMLDSATemplate[0].pValue));
+
+      printf("KeySize=%i\n", sML_DSA_Key->sPrivateKeySize);
+      printf("ParameterSet=%s (0x%08X)\n", sML_DSA_Key->sName, sML_DSA_Key->uML_DSA_Parameter_Set);
+
+      pksc8_Check_PublicKeyInfoMLDSA(&sML_DSA_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[1].usValueLen);
+
+      str_DisplayByteArraytoString("PublicKey=", sML_DSA_PublicKey.sPublicKey, sML_DSA_PublicKey.uPublicKeyLength);
+      break;
+   }
+
+   // if ml KEM key
+   case CKK_ML_KEM:
+   {
+      P11_ML_KEM_KEY* sML_KEM_Key;
+      ML_KEM_PUBLIC_KEY sML_KEM_PublicKey = { 0 };
+      CK_BBOOL             bCKA_Decapsulate = CK_FALSE;
+      CK_ATTRIBUTE pubMLKEMTemplate[] = {
+               {CKA_DECAPSULATE,       &bCKA_Decapsulate,                                 sizeof(CK_BBOOL)},
+               {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+               {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
+      };
+      
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLKEMTemplate, DIM(pubMLKEMTemplate));
+
+      // display CKA_ENCAPSULATE
+      printf("Decapsulate=%s\n", P11Util_DisplayBooleanName(bCKA_Decapsulate));
+
+      sML_KEM_Key = P11Util_GetML_KEM_ParameterFromParameterSet(*(CK_ML_KEM_PARAMETER_SET_TYPE*)(pubMLKEMTemplate[1].pValue));
+
+      if (sML_KEM_Key != NULL)
+      {
+         printf("KeySize=%i\n", sML_KEM_Key->sPrivateKeySize);
+         printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
+      }
+
+      pksc8_Check_PublicKeyInfoMLKEM(&sML_KEM_PublicKey, &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubMLKEMTemplate[2].usValueLen);
+      str_DisplayByteArraytoString("PublicKey=", sML_KEM_PublicKey.sPublicKey, sML_KEM_PublicKey.uPublicKeyLength);
+      break;
+
+   }
+
+   // if LMS and HSS keys
+   case CKK_HSS:
+   {
+      CK_HSS_LEVELS  uHSS_level = 0;
+      CK_LMS_TYPE    uLMS_Type[MAX_HSS_LEVEL] = { 0 };
+      CK_LMOTS_TYPE  uLMOTS_level[MAX_HSS_LEVEL] = { 0 };
+      CK_ULONG       uRemainingSig = 0;
+
+      CK_ATTRIBUTE privHSSTemplate[] = {
+            {CKA_HSS_LEVELS,           &uHSS_level,                                 sizeof(CK_HSS_LEVELS)},
+            {CKA_HSS_LMS_TYPES,        &uLMS_Type[0],                               (CK_ULONG)sizeof(CK_LMS_TYPE) * MAX_HSS_LEVEL},
+            {CKA_HSS_LMOTS_TYPES,      &uLMOTS_level[0],                            (CK_ULONG)sizeof(CK_LMOTS_TYPE) * MAX_HSS_LEVEL},
+            {CKA_PUBLIC_KEY,           &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM],  TEMP_BUFFER_SIZE},
+            {CKA_HSS_KEYS_REMAINING,   &uRemainingSig,                              sizeof(CK_ULONG)},
+      };
+      
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, privHSSTemplate, DIM(privHSSTemplate));
+
+      printf("HSSLevel=%i", uHSS_level);
+      if (uHSS_level == 1)
+      {
+         printf(" (LMS Key)\n");
+      }
+      else
+      {
+         printf("\n");
+      }
+      // display LMS type and LMOTS for each level
+      for (CK_BYTE bLoop = 0; bLoop < uHSS_level; bLoop++)
+      {
+         printf("LMS-Type(Level %i)=%i (%s)\n", bLoop +1,  uLMS_Type[bLoop], P11Util_GetLMSTypeName(uLMS_Type[0]));
+         printf("LMOTS-Type(Level %i)=%i (%s)\n", bLoop + 1, uLMOTS_level[bLoop], P11Util_GetLMOTSTypeName(uLMOTS_level[0]));
+      }
+
+      // display remaining siganture
+      printf("KeyRemaining=%u\n", uRemainingSig);
+
+      // display public key
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM], privHSSTemplate[3].usValueLen);
+      break;
+   }
+
    default:
       break;
    }
@@ -1648,6 +1928,103 @@ void P11_DisplayPublicKey(CK_OBJECT_HANDLE Handle, CK_KEY_TYPE  skeyType)
       str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_PUBKEY], pubDHTemplate[2].usValueLen);
       break;
    }
+   // if ml dsa key
+   case CKK_ML_DSA:
+   {
+      P11_ML_DSA_KEY * sML_DSA_Key;
+      CK_ATTRIBUTE pubMLDSATemplate[] = {
+               {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PARAM],      sizeof(CK_ML_DSA_PARAMETER_SET_TYPE)},
+               {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE],      MAX_COMPONENT_PQC_SIZE},
+ //              {CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
+
+      };
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLDSATemplate, DIM(pubMLDSATemplate));
+
+      // get parameter set
+      sML_DSA_Key = P11Util_GetML_DSA_ParameterFromParameterSet(*(CK_ML_DSA_PARAMETER_SET_TYPE *)(pubMLDSATemplate[0].pValue));
+
+      printf("KeySize=%i\n", sML_DSA_Key->sPublicKeySize);
+      printf("ParameterSet=%s (0x%08X)\n", sML_DSA_Key->sName, sML_DSA_Key->uML_DSA_Parameter_Set);
+
+ //     str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_PK_INFO], pubMLDSATemplate[2].usValueLen);
+ //     printf("\n");
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLDSATemplate[1].usValueLen);
+      break;
+      
+   }
+
+   // if ml KEM key
+   case CKK_ML_KEM:
+   {
+      P11_ML_KEM_KEY* sML_KEM_Key;
+      CK_BBOOL             bCKA_Encapsulate = CK_FALSE;
+      CK_ATTRIBUTE pubMLKEMTemplate[] = {
+               {CKA_ENCAPSULATE,       &bCKA_Encapsulate,                                 sizeof(CK_BBOOL)},
+               {CKA_PARAMETER_SET,     &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PARAM],      sizeof(CK_ML_KEM_PARAMETER_SET_TYPE)},
+               {CKA_VALUE,             &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_VALUE],      MAX_COMPONENT_PQC_SIZE},
+               //{CKA_PUBLIC_KEY_INFO,   &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO],    MAX_COMPONENT_PQC_SIZE},
+
+      };
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubMLKEMTemplate, DIM(pubMLKEMTemplate));
+
+      // display CKA_ENCAPSULATE
+      printf("Encapsulate=%s\n", P11Util_DisplayBooleanName(bCKA_Encapsulate));
+
+      // get parameter set
+      sML_KEM_Key = P11Util_GetML_KEM_ParameterFromParameterSet(*(CK_ML_KEM_PARAMETER_SET_TYPE*)(pubMLKEMTemplate[1].pValue));
+
+      printf("KeySize=%i\n", sML_KEM_Key->sPublicKeySize);
+      printf("ParameterSet=%s (0x%08X)\n", sML_KEM_Key->sName, sML_KEM_Key->uML_KEM_Parameter_Set);
+      /*
+      str_DisplayByteArraytoString("PublicKeyInfo=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLKEM_PK_INFO], pubLMSTemplate[3].usValueLen);
+      printf("\n");
+      */
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_MLDSA_VALUE], pubMLKEMTemplate[2].usValueLen);
+
+   }
+      break;
+
+   // if LMS and HSS keys
+   case CKK_HSS:
+   {
+      CK_HSS_LEVELS  uHSS_level = 0;
+      CK_LMS_TYPE    uLMS_Type = 0;
+      CK_LMOTS_TYPE  uLMOTS_level = 0;
+
+      CK_ATTRIBUTE pubHSSTemplate[] = {
+            {CKA_HSS_LEVELS,           &uHSS_level,                                 sizeof(CK_HSS_LEVELS)},
+            {CKA_HSS_LMS_TYPE,         &uLMS_Type,                                  sizeof(CK_LMS_TYPE)},
+            {CKA_HSS_LMOTS_TYPE,       &uLMOTS_level,                               sizeof(CK_LMOTS_TYPE)},
+            {CKA_VALUE,                &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM],  TEMP_BUFFER_SIZE},
+      };
+
+
+      /* get and display ML DSA public key attributes */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, pubHSSTemplate, DIM(pubHSSTemplate));
+
+      printf("HSSLevel=%i", uHSS_level);
+      if (uHSS_level == 1)
+      {
+         printf(" (LMS Key)\n");
+      }
+      else
+      {
+         printf("\n");
+      }
+      
+      printf("LMS-Type=%i (%s)\n", uLMS_Type, P11Util_GetLMSTypeName(uLMS_Type));
+      printf("LMOTS-Type=%i (%s)\n", uLMOTS_level, P11Util_GetLMOTSTypeName(uLMOTS_level));
+
+
+      str_DisplayByteArraytoString("PublicKey=", &pTempBuffer[TEMP_BUFFER_OFFSET_HSS_PARAM], pubHSSTemplate[3].usValueLen);
+
+
+      break;
+   }
    default:
       break;
    }
@@ -1743,7 +2120,16 @@ CK_BBOOL P11_GetAttributes(CK_OBJECT_HANDLE Handle)
          pTempBuffer[0] = 0;
          retCode = P11Functions->C_GetAttributeValue(hSession, Handle, sAttributeGenericKey, DIM(sAttributeGenericKey));
          printf("KeyType=%s (0x%08X)\n", P11Util_DisplayKeyTypeName(skeyType), skeyType);
-         str_DisplayByteArraytoString("id=", pTempBuffer, sAttributeGenericKey[5].usValueLen);
+
+         // check if buffer too big
+         if (sAttributeGenericKey[5].usValueLen >= MAX_CERTIFICATE_SIZE)
+         {
+            printf("id= Cannot print value, size too big, you can use readattribute command instead\n");
+         }
+         else
+         {
+            str_DisplayByteArraytoString("id=", pTempBuffer, sAttributeGenericKey[5].usValueLen);
+         }
          P11Util_DisplayDate("StartDate=", &StartDate, sAttributeGenericKey[1].usValueLen);
          P11Util_DisplayDate("EndDate=", &EndDate, sAttributeGenericKey[2].usValueLen);
          printf("Local=%s\n", P11Util_DisplayBooleanName(bCKA_Local));
@@ -1785,6 +2171,58 @@ CK_BBOOL P11_GetAttributes(CK_OBJECT_HANDLE Handle)
 
 
 /*
+    FUNCTION:        CK_BBOOL P11_GetAttributesArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR * pArray, CK_ULONG_PTR pArrayLength)
+*/
+CK_BBOOL P11_GetAttributesArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_CHAR_PTR * pArray, CK_ULONG_PTR pArrayLength)
+{
+   CK_RV                retCode = CKR_GENERAL_ERROR;
+   CK_ULONG             uExpectedAttrSize = 0;
+   CK_ATTRIBUTE sAttribute[] = {
+         {cAttribute,  NULL, 0},
+   };
+
+   do
+   {
+      /* get attributes size */
+      retCode = P11Functions->C_GetAttributeValue(hSession, Handle, &sAttribute[0], 1);
+
+      if (retCode == CKR_OK)
+      {
+         // get attribute size
+         uExpectedAttrSize = sAttribute[0].usValueLen;
+
+         // Allocate Buffer of the size of data
+         *pArray = malloc(uExpectedAttrSize);
+
+         // check if allocation is ok
+         if (*pArray == NULL)
+         {
+            break;
+         }
+
+         sAttribute[0].pValue = *pArray;
+
+         retCode = P11Functions->C_GetAttributeValue(hSession, Handle, &sAttribute[0], 1);
+
+         if (retCode == CKR_OK)
+         {
+            // set the output size
+            *pArrayLength = uExpectedAttrSize;
+            return CK_TRUE;
+         }
+
+         // free memory
+         free(*pArray);
+      }
+
+   } while (FALSE);
+
+   printf("C_GetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
+
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:        CK_BBOOL P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_BBOOL bValue)
 */
 CK_BBOOL P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttribute, CK_BBOOL bValue)
@@ -1796,19 +2234,14 @@ CK_BBOOL P11_SetAttributeBoolean(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAtt
 
    do
    {
-      // printf("Updating attribute %s ... ", P11Util_DisplayAttributeName(cAttribute));
-
       // Set attribute value
       retCode = P11Functions->C_SetAttributeValue(hSession, Handle, sAttribute, 1);
 
       if (retCode == CKR_OK)
       {
-         // display attribute updated and value
-         //printf("Success. Value = %s\n", P11Util_DisplayBooleanName(bValue));
          return CK_TRUE;
       }
-
-       printf("Failed. Error code : %s \n", P11Util_DisplayErrorName(retCode));
+       printf("C_SetAttributeValue error code : %s \n", P11Util_DisplayErrorName(retCode));
 
    } while (FALSE);
 
@@ -1839,13 +2272,12 @@ CK_BBOOL P11_SetAttributeArray(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttri
 
       if (retCode == CKR_OK)
       {
-         // display attribute updated and value
-         printf("Success. Value = ");
-         str_DisplayByteArraytoString("", sStringValue, uStringLength);
+         // display attribute updated
+         printf("Success.\n");
          return CK_TRUE;
       }
 
-      printf("Failed. Error code : %s \n", P11Util_DisplayErrorName(retCode));
+      printf("Error \nC_SetAttributeValue Error code : %s \n", P11Util_DisplayErrorName(retCode));
 
    } while (FALSE);
 
@@ -1881,7 +2313,7 @@ CK_BBOOL P11_SetAttributeString(CK_OBJECT_HANDLE Handle, CK_ATTRIBUTE_TYPE cAttr
          return CK_TRUE;
       }
 
-      printf("Failed. Error code : %s \n", P11Util_DisplayErrorName(retCode));
+      printf("Error \nC_SetAttributeValue Error code : %s \n", P11Util_DisplayErrorName(retCode));
 
    } while (FALSE);
 
@@ -2016,7 +2448,93 @@ CK_BBOOL P11_GenerateKey(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_P
 }
 
 /*
-    FUNCTION:        CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK_CHAR_PTR pLabel)
+    FUNCTION:        CK_BBOOL P11_GenerateKeyPbe(P11_KEYGENTEMPLATE* sKeyTemplate, P11_PBE_ENC_PARAMS * pbkdf2, CK_BBOOL bDisplay)
+*/
+CK_BBOOL P11_GenerateKeyPbe(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hKey, P11_PBE_ENC_PARAMS * sPbe, CK_BBOOL bDisplay)
+{
+   CK_ULONG          u32labelsize = 0;
+   CK_RV             retCode = CKR_GENERAL_ERROR;
+   CK_OBJECT_HANDLE  hSymKey = 0;
+   CK_MECHANISM      sKeygenMech = { 0 };
+   CK_LONG           sSimTemplateSize = 16;
+
+   if (sKeyGenTemplate->pKeyLabel != NULL)
+   {
+      u32labelsize = (CK_ULONG)strlen(sKeyGenTemplate->pKeyLabel);
+   }
+
+   // init with common attribute for all symetric keys
+   CK_ATTRIBUTE SymKeyTemplate[17] = {
+   {CKA_CLASS,             &sKeyGenTemplate->sClass,           sizeof(CK_OBJECT_CLASS)},
+   {CKA_KEY_TYPE,          &sKeyGenTemplate->skeyType,         sizeof(CK_KEY_TYPE)},
+   {CKA_TOKEN,             &sKeyGenTemplate->bCKA_Token,       sizeof(CK_BBOOL)},
+   {CKA_SENSITIVE,         &sKeyGenTemplate->bCKA_Sensitive,   sizeof(CK_BBOOL)},
+   {CKA_PRIVATE,           &sKeyGenTemplate->bCKA_Private,     sizeof(CK_BBOOL)},
+   {CKA_SIGN,              &sKeyGenTemplate->bCKA_Sign,        sizeof(CK_BBOOL)},
+   {CKA_VERIFY,            &sKeyGenTemplate->bCKA_Verify,      sizeof(CK_BBOOL)},
+   {CKA_ENCRYPT,           &sKeyGenTemplate->bCKA_Encrypt,     sizeof(CK_BBOOL)},
+   {CKA_DECRYPT,           &sKeyGenTemplate->bCKA_Decrypt,     sizeof(CK_BBOOL)},
+   {CKA_WRAP,              &sKeyGenTemplate->bCKA_Wrap,        sizeof(CK_BBOOL)},
+   {CKA_UNWRAP,            &sKeyGenTemplate->bCKA_Unwrap,      sizeof(CK_BBOOL)},
+   {CKA_DERIVE,            &sKeyGenTemplate->bCKA_Derive,      sizeof(CK_BBOOL)},
+   {CKA_EXTRACTABLE,       &sKeyGenTemplate->bCKA_Extractable, sizeof(CK_BBOOL)},
+   {CKA_MODIFIABLE,        &sKeyGenTemplate->bCKA_Modifiable,  sizeof(CK_BBOOL)},
+   {CKA_VALUE_LEN,         &sKeyGenTemplate->skeySize,         sizeof(CK_LONG) },
+   {CKA_LABEL,             sKeyGenTemplate->pKeyLabel,         (CK_ULONG)u32labelsize},
+   };
+
+   // Check if CKA id is given in parameter
+   if (sKeyGenTemplate->pCKA_ID != NULL)
+   {
+      // push CKA id in PubTemplate
+      SymKeyTemplate[sSimTemplateSize].type = CKA_ID;
+      SymKeyTemplate[sSimTemplateSize].pValue = sKeyGenTemplate->pCKA_ID;
+      SymKeyTemplate[sSimTemplateSize].usValueLen = sKeyGenTemplate->uCKA_ID_Length;
+      sSimTemplateSize++;
+   }
+
+   switch (sPbe->ckPbeMechType)
+   {
+   case CKM_PKCS5_PBKD2:
+      sKeygenMech.mechanism = CKM_PKCS5_PBKD2;
+      sKeygenMech.pParameter = (CK_ATTRIBUTE_PTR)&sPbe->pbkdf2.pbfkd2_param;
+      sKeygenMech.usParameterLen = sizeof(sPbe->pbkdf2.pbfkd2_param);
+      break;
+   default:
+      printf("P11_GenerateKeyPbe invalid PBE algorithm\n");
+      return CK_FALSE;
+   }
+
+   // generate key
+   retCode = P11Functions->C_GenerateKey(hSession,
+      &sKeygenMech,
+      SymKeyTemplate,
+      sSimTemplateSize,
+      &hSymKey);
+
+   if (retCode == CKR_OK)
+   {
+      if (bDisplay == TRUE)
+      {
+         printf("Key successfully generated, handle is : %i, label is : %s \n", hSymKey, sKeyGenTemplate->pKeyLabel);
+      }
+
+      // if the handle pointer is not null, return the key handle value
+      if (hKey != NULL)
+      {
+         *hKey = hSymKey;
+      }
+
+      return CK_TRUE;
+   }
+
+
+   printf("P11_GenerateKeyPbe error code : %s \n", P11Util_DisplayErrorName(retCode));
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength)
 */
 CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK_CHAR_PTR pbClearKey, CK_ULONG lKeyLength)
 {
@@ -2066,9 +2584,13 @@ CK_OBJECT_HANDLE P11_ImportClearSymetricKey(P11_UNWRAPTEMPLATE* sKeyTemplate, CK
          break;
       }
 
+   } while (FALSE);
+
+   if (sWrapKey != NULL)
+   {
       // release the buffer
       free(sWrapKey);
-   } while (FALSE);
+   }
 
    sKeyTemplate->wrapmech = NULL;
 
@@ -2106,7 +2628,7 @@ CK_OBJECT_HANDLE P11_GenerateAESWrapKey(CK_BBOOL bTokenKey, CK_LONG skeySize, CK
 /*
     FUNCTION:        CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE * sKeyTemplate)
 */
-CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
+CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate, CK_OBJECT_HANDLE_PTR hPrivKey, CK_OBJECT_HANDLE_PTR hPubKey, CK_BBOOL bDisplay)
 {
    CK_RV             retCode = CKR_DEVICE_ERROR;
    CK_OBJECT_HANDLE  hPrivateKey = 0;
@@ -2160,7 +2682,6 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
    switch (sKeyGenTemplate->skeyType)
    {
    case CKK_DH:
-
       // Set prime
       PubTemplate[PubTemplateSize].type = CKA_PRIME;
       PubTemplate[PubTemplateSize].pValue = sKeyGenTemplate->pDHDomain->sPrime;
@@ -2307,6 +2828,73 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
       PubTemplateSize++;
       break;
    }
+   case CKK_ML_DSA:
+
+      bSignVerify = CK_TRUE;
+      sKeygenMech.mechanism = CKM_ML_DSA_KEY_PAIR_GEN;
+
+      // Set ml dsa params
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_DSA->uML_DSA_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
+      PubTemplateSize++;
+
+      // force some attributes to false
+      sKeyGenTemplate->bCKA_Derive = CK_FALSE;
+
+      break;
+    
+   case CKK_ML_KEM:
+
+      sKeygenMech.mechanism = CKM_ML_KEM_KEY_PAIR_GEN;
+
+      // Set ml kem params
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->pML_KEM->uML_KEM_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_KEM_PARAMETER_SET_TYPE);
+      PubTemplateSize++;
+
+      // set encapsulate
+      PubTemplate[PubTemplateSize].type = CKA_ENCAPSULATE;
+      PubTemplate[PubTemplateSize].pValue = &sKeyGenTemplate->bCKA_Encapsulate;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_BBOOL);
+      PubTemplateSize++;
+
+      // set decapsulate
+      PriTemplate[PriTemplateSize].type = CKA_DECAPSULATE;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->bCKA_Decapsulate;
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_BBOOL);
+      PriTemplateSize++;
+
+      // force some attributes to false
+      sKeyGenTemplate->bCKA_Derive = CK_FALSE;
+      break;
+   case CKK_HSS:
+
+      bSignVerify = CK_TRUE;
+      sKeygenMech.mechanism = CKM_HSS_KEY_PAIR_GEN;
+
+      // Set hss level
+      PriTemplate[PriTemplateSize].type = CKA_HSS_LEVELS;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->pHSS.uHSS_Levels;
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_HSS_LEVELS);
+      PriTemplateSize++;
+
+      // Set hss level
+      PriTemplate[PriTemplateSize].type = CKA_HSS_LMS_TYPES;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->pHSS.uLmsType[0];
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_LMS_TYPE) * sKeyGenTemplate->pHSS.uHSS_Levels;
+      PriTemplateSize++;
+
+      // Set hss level
+      PriTemplate[PriTemplateSize].type = CKA_HSS_LMOTS_TYPES;
+      PriTemplate[PriTemplateSize].pValue = &sKeyGenTemplate->pHSS.uLmotsType[0];
+      PriTemplate[PriTemplateSize].usValueLen = sizeof(CK_LMOTS_TYPE) * sKeyGenTemplate->pHSS.uHSS_Levels;
+      PriTemplateSize++;
+
+      // LMS private not extratable on luna
+      sKeyGenTemplate->bCKA_Extractable = CK_FALSE;
+      break;
 
    default:
       printf("C_GenerateKey : invalid keytype : %i", sKeyGenTemplate->skeyType);
@@ -2365,7 +2953,21 @@ CK_BBOOL P11_GenerateKeyPair(P11_KEYGENTEMPLATE* sKeyGenTemplate)
 
    if (retCode == CKR_OK)
    {
-      printf("Key pair successfully generated, private key handle : %i, public key handle : %i \n", hPrivateKey, hPublicKey);
+      if (bDisplay == CK_TRUE)
+      {
+         printf("Key pair successfully generated, private key handle : %i, public key handle : %i \n", hPrivateKey, hPublicKey);
+      }
+
+      if (hPrivKey != NULL)
+      {
+         *hPrivKey = hPrivateKey;
+      }
+
+      if (hPubKey != NULL)
+      {
+         *hPubKey = hPublicKey;
+      }
+
       return CK_TRUE;
    }
 
@@ -2502,6 +3104,22 @@ CK_BBOOL P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR
       privtemplatesize++;
    }
 
+   // Check if key size is given in parameter
+   if (sUnWrapTemplate->skeySize != 0)
+   {
+      // push CKA_VALUE_LEN in sym template
+      SymKeyTemplate[symtemplatesize].type = CKA_VALUE_LEN;
+      SymKeyTemplate[symtemplatesize].pValue = &sUnWrapTemplate->skeySize;
+      SymKeyTemplate[symtemplatesize].usValueLen = sizeof(CK_LONG);
+      symtemplatesize++;
+
+      // push CKA_VALUE_LEN id in PriTemplate
+      PriTemplate[privtemplatesize].type = CKA_VALUE_LEN;
+      PriTemplate[privtemplatesize].pValue = sUnWrapTemplate->pCKA_ID;
+      PriTemplate[privtemplatesize].usValueLen = sUnWrapTemplate->uCKA_ID_Length;
+      privtemplatesize++;
+   }
+
    if (sUnWrapTemplate->sClass == CKO_PRIVATE_KEY)
    {
       if ((sUnWrapTemplate->skeyType == CKK_RSA) || (sUnWrapTemplate->skeyType == CKK_ECDSA))
@@ -2517,6 +3135,16 @@ CK_BBOOL P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR
          privtemplatesize++;
       }
 
+      // if ml kem key add the attribute CKA_DECAPSULATE
+      if (sUnWrapTemplate->skeyType == CKK_ML_KEM)
+      {
+         // set decapsulate
+         PriTemplate[privtemplatesize].type = CKA_DECAPSULATE;
+         PriTemplate[privtemplatesize].pValue = &sUnWrapTemplate->bCKA_Decapsulate;
+         PriTemplate[privtemplatesize].usValueLen = sizeof(CK_BBOOL);
+         privtemplatesize++;
+      }
+
       // use the private key attribute template
       KeyTemplate = PriTemplate;
       templatesize = privtemplatesize;
@@ -2527,6 +3155,7 @@ CK_BBOOL P11_UnwrapPrivateSecretKey(P11_UNWRAPTEMPLATE* sUnWrapTemplate, CK_CHAR
       KeyTemplate = SymKeyTemplate;
       templatesize = symtemplatesize;
    }
+
 
    if (P11_BuildCKEncMecanism(sUnWrapTemplate->wrapmech, &swrapMech) == CK_FALSE)
    {
@@ -2566,6 +3195,7 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
    CK_OBJECT_HANDLE  hPublicKey = 0;
    CK_LONG           PubTemplateSize = 8;     // Size until CKA_LABEL.
    CK_BBOOL          bWrapEncrypt = CK_FALSE;
+   CK_BBOOL          bEncapsulate = CK_TRUE;
    P11_EDDSA_OID_CONVERT* eddsa_convert;
 
    // init with common attribute for all public key keys
@@ -2683,6 +3313,72 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplateSize++;
       break;
    }
+   case CKK_ML_DSA:
+   {
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_VALUE;
+      PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlDsaPublicKey.sPublicKey;
+      PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sMlDsaPublicKey.uPublicKeyLength;
+      PubTemplateSize++;
+
+      // Set parameter set
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlDsaPublicKey.uML_DSA_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_DSA_PARAMETER_SET_TYPE);
+      PubTemplateSize++;
+      break;
+   }
+   case CKK_ML_KEM:
+   {
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_VALUE;
+      PubTemplate[PubTemplateSize].pValue = sPublicKey->sMlKemPublicKey.sPublicKey;
+      PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sMlKemPublicKey.uPublicKeyLength;
+      PubTemplateSize++;
+
+      // Set parameter set
+      PubTemplate[PubTemplateSize].type = CKA_PARAMETER_SET;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sMlKemPublicKey.uML_KEM_Parameter_Set;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_ML_KEM_PARAMETER_SET_TYPE);
+      PubTemplateSize++;
+
+      // set encapsulate
+      PubTemplate[PubTemplateSize].type = CKA_ENCAPSULATE;
+      PubTemplate[PubTemplateSize].pValue = &sImportPublicKeyTemplate->bCKA_Encapsulate;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_BBOOL);
+      PubTemplateSize++;
+      break;
+   }
+   case CKK_HSS:
+   {
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_HSS_LEVELS;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sLmsPublicKey.uHSS_Levels;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CK_HSS_LEVELS);
+      PubTemplateSize++;
+      
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_HSS_LMS_TYPE;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sLmsPublicKey.uLmsType;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CKA_HSS_LMS_TYPE);
+      PubTemplateSize++;
+
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_HSS_LMOTS_TYPE;
+      PubTemplate[PubTemplateSize].pValue = &sPublicKey->sLmsPublicKey.uLmotsType;
+      PubTemplate[PubTemplateSize].usValueLen = sizeof(CKA_HSS_LMOTS_TYPE);
+      PubTemplateSize++;
+
+      // Set public key value
+      PubTemplate[PubTemplateSize].type = CKA_VALUE;
+      PubTemplate[PubTemplateSize].pValue = sPublicKey->sLmsPublicKey.sPublicKey;
+      PubTemplate[PubTemplateSize].usValueLen = sPublicKey->sLmsPublicKey.uPublicKeyLength;
+      PubTemplateSize++;
+
+      sImportPublicKeyTemplate->bCKA_Derive = CK_FALSE;
+
+      break;
+   }
    default:
       printf("C_CreateObject : invalid keytype : %i", sImportPublicKeyTemplate->skeyType);
       return CK_FALSE;
@@ -2707,7 +3403,6 @@ CK_BBOOL P11_CreatePublicKey(P11_UNWRAPTEMPLATE* sImportPublicKeyTemplate, PUBLI
       PubTemplate,
       PubTemplateSize,
       &hPublicKey);
-
 
    // check if successfull
    if (retCode == CKR_OK)
@@ -2852,6 +3547,8 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_AES_ECB:
    case CKM_AES_KWP:
    case CKM_AES_KW:
+   case CKM_DES_ECB:
+   case CKM_DES3_ECB:
       sEncMech->pParameter = NULL;
       sEncMech->usParameterLen = 0;
       break;
@@ -2861,12 +3558,21 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_AES_CFB128:
    case CKM_AES_OFB:
    case CKM_AES_CBC_PAD_IPSEC:
-      // Init the IV buffer and size
-      sEncMech->pParameter = encryption_mech->aes_param.iv;
+      // Init the sIV buffer and size
+      sEncMech->pParameter = encryption_mech->aes_param.pIv;
       sEncMech->usParameterLen = AES_IV_LENGTH;
       break;
+   case CKM_DES_CBC:
+   case CKM_DES_CBC_PAD:
+   case CKM_DES3_CBC:
+   case CKM_DES3_CBC_PAD:
+      // Init the sIV buffer and size
+      sEncMech->pParameter = encryption_mech->des_param.pIv;
+      sEncMech->usParameterLen = DES_IV_LENGTH;
+      break;
+
    case CKM_AES_GCM:
-      // Init the IV buffer and size
+      // Init the sIV buffer and size
       sEncMech->pParameter = &encryption_mech->aes_gcm_param;
       sEncMech->usParameterLen = sizeof(CK_GCM_PARAMS);
       break;
@@ -2895,8 +3601,8 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    switch (sign_mech->ckMechType)
    {
    case CKM_AES_CMAC:
-      // Init the IV buffer and size
-      sEncMech->pParameter = sign_mech->aes_param.iv;
+      // Init the sIV buffer and size
+      sEncMech->pParameter = sign_mech->aes_param.pIv;
       if (sEncMech->pParameter != NULL)
       {
          sEncMech->usParameterLen = AES_IV_LENGTH;
@@ -2909,8 +3615,8 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    case CKM_DES3_CMAC:
    case CKM_DES_MAC:
    case CKM_DES3_MAC:
-      // Init the IV buffer and size
-      sEncMech->pParameter = sign_mech->des_param.iv;
+      // Init the sIV buffer and size
+      sEncMech->pParameter = sign_mech->des_param.pIv;
       if (sEncMech->pParameter != NULL)
       {
          sEncMech->usParameterLen = DES_IV_LENGTH;
@@ -2920,7 +3626,10 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
          sEncMech->usParameterLen = 0;
       }
       break;
-
+   case CKM_SHA256_HMAC:
+      sEncMech->pParameter = NULL;
+      sEncMech->usParameterLen = 0;
+      break;
 
    default:
       printf("P11_BuildCKSignMecanism : Invalid Mecanism : %i", sign_mech->ckMechType);
@@ -3001,9 +3710,9 @@ CK_BBOOL P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSigna
 }
 
 /*
-    FUNCTION:       CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
+    FUNCTION:       CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 */
-CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
+CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 {
 
    CK_RV             retCode = CKR_DEVICE_ERROR;
@@ -3063,6 +3772,12 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
       sDeriveMech.usParameterLen = sizeof(CK_PRF_KDF_PARAMS);
       break;
 
+   case CKM_ECDH1_DERIVE:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
+      break;
+
    default:
       printf("C_DeriveKey unknown mecanism : %i \n", sDeriveTemplate->sDeriveMech->ckMechType);
       return CK_FALSE;
@@ -3079,7 +3794,16 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
    // check if successfull
    if (retCode == CKR_OK)
    {
-      printf("Key successfully derived: handle is : %i, label is : %s \n", hDerivedKey, sDeriveTemplate->pDerivedKeyLabel);
+      if (bDisplay == CK_TRUE)
+      {
+         printf("Key successfully derived: handle is : %i, label is : %s \n", hDerivedKey, sDeriveTemplate->pDerivedKeyLabel);
+      }
+
+      if (hKey != NULL)
+      {
+         *hKey = hDerivedKey;
+      }
+
       return CK_TRUE;
    }
 
@@ -3087,6 +3811,198 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate)
 
    return CK_FALSE;
 }
+
+/*
+    FUNCTION:       CK_BBOOL P11_DeriveKeyAndWrap(P11_DERIVETEMPLATE* sDeriveTemplate, P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen)
+*/
+CK_BBOOL P11_DeriveKeyAndWrap(P11_DERIVETEMPLATE* sDeriveTemplate, P11_WRAPTEMPLATE* sWrapTemplate, CK_BYTE_PTR * pWrappedKey, CK_ULONG_PTR pulWrappedKeyLen)
+{
+
+   CK_RV             retCode = CKR_DEVICE_ERROR;
+   CK_MECHANISM      sDeriveMech = { 0 };
+   CK_ULONG          uTemplateSize = 16;
+   CK_OBJECT_HANDLE  hDerivedKey = 0;
+   CK_LONG AllocateSize = 0;
+
+   CK_MECHANISM      swrapMech = { 0 };
+
+
+   CK_ATTRIBUTE SymKeyTemplate[20] = {
+   {CKA_CLASS,             &sDeriveTemplate->sDerivedClass,       sizeof(CK_OBJECT_CLASS)},
+   {CKA_KEY_TYPE,          &sDeriveTemplate->sderivedKeyType,     sizeof(CK_KEY_TYPE)},
+   {CKA_VALUE_LEN,         &sDeriveTemplate->sderivedKeyLength,   sizeof(CK_LONG)},
+   {CKA_TOKEN,             &sDeriveTemplate->bCKA_Token,          sizeof(CK_BBOOL)},
+   {CKA_SENSITIVE,         &sDeriveTemplate->bCKA_Sensitive,      sizeof(CK_BBOOL)},
+   {CKA_PRIVATE,           &sDeriveTemplate->bCKA_Private,        sizeof(CK_BBOOL)},
+   {CKA_ENCRYPT,           &sDeriveTemplate->bCKA_Encrypt,        sizeof(CK_BBOOL)},
+   {CKA_DECRYPT,           &sDeriveTemplate->bCKA_Decrypt,        sizeof(CK_BBOOL)},
+   {CKA_SIGN,              &sDeriveTemplate->bCKA_Sign,           sizeof(CK_BBOOL)},
+   {CKA_VERIFY,            &sDeriveTemplate->bCKA_Verify,         sizeof(CK_BBOOL)},
+   {CKA_WRAP,              &sDeriveTemplate->bCKA_Wrap,           sizeof(CK_BBOOL)},
+   {CKA_UNWRAP,            &sDeriveTemplate->bCKA_Unwrap,         sizeof(CK_BBOOL)},
+   {CKA_DERIVE,            &sDeriveTemplate->bCKA_Derive,         sizeof(CK_BBOOL)},
+   {CKA_EXTRACTABLE,       &sDeriveTemplate->bCKA_Extractable,    sizeof(CK_BBOOL)},
+   {CKA_MODIFIABLE,        &sDeriveTemplate->bCKA_Modifiable,     sizeof(CK_BBOOL)},
+   {CKA_LABEL,             sDeriveTemplate->pDerivedKeyLabel,     (CK_ULONG)strlen(sDeriveTemplate->pDerivedKeyLabel)},
+   };
+
+   // Check if CKA id is given in paramter
+   if (sDeriveTemplate->pCKA_ID != NULL)
+   {
+      // push CKA id in PubTemplate
+      SymKeyTemplate[uTemplateSize].type = CKA_ID;
+      SymKeyTemplate[uTemplateSize].pValue = sDeriveTemplate->pCKA_ID;
+      SymKeyTemplate[uTemplateSize].usValueLen = sDeriveTemplate->uCKA_ID_Length;
+      uTemplateSize++;
+   }
+
+   // check the derived key type
+   switch (sDeriveTemplate->sDeriveMech->ckMechType)
+   {
+   case CKM_SHA1_KEY_DERIVATION:
+   case CKM_SHA224_KEY_DERIVATION:
+   case CKM_SHA256_KEY_DERIVATION:
+   case CKM_SHA384_KEY_DERIVATION:
+   case CKM_SHA512_KEY_DERIVATION:
+   case CKM_SHA3_224_KEY_DERIVE:
+   case CKM_SHA3_256_KEY_DERIVE:
+   case CKM_SHA3_384_KEY_DERIVE:
+   case CKM_SHA3_512_KEY_DERIVE:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = NULL;
+      sDeriveMech.usParameterLen = 0;
+      break;
+   case CKM_PRF_KDF:
+   case CKM_NIST_PRF_KDF:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.usParameterLen = sizeof(CK_PRF_KDF_PARAMS);
+      break;
+
+   case CKM_ECDH1_DERIVE:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
+      break;
+
+   default:
+      printf("P11_DeriveKeyAndWrap unknown mecanism : %i \n", sDeriveTemplate->sDeriveMech->ckMechType);
+      return CK_FALSE;
+   }
+
+   // 
+   AllocateSize = MAX((sDeriveTemplate->sderivedKeyLength + AES_256_KEY_LENGTH), P11_GetObjectSize(sWrapTemplate->hWrappingKey));
+   *pulWrappedKeyLen = AllocateSize;
+   // Allocate a buffer of the size of the key + extra
+   *pWrappedKey = malloc(AllocateSize);
+   if (*pWrappedKey == NULL)
+   {
+      printf("P11_DeriveKeyAndWrap general error : cannot allocate memory \n");
+      return CK_FALSE;
+   }
+
+   if (P11_BuildCKEncMecanism(sWrapTemplate->wrap_key_mech, &swrapMech) == CK_FALSE)
+   {
+      return CK_FALSE;
+   }
+
+
+   //CA_DeriveKeyAndWrap
+   // derive and wrap the key
+   retCode = SfntFunctions->CA_DeriveKeyAndWrap(hSession,
+      &sDeriveMech,
+      sDeriveTemplate->hMasterKey,
+      SymKeyTemplate,
+      uTemplateSize,
+      &swrapMech,
+      sWrapTemplate->hWrappingKey,
+      *pWrappedKey,
+      pulWrappedKeyLen);
+
+   // check if successfull
+   if (retCode == CKR_OK)
+   {
+      return CK_TRUE;
+   }
+
+   printf("P11_DeriveKeyAndWrap error code : %s \n", P11Util_DisplayErrorName(retCode));
+
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:       CK_BBOOL P11_KeyAgreement(CK_OBJECT_HANDLE hPrivateKey, CK_BYTE_PTR sPublicData, CK_ULONG sPublicDataSize, CK_BYTE_PTR * sSharedSecret, CK_ULONG_PTR sSharedSecretLength)
+*/
+CK_BBOOL P11_KeyAgreement(CK_OBJECT_HANDLE hPrivateKey, CK_BYTE_PTR sPublicData, CK_ULONG sPublicDataSize, CK_BYTE_PTR * sSharedSecret, CK_ULONG_PTR sSharedSecretLength)
+{
+   P11_DERIVETEMPLATE      sDeriveTemplate = { 0 };
+   P11_DERIVE_MECH         sDeriveMech = { 0 };
+   P11_WRAPTEMPLATE        sWrapTemplate = { 0 };
+   P11_ENCRYPTION_MECH     sEncMech = { 0 };
+   P11_ENCRYPT_TEMPLATE    sEncrypt = { 0 };
+   CK_BYTE_PTR             sWrappedSharedSecret = NULL;
+   CK_ULONG                lWrappedSharedSecretLength = 0;
+   CK_BBOOL                bResult = CK_FALSE;
+
+   do
+   {
+
+      // Generate the sharesecret with ECDH
+      sDeriveTemplate.sDerivedClass = CKO_SECRET_KEY;
+      sDeriveTemplate.sderivedKeyType = CKK_GENERIC_SECRET;
+      sDeriveTemplate.sderivedKeyLength = sPublicDataSize >> 1; // here shared secret length is the size of the x coordinate of the shared secret point
+      sDeriveTemplate.hMasterKey = hPrivateKey;
+      sDeriveTemplate.bCKA_Extractable = CK_TRUE;
+      sDeriveTemplate.bCKA_Token = CK_FALSE;
+      sDeriveTemplate.bCKA_Private = CK_TRUE;
+      sDeriveTemplate.bCKA_Sensitive = CK_TRUE;
+      sDeriveTemplate.pDerivedKeyLabel = "tmd_temp_sharesecret";
+      sDeriveTemplate.sDeriveMech = &sDeriveMech;
+      sDeriveTemplate.sDeriveMech->ckMechType = CKM_ECDH1_DERIVE;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.kdf = CKD_NULL;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pSharedData = NULL;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.pPublicData = sPublicData;
+      sDeriveTemplate.sDeriveMech->sEcdh1DeriveParams.ulPublicDataLen = sPublicDataSize;
+
+      // generate a AES 256 session wrap key (use to encrypt clear key value)
+      sWrapTemplate.hWrappingKey = P11_GenerateAESWrapKey(CK_FALSE, AES_256_KEY_LENGTH, "AES_KEY_WRAP_KEY_KA");
+      sWrapTemplate.skeyType = CKK_AES;
+      sWrapTemplate.sClass = CKO_SECRET_KEY;
+      sWrapTemplate.wrap_key_mech = &sEncMech;
+      sWrapTemplate.wrap_key_mech->ckMechType = CKM_AES_KWP;
+
+      // Derive and wrap the share secret
+      if (P11_DeriveKeyAndWrap(&sDeriveTemplate, &sWrapTemplate, &sWrappedSharedSecret, &lWrappedSharedSecretLength) == CK_FALSE)
+      {
+         break;
+      }
+
+      // decrypt the share secret
+      sEncrypt.encryption_mech = &sEncMech;
+      sEncrypt.hEncyptiontKey = sWrapTemplate.hWrappingKey;
+      sEncrypt.sInputData = sWrappedSharedSecret;
+      sEncrypt.sInputDataLength = lWrappedSharedSecretLength;
+      if (P11_DecryptData(&sEncrypt, sSharedSecret, sSharedSecretLength) == CK_FALSE)
+      {
+         break;
+      }
+
+      bResult = CK_TRUE;
+
+   }while(FALSE);
+
+   // free memory
+   if (sWrappedSharedSecret != NULL)
+   {
+      free(sWrappedSharedSecret);
+   };
+
+   // delete wrap key
+   P11_DeleteObject(sWrapTemplate.hWrappingKey);
+
+   return bResult;
+}
+
 
 /*
     FUNCTION:       CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
@@ -3148,11 +4064,12 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
     CK_BBOOL                  bResult;
     P11_SIGNATURE_TEMPLATE    sSignatureTemplate = { 0 };
     P11_ENCRYPT_TEMPLATE      sEncryptionTemplate = { 0 };
-    CK_OBJECT_CLASS           sClass;
-    CK_KEY_TYPE               skeyType;
-    CK_MECHANISM_TYPE         ckMechTypeMac;
-    CK_MECHANISM_TYPE         ckMechTypeEnc;
-    CK_ULONG                  uInputLengh;
+    CK_OBJECT_CLASS           sClass = 0;
+    CK_KEY_TYPE               skeyType = 0;
+    CK_MECHANISM_TYPE         ckMechTypeMac = 0;
+    CK_MECHANISM_TYPE         ckMechTypeEnc = 0;
+    CK_MECHANISM_TYPE         ckMechTypehMac = 0;
+    CK_ULONG                  uInputLengh = 0;
 
     sClass = P11_GetObjectClass(hKey);
 
@@ -3177,11 +4094,16 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        ckMechTypeMac = CKM_DES_MAC;
        ckMechTypeEnc = CKM_DES_ECB;
        uInputLengh = DES_BLOCK_LENGTH;
+       break;
     case CKK_DES2:
     case CKK_DES3:
        ckMechTypeMac = CKM_DES3_MAC;
        ckMechTypeEnc = CKM_DES3_ECB;
        uInputLengh = DES_BLOCK_LENGTH;
+       break;
+    case CKK_GENERIC_SECRET:
+       ckMechTypehMac = CKM_SHA256_HMAC;
+       uInputLengh = 0;
        break;
     default:
        printf("P11_ComputeKCV error : unsuported key type : %s\n", P11Util_DisplayKeyTypeName(skeyType));
@@ -3205,14 +4127,91 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        // continue with cmac
     case KCV_PCI:
 
+       // in case of AES, do a signature
+       if (skeyType == CKK_AES)
+       {
+          // use cmac signature
+          sSignatureTemplate.hSignatureKey = hKey;
+          sSignatureTemplate.sClass = sClass;
+          sSignatureTemplate.skeyType = skeyType;
+          sSignatureTemplate.sInputData = sInputData;
+          sSignatureTemplate.sInputDataLength = uInputLengh;
+          sSignMech.aes_param.pIv = NULL;
+          sSignMech.ckMechType = ckMechTypeMac;
+
+          sSignatureTemplate.sign_mech = &sSignMech;
+
+          // Check if key has attribute CKA_SIGN
+          if (P11_GetBooleanAttribute(hKey, CKA_SIGN) == CK_FALSE)
+          {
+             if (P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_TRUE) == CK_FALSE)
+             {
+                printf("P11_ComputeKCV error : Sign attribute is not set\n ");
+                break;
+             }
+             bRestoreAttribute = CK_TRUE;
+          }
+
+          bResult = P11_SignData(&sSignatureTemplate, pKcvBuffer, &sSigbDataLengh);
+
+          // restore sign attribute
+          if (bRestoreAttribute == CK_TRUE)
+          {
+             P11_SetAttributeBoolean(hKey, CKA_SIGN, CK_FALSE);
+          }
+
+
+          if (bResult == FALSE)
+          {
+             break;
+          }
+          return CK_TRUE;
+       }
+
+       // in case on DES, continue and perform an encryption
+
+    case KCV_PKCS11:
+
+       // Check if key has attribute CKA_ENCRYPT
+       if (P11_GetBooleanAttribute(hKey, CKA_ENCRYPT) == CK_FALSE)
+       {
+          if (P11_SetAttributeBoolean(hKey, CKA_ENCRYPT, CK_TRUE) == CK_FALSE)
+          {
+             printf("P11_ComputeKCV error : Encrypt attribute is not set\n ");
+             break;
+          }
+          bRestoreAttribute = CK_TRUE;
+       }
+
+       // use encryption
+       sEncryptionTemplate.hEncyptiontKey = hKey;
+       sEncryptionTemplate.sClass = sClass;
+       sEncryptionTemplate.skeyType = skeyType;
+       sEncryptionTemplate.sInputData = sInputData;
+       sEncryptionTemplate.sInputDataLength = uInputLengh;
+       sEncMech.aes_param.pIv = NULL;
+       sEncMech.ckMechType = ckMechTypeEnc;
+       sEncryptionTemplate.encryption_mech = &sEncMech;
+
+       P11_EncryptData(&sEncryptionTemplate, pKcvBuffer, &sSigbDataLengh);
+
+       // restore encrypt attribute
+       if (bRestoreAttribute == CK_TRUE)
+       {
+          P11_SetAttributeBoolean(hKey, CKA_ENCRYPT, CK_FALSE);
+       }
+
+       return CK_TRUE;
+
+    case KCV_HMAC_256:
        // use cmac signature
        sSignatureTemplate.hSignatureKey = hKey;
        sSignatureTemplate.sClass = sClass;
        sSignatureTemplate.skeyType = skeyType;
        sSignatureTemplate.sInputData = sInputData;
        sSignatureTemplate.sInputDataLength = uInputLengh;
-       sSignMech.aes_param.iv = NULL;
-       sSignMech.ckMechType = ckMechTypeMac;
+       sSignMech.aes_param.pIv = NULL;
+       sSignMech.ckMechType = ckMechTypehMac;
 
        sSignatureTemplate.sign_mech = &sSignMech;
 
@@ -3241,38 +4240,6 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
        }
        return CK_TRUE;
 
-    case KCV_PKCS11:
-
-       // Check if key has attribute CKA_ENCRYPT
-       if (P11_GetBooleanAttribute(hKey, CKA_ENCRYPT) == CK_FALSE)
-       {
-          if (P11_SetAttributeBoolean(hKey, CKA_ENCRYPT, CK_TRUE) == CK_FALSE)
-          {
-             printf("P11_ComputeKCV error : Encrypt attribute is not set\n ");
-             break;
-          }
-          bRestoreAttribute = CK_TRUE;
-       }
-
-       // use encryption
-       sEncryptionTemplate.hEncyptiontKey = hKey;
-       sEncryptionTemplate.sClass = sClass;
-       sEncryptionTemplate.skeyType = skeyType;
-       sEncryptionTemplate.sInputData = sInputData;
-       sEncryptionTemplate.sInputDataLength = uInputLengh;
-       sEncMech.aes_param.iv = NULL;
-       sEncMech.ckMechType = ckMechTypeEnc;
-       sEncryptionTemplate.encryption_mech = &sEncMech;
-
-       P11_EncryptData(&sEncryptionTemplate, pKcvBuffer, &sSigbDataLengh);
-
-       // restore encrypt attribute
-       if (bRestoreAttribute == CK_TRUE)
-       {
-          P11_SetAttributeBoolean(hKey, CKA_ENCRYPT, CK_FALSE);
-       }
-
-       return CK_TRUE;
 
     default:
        printf("P11_ComputeKCV error : unknown KCV method\n ");

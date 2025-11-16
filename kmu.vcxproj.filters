@@ -40,6 +40,9 @@
     <ClCompile Include="util\src\tr31.c">
       <Filter>util</Filter>
     </ClCompile>
+    <ClCompile Include="util\src\tmd.c">
+      <Filter>util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kmu\inc\kmu.h">
@@ -82,6 +85,9 @@
       <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="util\inc\tr31.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\tmd.h">
       <Filter>util</Filter>
     </ClInclude>
   </ItemGroup>

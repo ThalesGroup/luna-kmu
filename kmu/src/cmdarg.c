@@ -203,7 +203,7 @@ CK_BBOOL cmdarg_SearchTypeBoolean(BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL b
          {
             // set value
             *bOutValue = arg_boolean[u8Loop].bBool;
-            
+
             // return param is present
             return CK_TRUE;
          }
@@ -334,7 +334,7 @@ CK_KEY_TYPE cmdarg_GetKeytype(CK_BBOOL bForceRequest, CK_ULONG uFlag)
    CK_KEY_TYPE cktype;
    CK_CHAR_PTR sKeyTypeString = NULL;
 
-   
+
    if (arg == NULL)
    {
       if (bForceRequest == CK_TRUE)
@@ -385,11 +385,11 @@ CK_OBJECT_CLASS cmdarg_GetClassFromkeyType(CK_ULONG uFlag)
       P11Util_DisplaySupportedKeyType(uFlag);
       printf("Enter key type : ");
       if (Console_RequestString() < 0)
-      {  
+      {
          return CK_NULL_ELEMENT;
       }
       sKeyTypeString = Console_GetBuffer();
-   }  
+   }
    else
    {
       sKeyTypeString = arg->s_argPart2;
@@ -404,7 +404,7 @@ CK_OBJECT_CLASS cmdarg_GetClassFromkeyType(CK_ULONG uFlag)
    {
       return cClass;
    }
-   
+
    printf("Wrong parameter for argument: -keytype,  %s \n", sKeyTypeString);
 
    return CK_NULL_ELEMENT;
@@ -487,7 +487,7 @@ CK_LONG cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize)
       memcpy(sCkaId, sBuffer, uLength);
       return uLength;
    } while (FALSE);
-    
+
    // return error
    return CK_NULL_ELEMENT;
 }
@@ -538,7 +538,7 @@ CK_OBJECT_HANDLE cmdarg_GetHandleValue(CK_BYTE bArgType)
       case ARG_TYPE_HANDLE_KCV:
          printf("Enter handle of the key to compute KCV (or 0 to list all objects): ");
          break;
-         
+
       default:
          return CK_NULL_ELEMENT;
       }
@@ -555,7 +555,7 @@ CK_OBJECT_HANDLE cmdarg_GetHandleValue(CK_BYTE bArgType)
       if (str_StringtoUnsignedInteger(sHandleString) == 0)
       {
          // list all objects
-         P11_FindAllObjects();
+         P11_FindAllObjects(CK_NULL_ELEMENT);
 
          // request for object value
          printf("Enter handle : ");
@@ -627,7 +627,7 @@ P11_EXP_DOMAIN* cmdarg_GetExpDomain(CK_BBOOL bIsSubPrime)
 
    // clear sDh_Domain
    memset(&sDh_Domain, 0, sizeof(sDh_Domain));
-   
+
    do
    {
       // get argument prime
@@ -796,9 +796,9 @@ CK_CHAR_PTR  cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK
 }
 
 /*
-    FUNCTION:        CK_LONG  cmdarg_GetKeySize()
+    FUNCTION:        CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
 */
-CK_LONG  cmdarg_GetKeySize()
+CK_LONG  cmdarg_GetKeySize(CK_ULONG uKeyType)
 {
    PARSER_CURRENT_CMD_ARG* arg;
    CK_CHAR_PTR sString = NULL;
@@ -808,6 +808,60 @@ CK_LONG  cmdarg_GetKeySize()
 
    if (arg == NULL)
    {
+
+      // print supported key size for AES
+      if (uKeyType == TYPE_KEY_SIZE_AES)
+      {
+         printf("AES Key size in byte, supported key size is: \n-> 16 for AES-128\n-> 24 for AES-192\n-> 32 for AES-256\n");
+      }
+
+      // print supported key size for DES
+      else if (uKeyType == TYPE_KEY_SIZE_DES)
+      {
+         printf("DES Key size in byte, supported key size is: \n-> 8 for DES\n-> 16 for 2DES\n-> 24 for 3DES\n");
+      }
+
+      // print supported key size for generic keys
+      else if (uKeyType == TYPE_KEY_SIZE_HMAC_GEN)
+      {
+         printf("HMAC and generic Key size in byte, supported key size is: \nMinimum-> 8 (64 bits)\nMinimum in FIPS mode-> 16 (128 bits)\nMaximum size-> 512 (4096 bits)\n");
+      }
+
+      // print supported key size for RSA keys
+      else if (uKeyType == TYPE_KEY_SIZE_RSA)
+      {
+         printf("RSA Key size in bits, supported key size is: \n");
+         printf("->pkcs method : Minimum 256, Maximum size-> 8192\n");
+         printf("->prime method : Minimum 2048, Maximum size-> 8192\n");
+         printf("->aux method : Minimum 1024, Maximum size-> 8192\n");
+      }
+      // print supported key size for ml dsa keys
+      else if (uKeyType == TYPE_KEY_SIZE_MLDSA)
+      {
+         printf("ML-DSA Key size in bytes, supported key size is: \n");
+         printf("->ML-DSA-44 : 1312\n");
+         printf("->ML-DSA-65 : 1952\n");
+         printf("->ML-DSA-87 : 2592\n");
+      }
+      // print supported key size for ml kem keys
+      else if (uKeyType == TYPE_KEY_SIZE_MLKEM)
+      {
+         printf("ML-KEM Key size in bytes, supported key size is: \n");
+         printf("->ML-KEM-512  : 800\n");
+         printf("->ML-KEM-768  : 1184\n");
+         printf("->ML-KEM-1024 : 1568\n");
+      }
+
+      // print supported key size for mzmk
+      else if (uKeyType == TYPE_KEY_SIZE_MZMK)
+      {
+         printf("MZMK Key size in bytes, supported key size is: \n");
+         printf("-> 16 for AES-128\n");
+         printf("-> 24 for AES-192\n");
+         printf("-> 32 for AES-256\n");
+         printf("-> 24 for 3DES\n");
+      }
+
       printf("Enter size for key : ");
 
       // request user
@@ -825,10 +879,10 @@ CK_LONG  cmdarg_GetKeySize()
       sString = arg->s_argPart2;
    }
 
-   sValue= str_StringtoInteger(sString);
+   sValue = str_StringtoInteger(sString);
 
    // if length negative, return 0
-   if(sValue <0 )
+   if (sValue < 0)
    {
       return 0;
    }
@@ -876,7 +930,7 @@ CK_LONG  cmdarg_GetCompomentsNumber()
    return 0;
 }
 
-   
+
 /*
     FUNCTION:        CK_CHAR_PTR cmdarg_GetPublicExponant()
 */
@@ -1092,15 +1146,23 @@ P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(BYTE bArgType)
    P11_ENCRYPTION_MECH* wrapalgo;
    CK_CHAR_PTR sString = NULL;
    CK_ULONG    bKeyFlag = KEY_TYPE_IMPORT_EXPORTKEY; //set the flag encrypt to accept only wrap algo
-
-   // Get public key exponant
-   arg = parser_SearchArgument(bArgType);
+   BYTE bArgTypeOri = bArgType;
 
    // if the keytype is encryption, set the flag encrypt to accept only encryption algo
    if (bArgType == ARG_TYPE_ALGO)
    {
       bKeyFlag = KEY_TYPE_ENCRYPT;
    }
+   else if (bArgType == ARG_TYPE_PBE)
+   {
+      bKeyFlag = KEY_TYPE_PBE;
+      bArgType = ARG_TYPE_WRAP_ALGO;
+   }
+
+   // Get public key exponant
+   arg = parser_SearchArgument(bArgType);
+
+
 
    do
    {
@@ -1109,7 +1171,7 @@ P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(BYTE bArgType)
       {
          P11Util_DisplayEncryptionParam(bKeyFlag);
          // request user to enter a string
-         switch (bArgType)
+         switch (bArgTypeOri)
          {
          case ARG_TYPE_WRAP_ALGO:
             printf("Enter wrap algorithm : ");
@@ -1119,6 +1181,9 @@ P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(BYTE bArgType)
             break;
          case ARG_TYPE_ALGO:
             printf("Enter encryption algorithm : ");
+            break;
+         case ARG_TYPE_PBE:
+            printf("Enter password based encryption algorithm : ");
             break;
          default:
             return NULL;
@@ -1259,9 +1324,11 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
    P11_ENCRYPTION_MECH* DefaultEncryption_mech = NULL;
    CK_CHAR_PTR          sIV;
    CK_CHAR_PTR          sAAD;
-   CK_ULONG             uLength; 
+   CK_ULONG             uLength;
+   P11_KEYGENTEMPLATE sKeyGenTemplate = { 0 };
 
-   memset(&sCustomEncryption_mech, 0,  sizeof(P11_ENCRYPTION_MECH));
+
+   memset(&sCustomEncryption_mech, 0, sizeof(P11_ENCRYPTION_MECH));
 
    do
    {
@@ -1284,7 +1351,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
       case CKM_AES_CFB128:
       case CKM_AES_OFB:
       case CKM_AES_CBC_PAD_IPSEC:
-         // Get IV from argument
+         // Get sIV from argument
          sIV = cmdarg_ArgGetIV();
 
          // if iv is not null in argument, use it
@@ -1294,14 +1361,14 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
             sCustomEncryption_mech.ckMechType = DefaultEncryption_mech->ckMechType;
 
             uLength = str_StringtoByteArray(sIV, (CK_ULONG)strlen(sIV));
-            // convert the IV to hex binary string
+            // convert the sIV to hex binary string
             if (uLength != AES_IV_LENGTH)
             {
                printf("wrong IV length or value: -iv=%s \n", sIV);
                break;
             }
-            // Set the custom IV
-            sCustomEncryption_mech.aes_param.iv = sIV;
+            // Set the custom sIV
+            sCustomEncryption_mech.aes_param.pIv = sIV;
 
             // return custom enc param
             return &sCustomEncryption_mech;
@@ -1310,7 +1377,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
          return DefaultEncryption_mech;
 
       case CKM_AES_GCM:
-         // Get IV from argument
+         // Get sIV from argument
          sIV = cmdarg_ArgGetIV();
 
          // if iv is not null in argument, use it
@@ -1320,13 +1387,13 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
             sCustomEncryption_mech.ckMechType = DefaultEncryption_mech->ckMechType;
 
             uLength = str_StringtoByteArray(sIV, (CK_ULONG)strlen(sIV));
-            // convert the IV to hex binary string
+            // convert the sIV to hex binary string
             if (uLength < AES_GCM_IV_MIN_LENGTH)
             {
                printf("wrong IV length or value: -iv=%s \n", sIV);
                break;;
             }
-            // Set the custom IV
+            // Set the custom sIV
             sCustomEncryption_mech.aes_gcm_param.pIv = sIV;
             sCustomEncryption_mech.aes_gcm_param.ulIvLen = uLength;
             sCustomEncryption_mech.aes_gcm_param.ulIvBits = uLength << 3;
@@ -1396,6 +1463,117 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
          }
          // return default enc param
          return DefaultEncryption_mech;
+      }
+   } while (FALSE);
+
+   return NULL;
+}
+
+/*
+P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
+*/
+P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
+{
+   P11_ENCRYPTION_MECH* DefaultEncryption_mech = NULL;
+   CK_CHAR_PTR          sIV;
+   CK_CHAR_PTR          sSalt;
+   CK_ULONG             uLength;
+   CK_LONG              lIteration = 0;
+   P11_KEYGENTEMPLATE sKeyGenTemplate = { 0 };
+
+
+   memset(&sCustomEncryption_mech, 0, sizeof(P11_ENCRYPTION_MECH));
+
+   do
+   {
+      // get algo
+      if ((DefaultEncryption_mech = cmdarg_SearchEncryptionAlgoValue(ARG_TYPE_PBE)) == NULL)
+      {
+         break;
+      }
+      // Check encryption alogrithm type
+      switch (DefaultEncryption_mech->ckMechType)
+      {
+      case CKM_PKCS5_PBKD2:
+         sCustomEncryption_mech.pbe_param.ckPbeMechType = CKM_PKCS5_PBKD2;
+
+         // Change ckMechType with the symetric key mechanism
+         sCustomEncryption_mech.ckMechType = DefaultEncryption_mech->pbe_param.ckEncMechType;
+         sCustomEncryption_mech.sMechName = DefaultEncryption_mech->sMechName;
+
+         // set key type
+         sCustomEncryption_mech.pbe_param.sEncClass = DefaultEncryption_mech->pbe_param.sEncClass;
+         sCustomEncryption_mech.pbe_param.ckEncMechType = DefaultEncryption_mech->pbe_param.ckEncMechType;
+         sCustomEncryption_mech.pbe_param.sEnckeyType = DefaultEncryption_mech->pbe_param.sEnckeyType;
+         sCustomEncryption_mech.pbe_param.sEnckeySize = DefaultEncryption_mech->pbe_param.sEnckeySize;
+
+         lIteration = cmdarg_GetIteration();
+
+         if (lIteration < 0)
+         {
+            // set default iteration
+            sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.iterations = PBFKD2_DEFAULT_ITERATION;
+         }
+         else
+         {
+            sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.iterations = (CK_ULONG)lIteration;
+         }
+
+         // Set default prf (only hmac-sha1 supported by hsm)
+         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = DefaultEncryption_mech->pbe_param.pbkdf2.pbfkd2_param.prf;
+
+         // Set the salt
+         sSalt = cmdarg_ArgGetSalt();
+         if (sSalt == NULL)
+         {
+            P11_GenerateRandom((CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sSalt[0], sizeof(sCustomEncryption_mech.pbe_param.pbkdf2.sSalt));
+            sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pSaltSourceData = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sSalt;
+            sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.ulSaltSourceDataLen = PBFKD2_SALT_LENGTH;
+         }
+         else
+         {
+            uLength = str_StringtoByteArray(sSalt, (CK_ULONG)strlen(sSalt));
+
+            sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pSaltSourceData = sSalt;
+            sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.ulSaltSourceDataLen = uLength;
+
+         }
+         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.saltSource = CKZ_SALT_SPECIFIED;
+
+         // get password
+         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword = cmdarg_GetKeyPassword();
+         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.usPasswordLen = (CK_ULONG)strlen((CK_BYTE_PTR)sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword);
+
+         // get IV
+         sIV = cmdarg_ArgGetIV();
+         if (sIV == NULL)
+         {
+            // generate random sIV
+            sIV = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sIV[0];
+            P11_GenerateRandom(sIV, DefaultEncryption_mech->pbe_param.ulIvLen);
+            // Set the sIV to the pointer
+            sCustomEncryption_mech.pbe_param.pIv = (CK_BYTE_PTR)&sCustomEncryption_mech.pbe_param.pbkdf2.sIV;
+         }
+         else
+         {
+
+            uLength = str_StringtoByteArray(sIV, (CK_ULONG)strlen(sIV));
+            // convert the sIV to hex binary string
+            if (uLength != DefaultEncryption_mech->pbe_param.ulIvLen)
+            {
+               printf("wrong IV length or value: -iv=%s \n", sIV);
+               break;
+            }
+
+            // Set the sIV to the pointer
+            sCustomEncryption_mech.pbe_param.pIv = (CK_BYTE_PTR)sIV;
+            sCustomEncryption_mech.pbe_param.ulIvLen = uLength;
+         }
+
+         // set IV length
+         sCustomEncryption_mech.pbe_param.ulIvLen = DefaultEncryption_mech->pbe_param.ulIvLen;
+
+         return &sCustomEncryption_mech;
 
       }
    } while (FALSE);
@@ -1408,7 +1586,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
 */
 P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
 {
-   P11_DERIVE_MECH*     DefaultDerive_mech = NULL;
+   P11_DERIVE_MECH* DefaultDerive_mech = NULL;
    CK_LONG_64           i64_Counter;
    CK_LONG              sBufferLength;
    CK_CHAR_PTR          pSBuffer = NULL;
@@ -1417,7 +1595,7 @@ P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
 
    do
    {
-      if((DefaultDerive_mech = cmdarg_SearchDerivationAlgoValue(bArgType)) == NULL)
+      if ((DefaultDerive_mech = cmdarg_SearchDerivationAlgoValue(bArgType)) == NULL)
       {
          printf("wrong argument : -mech \n");
          break;
@@ -1676,6 +1854,40 @@ BYTE cmdarg_GetKCVMethod()
 }
 
 /*
+    FUNCTION:        CK_ATTRIBUTE_TYPE cmdarg_AttributeType()
+*/
+CK_ATTRIBUTE_TYPE cmdarg_AttributeType()
+{
+   PARSER_CURRENT_CMD_ARG* arg = NULL;
+   CK_CHAR_PTR          sString;
+
+   // Get argument -attribute
+   arg = parser_SearchArgument(ARG_TYPE_ATTR_NAME);
+
+   if (arg == NULL)
+   {
+      // request the user to enter a attribute name
+      P11Util_DisplaySupportedAttribute();
+      printf("Enter Attribute Name : ");
+      if (Console_RequestString() < 0)
+      {
+         return 0;
+      }
+      sString = Console_GetBuffer();
+   }
+   else
+   {
+      sString = arg->s_argPart2;
+   }
+
+   // Uppercase to lowercase
+   sString = str_tolower(sString);
+
+   // convert the attribute type
+   return P11Util_GetAttributeType(sString);
+}
+
+/*
     FUNCTION:        CK_LONG cmdarg_GetKDFHexString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK_ULONG sBufferSize)
 */
 /*
@@ -1715,3 +1927,261 @@ CK_LONG cmdarg_GetKDFHexString(CK_BYTE bLabelType, CK_CHAR_PTR * pBuffer, CK_ULO
    // return error
    return CK_NULL_ELEMENT;
 }*/
+
+/*
+    FUNCTION:        CK_CHAR_PTR cmdarg_GetKeyPassword()
+*/
+CK_CHAR_PTR cmdarg_GetKeyPassword()
+{
+   PARSER_CURRENT_CMD_ARG* arg;
+   CK_CHAR_PTR sString = NULL;
+
+   do
+   {
+      // get KDF type
+      arg = parser_SearchArgument(ARG_TYPE_KEY_PASSWORD);
+
+      if (arg == NULL)
+      {
+         // request user to enter a string
+         printf("Enter the password for the password based encryption : ");
+
+         // request user
+         if (Console_RequestPassword() < 0)
+         {
+            break;
+         }
+
+         printf("\n\n");
+
+         // get string
+         sString = Console_GetBuffer();
+      }
+      else
+      {
+         // use string in parameter
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      return sString;
+   } while (FALSE);
+
+   return NULL;
+
+}
+
+/*
+    FUNCTION:        CK_LONG cmdarg_GetHSSLevel()
+*/
+CK_LONG cmdarg_GetHSSLevel()
+{
+   PARSER_CURRENT_CMD_ARG* arg;
+   arg = parser_SearchArgument(ARG_TYPE_HSS_LEVEL);
+   CK_CHAR_PTR          sString = NULL;
+
+   if (arg == NULL)
+   {
+
+      printf("Enter HSS level (from 1 to 8) : ");
+      if (Console_RequestString() < 0)
+      {
+         return 0;
+      }
+
+      sString = Console_GetBuffer();
+   }
+   else
+   {
+      sString = arg->s_argPart2;
+   }
+
+   return (CK_ULONG)str_StringtoUnsignedInteger(sString);
+}
+
+/*
+    FUNCTION:        CK_BBOOL cmdarg_LMSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uHSSLevel)
+*/
+CK_BBOOL cmdarg_LMSType(CK_LMS_TYPE paLMSType[], CK_LONG uHSSLevel)
+{
+   PARSER_CURRENT_CMD_ARG* arg = NULL;
+   CK_CHAR_PTR          sString = NULL;
+   CK_CHAR_PTR          sCurrentArg  = NULL;
+   CK_CHAR_PTR          sNextArg = NULL;
+   CK_LMS_TYPE          uLmsType = 0;
+   CK_BYTE              bOffset = 0;
+
+   do
+   {
+      // Get argument -attribute
+      arg = parser_SearchArgument(ARG_TYPE_LMS_TYPE);
+
+      if (arg == NULL)
+      {
+         // request the user to enter a attribute name
+         P11Util_DisplaySupportedLMSType();
+         if (uHSSLevel == DEFAULT_LMS_LEVEL)
+         {
+            printf("Enter LMS type Name : ");
+         }
+         else
+         {
+            printf("Enter LMS type Name as a suite of LMS type separated with comma starting with level 1 :\n");
+         }
+
+         if (Console_RequestString() < 0)
+         {
+            return 0;
+         }
+         sString = Console_GetBuffer();
+      }
+      else
+      {
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      sCurrentArg = sString;
+      bOffset = 0;
+
+      do
+      {
+         // if null stop and returns error
+         if (sCurrentArg == NULL)
+         {
+            return CK_FALSE;
+         }
+
+         sNextArg = strchr(sCurrentArg, strComma);
+         if (sNextArg != NULL)
+         {
+            sNextArg[0] = 0x00;
+            sNextArg++;
+         }
+
+         // get LMS type value
+         uLmsType = P11Util_GetLMSType(sCurrentArg);
+
+         // Check if error
+         if (uLmsType == -1)
+         {
+            return CK_FALSE;
+         }
+         // push in the array list
+         paLMSType[bOffset] = uLmsType;
+         bOffset++;
+
+         // search for next comma
+         sCurrentArg = sNextArg;
+
+      } while (bOffset != uHSSLevel);
+
+      if (sNextArg != NULL)
+      {
+         break;
+      }
+      
+      return CK_TRUE;
+
+   } while (FALSE);
+
+      // convert the attribute type
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_BBOOL cmdarg_LMSOTSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uHSSLevel)
+*/
+CK_BBOOL cmdarg_LMSOTSType(CK_LMS_TYPE paLMSOTType[], CK_LONG uHSSLevel)
+{
+   PARSER_CURRENT_CMD_ARG* arg = NULL;
+   CK_CHAR_PTR          sString = NULL;
+   CK_CHAR_PTR          sCurrentArg = NULL;
+   CK_CHAR_PTR          sNextArg = NULL;
+   CK_LMOTS_TYPE        uLmsotsType = 0;
+   CK_BYTE              bOffset = 0;
+
+   do
+   {
+      // Get argument -attribute
+      arg = parser_SearchArgument(ARG_TYPE_LMOTS_TYPE);
+
+      if (arg == NULL)
+      {
+         // request the user to enter a attribute name
+         P11Util_DisplaySupportedLMSOTSType();
+         if (uHSSLevel == DEFAULT_LMS_LEVEL)
+         {
+            printf("Enter LMS-OT type Name : ");
+         }
+         else
+         {
+            printf("Enter LMS-OT type Name as a suite of LM-OTS type separated with comma starting with level 1 :\n");
+         }
+
+
+         if (Console_RequestString() < 0)
+         {
+            return 0;
+         }
+         sString = Console_GetBuffer();
+      }
+      else
+      {
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      sCurrentArg = sString;
+      bOffset = 0;
+
+      do
+      {
+         // if null stop and returns error
+         if (sCurrentArg == NULL)
+         {
+            return CK_FALSE;
+         }
+
+         sNextArg = strchr(sCurrentArg, strComma);
+         if (sNextArg != NULL)
+         {
+            sNextArg[0] = 0x00;
+            sNextArg++;
+         }
+
+         // get LMS type value
+         uLmsotsType = P11Util_GetLMSOTSType(sCurrentArg);
+
+         // Check if error
+         if (uLmsotsType == -1)
+         {
+            return CK_FALSE;
+         }
+         // push in the array list
+         paLMSOTType[bOffset] = uLmsotsType;
+         bOffset++;
+
+         // search for next comma
+         sCurrentArg = sNextArg;
+
+      } while (bOffset != uHSSLevel);
+
+      if (sNextArg != NULL)
+      {
+         break;
+      }
+
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   // convert the attribute type
+   return CK_FALSE;
+}

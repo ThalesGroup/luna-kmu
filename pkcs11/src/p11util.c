@@ -58,6 +58,7 @@ typedef struct parser_KeyType
 {
    const CK_CHAR_PTR       sKeyTypeName;
    const CK_KEY_TYPE       cktype;
+   const CK_MECHANISM_TYPE cKeyGenMecanismType;
    const CK_OBJECT_CLASS   ckClass;
    const CK_ULONG          uFlag;
 }PARSER_KEY_TYPE;
@@ -67,6 +68,9 @@ const CK_CHAR KEY_TYPE_DES2[] = "des2";
 const CK_CHAR KEY_TYPE_DES3[] = "des3";
 const CK_CHAR KEY_TYPE_AES[] = "aes";
 const CK_CHAR KEY_TYPE_RSA[] = "rsa";
+const CK_CHAR KEY_TYPE_RSA_PKCS[] = "rsa-pkcs";
+const CK_CHAR KEY_TYPE_RSA_PRIME[] = "rsa-prime";
+const CK_CHAR KEY_TYPE_RSA_AUX[] = "rsa-aux";
 const CK_CHAR KEY_TYPE_ECDSA[] = "ecdsa";
 const CK_CHAR KEY_TYPE_EDDSA[] = "eddsa";
 const CK_CHAR KEY_TYPE_SM2[] = "sm2";
@@ -77,6 +81,11 @@ const CK_CHAR KEY_TYPE_DH[] = "dh";
 const CK_CHAR KEY_TYPE_DSA[] = "dsa";
 const CK_CHAR KEY_TYPE_X942_DH[] = "dh-x9.42";
 const CK_CHAR KEY_TYPE_GENERIC[] = "genericsecret";
+const CK_CHAR KEY_TYPE_MD_DSA[] = "ml-dsa";
+const CK_CHAR KEY_TYPE_MD_KEM[] = "ml-kem";
+const CK_CHAR KEY_TYPE_MD_LMS[] = "lms";
+const CK_CHAR KEY_TYPE_MD_HSS[] = "hss";
+
 
 const CK_CHAR KEY_TYPE_KEA[] = "kea";
 const CK_CHAR KEY_TYPE_RC2[] = "rc2";
@@ -93,35 +102,42 @@ const CK_CHAR KEY_TYPE_IDEA[] = "idea";
 
 #define SIZE_KEYGEN_SUPPORTED_TYPE_TABLE      DIM(arg_keygen_supported_type)
 const PARSER_KEY_TYPE arg_keygen_supported_type[] = {
-   {(CK_CHAR_PTR)&KEY_TYPE_AES,           CKK_AES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_SM4,           CKK_SM4,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES,           CKK_DES,                CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES2,          CKK_DES2,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DES3,          CKK_DES3,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_GENERIC,       CKK_GENERIC_SECRET,     CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_HMAC,          CKK_GENERIC_SECRET,     CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RSA,           CKK_RSA,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DH,            CKK_DH,                 CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_X942_DH,       CKK_X9_42_DH,           CKO_PRIVATE_KEY,  KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_DSA,           CKK_DSA,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_ECDSA,         CKK_ECDSA,              CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS,         CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS_OLD,     CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY,      CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY_OLD,  CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_SM2,           CKK_SM2,                CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_KEA,           CKK_KEA,                CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RC2,           CKK_RC2,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RC4,           CKK_RC4,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_RC5,           CKK_RC5,                CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST,          CKK_CAST,               CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST3,         CKK_CAST3,              CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST5,         CKK_CAST5,              CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_CAST128,       CKK_CAST128,            CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_IDEA,          CKK_IDEA,               CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_KCDSA,         CKK_KCDSA,              CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_KSEED,         CKK_SEED_OLD,           CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
-   {(CK_CHAR_PTR)&KEY_TYPE_BIP32,         CKK_BIP32,              CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_AES,           CKK_AES,                CKM_AES_KEY_GEN,                          CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC | KEY_TYPE_MZMK},
+   {(CK_CHAR_PTR)&KEY_TYPE_SM4,           CKK_SM4,                CKM_SM4_KEY_GEN,                          CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES,           CKK_DES,                CKM_DES_KEY_GEN,                          CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC | KEY_TYPE_MZMK},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES2,          CKK_DES2,               CKM_DES2_KEY_GEN,                         CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DES3,          CKK_DES3,               CKM_DES3_KEY_GEN,                         CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_GENERIC,       CKK_GENERIC_SECRET,     CKM_GENERIC_SECRET_KEY_GEN,               CKO_SECRET_KEY,   KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_HMAC,          CKK_GENERIC_SECRET,     CKM_GENERIC_SECRET_KEY_GEN,               CKO_SECRET_KEY,   KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_GENKEY | KEY_TYPE_DERIVEKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC },
+   {(CK_CHAR_PTR)&KEY_TYPE_RSA,           CKK_RSA,                0,                                        CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY },
+   {(CK_CHAR_PTR)&KEY_TYPE_RSA_PKCS,      CKK_RSA,                CKM_RSA_PKCS_KEY_PAIR_GEN,                CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_RSA_PRIME,     CKK_RSA,                CKM_RSA_FIPS_186_3_PRIME_KEY_PAIR_GEN,    CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_RSA_AUX,       CKK_RSA,                CKM_RSA_FIPS_186_3_AUX_PRIME_KEY_PAIR_GEN,CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DH,            CKK_DH,                 CKM_DH_PKCS_KEY_PAIR_GEN,                 CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_X942_DH,       CKK_X9_42_DH,           CKM_X9_42_DH_KEY_PAIR_GEN,                CKO_PRIVATE_KEY,  KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_DSA,           CKK_DSA,                CKM_DSA_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_ECDSA,         CKK_ECDSA,              CKM_EC_KEY_PAIR_GEN,                      CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS,         CKM_EC_EDWARDS_KEY_PAIR_GEN,              CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_EDDSA,         CKK_EC_EDWARDS_OLD,     CKM_EC_EDWARDS_KEY_PAIR_GEN,              CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY,      CKM_EC_MONTGOMERY_KEY_PAIR_GEN,           CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MONTGOMERY,    CKK_EC_MONTGOMERY_OLD,  CKM_EC_MONTGOMERY_KEY_PAIR_GEN,           CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_SM2,           CKK_SM2,                CKM_SM2_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_DSA,        CKK_ML_DSA,             CKM_ML_DSA_KEY_PAIR_GEN,                  CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_KEM,        CKK_ML_KEM,             CKM_ML_KEM_KEY_PAIR_GEN,                  CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_LMS,        CKK_LMS,                CKM_HSS_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY },
+   {(CK_CHAR_PTR)&KEY_TYPE_MD_HSS,        CKK_HSS,                CKM_HSS_KEY_PAIR_GEN,                     CKO_PRIVATE_KEY,  KEY_TYPE_GENKEY | KEY_TYPE_IMPORT_EXPORTKEY | KEY_TYPE_DISPLAY | KEY_TYPE_DISPLAY_MEC},
+   {(CK_CHAR_PTR)&KEY_TYPE_KEA,           CKK_KEA,                0,                                        CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_RC2,           CKK_RC2,                0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_RC4,           CKK_RC4,                0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_RC5,           CKK_RC5,                0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST,          CKK_CAST,               0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST3,         CKK_CAST3,              0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST5,         CKK_CAST5,              0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_CAST128,       CKK_CAST128,            0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_IDEA,          CKK_IDEA,               0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_KCDSA,         CKK_KCDSA,              0,                                        CKO_PRIVATE_KEY,  KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_KSEED,         CKK_SEED_OLD,           0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
+   {(CK_CHAR_PTR)&KEY_TYPE_BIP32,         CKK_BIP32,              0,                                        CKO_SECRET_KEY,   KEY_TYPE_DISPLAY},
 };
 
 /*
@@ -499,6 +515,9 @@ const CK_CHAR ARG_ALG_RSA_SHA512_OAEP[] = "rsa_oaep_sha512";
 const CK_CHAR ARG_ALG_RSA_AES128_KEY_WRAP[] = "rsa_aes128";
 const CK_CHAR ARG_ALG_RSA_AES192_KEY_WRAP[] = "rsa_aes192";
 const CK_CHAR ARG_ALG_RSA_AES256_KEY_WRAP[] = "rsa_aes256";
+const CK_CHAR ARG_ALG_RSA_PBFKD2_AES_128_CBC[] = "pbfkd2_aes128_cbc";
+const CK_CHAR ARG_ALG_RSA_PBFKD2_AES_192_CBC[] = "pbfkd2_aes192_cbc";
+const CK_CHAR ARG_ALG_RSA_PBFKD2_AES_256_CBC[] = "pbfkd2_aes256_cbc";
 
 const CK_CHAR default_DES_IV[DES_IV_LENGTH] = { '1', '2', '3', '4', '5', '6', '7', '8'};
 const CK_CHAR default_AES_IV[AES_IV_LENGTH] = { '1', '2', '3', '4', '5', '6', '7', '8', '1', '2', '3', '4', '5', '6', '7', '8' };
@@ -507,21 +526,26 @@ const CK_CHAR default_AES_GCM_IV[AES_IV_LENGTH] = { 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
 
 #define SIZE_ENCRYPTION_ALGO_TABLE     DIM(encryption_algo)
 const P11_ENCRYPTION_MECH encryption_algo[] = {
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_ECB,              CKM_AES_ECB,            .aes_param.iv = NULL},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC,              CKM_AES_CBC,            .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD,          CKM_AES_CBC_PAD,        .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD_IPSEC,    CKM_AES_CBC_PAD_IPSEC,  .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB8,             CKM_AES_CFB8,           .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB128,           CKM_AES_CFB128,         .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_OFB,              CKM_AES_OFB,            .aes_param.iv = (CK_CHAR_PTR)default_AES_IV},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KW,               CKM_AES_KW,             .aes_param.iv = NULL},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KWP,              CKM_AES_KWP,            .aes_param.iv = NULL},
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_GCM,              CKM_AES_GCM,            .aes_gcm_param.pIv = (CK_CHAR_PTR)default_AES_GCM_IV, .aes_gcm_param.ulIvLen = AES_IV_LENGTH, .aes_gcm_param.ulIvBits = AES_IV_LENGTH << 3, .aes_gcm_param.pAAD = NULL,.aes_gcm_param.ulAADLen = 0, .aes_gcm_param.ulTagBits = AES_GCM_AUTH_TAG_LENGTH_96 },
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA256_OAEP,      CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA256, .rsa_oeap_param.mgf = CKG_MGF1_SHA256, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA384_OAEP,      CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA384, .rsa_oeap_param.mgf = CKG_MGF1_SHA384, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA512_OAEP,      CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA512, .rsa_oeap_param.mgf = CKG_MGF1_SHA512, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
-   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_OAEP,             CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = 0,          .rsa_oeap_param.mgf = 0,               .rsa_oeap_param.source = 0,                  .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 }
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_ECB,                  CKM_AES_ECB,            .aes_param.pIv = NULL},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC,                  CKM_AES_CBC,            .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD,              CKM_AES_CBC_PAD,        .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_CBC_PAD_IPSEC,        CKM_AES_CBC_PAD_IPSEC,  .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB8,                 CKM_AES_CFB8,           .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_CFB128,               CKM_AES_CFB128,         .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT,                              (CK_CHAR_PTR)&ARG_ALG_AES_OFB,                  CKM_AES_OFB,            .aes_param.pIv = (CK_CHAR_PTR)default_AES_IV},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KW,                   CKM_AES_KW,             .aes_param.pIv = NULL},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KWP,                  CKM_AES_KWP,            .aes_param.pIv = NULL},
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_GCM,                  CKM_AES_GCM,            .aes_gcm_param.pIv = (CK_CHAR_PTR)default_AES_GCM_IV, .aes_gcm_param.ulIvLen = AES_IV_LENGTH, .aes_gcm_param.ulIvBits = AES_IV_LENGTH << 3, .aes_gcm_param.pAAD = NULL,.aes_gcm_param.ulAADLen = 0, .aes_gcm_param.ulTagBits = AES_GCM_AUTH_TAG_LENGTH_96 },
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA256_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA256, .rsa_oeap_param.mgf = CKG_MGF1_SHA256, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA384_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA384, .rsa_oeap_param.mgf = CKG_MGF1_SHA384, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA512_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA512, .rsa_oeap_param.mgf = CKG_MGF1_SHA512, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_OAEP,                 CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = 0,          .rsa_oeap_param.mgf = 0,               .rsa_oeap_param.source = 0,                  .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_128_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_192_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_256_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH }
 };
+
+
 
 //CKM_RSA_AES_KEY_WRAP
 
@@ -610,14 +634,116 @@ const P11_HASH_MECH hash_algo[] = {
 const CK_CHAR ARG_KCV_METHOD_PKCS11[] = "pkcs11";
 const CK_CHAR ARG_KCV_METHOD_PCI[] = "pci";
 const CK_CHAR ARG_KCV_METHOD_GP[] = "gp";
+const CK_CHAR ARG_KCV_METHOD_HMAC_SHA2_56[] = "hmac-sha-256";
 
 #define SIZE_KCV_TYPE_TABLE     DIM(kcv_type)
 const P11_KCV_TYPE kcv_type[] = {
    {(CK_CHAR_PTR)&ARG_KCV_METHOD_PKCS11,           KCV_PKCS11},
    {(CK_CHAR_PTR)&ARG_KCV_METHOD_PCI,              KCV_PCI},
    {(CK_CHAR_PTR)&ARG_KCV_METHOD_GP,               KCV_GP},
+   {(CK_CHAR_PTR)&ARG_KCV_METHOD_HMAC_SHA2_56,     KCV_HMAC_256},
 
 };
+
+
+const CK_CHAR ARG_CKA_APPLICATION[] = "application";
+const CK_CHAR ARG_CKA_ID[] = "id";
+const CK_CHAR ARG_CKA_VALUE[] = "value";
+
+#define SIZE_ATTR_TYPE_TABLE     DIM(attr_type)
+const P11_ATTR_TYPE attr_type[] = {
+   {(CK_CHAR_PTR)&ARG_CKA_APPLICATION,    CKA_APPLICATION},
+   {(CK_CHAR_PTR)&ARG_CKA_ID,             CKA_ID},
+   {(CK_CHAR_PTR)&ARG_CKA_VALUE,          CKA_VALUE},
+
+};
+
+const CK_CHAR ML_DSA_44[] = "ML-DSA-44";
+const CK_CHAR ML_DSA_65[] = "ML-DSA-65";
+const CK_CHAR ML_DSA_87[] = "ML-DSA-87";
+
+/***   ML DSA ****/
+#define SIZE_P11_ML_DSA_KEYSIZE_TABLE     DIM(ml_dsa_publickeysize)
+const P11_ML_DSA_KEY ml_dsa_publickeysize[] = {
+   {ML_DSA_44_PUBLIC_KEY_SIZE,   ML_DSA_44_PRIVATE_KEY_SIZE,          CKP_ML_DSA_44,             (CK_CHAR_PTR)&ML_DSA_44},
+   {ML_DSA_65_PUBLIC_KEY_SIZE,   ML_DSA_65_PRIVATE_KEY_SIZE,          CKP_ML_DSA_65,             (CK_CHAR_PTR)&ML_DSA_65},
+   {ML_DSA_87_PUBLIC_KEY_SIZE,   ML_DSA_87_PRIVATE_KEY_SIZE,          CKP_ML_DSA_87,             (CK_CHAR_PTR)&ML_DSA_87},
+
+};
+
+
+const CK_CHAR ML_KEM_512[] = "ML-KEM-512";
+const CK_CHAR ML_KEM_768[] = "ML-KEM-768";
+const CK_CHAR ML_KEM_1024[] = "ML-KEM-1024";
+
+/***   ML KEM ****/
+#define SIZE_P11_ML_KEM_KEYSIZE_TABLE     DIM(ml_kem_publickeysize)
+const P11_ML_KEM_KEY ml_kem_publickeysize[] = {
+   {ML_KEM_512_PUBLIC_KEY_SIZE,  ML_KEM_512_PRIVATE_KEY_SIZE,          CKP_ML_KEM_512,             (CK_CHAR_PTR)&ML_KEM_512},
+   {ML_KEM_768_PUBLIC_KEY_SIZE,  ML_KEM_768_PRIVATE_KEY_SIZE,          CKP_ML_KEM_768,             (CK_CHAR_PTR)&ML_KEM_768},
+   {ML_KEM_1024_PUBLIC_KEY_SIZE, ML_KEM_1024_PRIVATE_KEY_SIZE,         CKP_ML_KEM_1024,            (CK_CHAR_PTR)&ML_KEM_1024},
+
+};
+
+
+/******************** lms *********************/
+typedef struct lms_type_attributes
+{
+   const CK_CHAR_PTR    sParamName;
+   const CK_LMS_TYPE    uLMSType;
+}LMS_TYPE_ATTIBUTES;
+
+typedef struct lmots_type_attributes
+{
+   const CK_CHAR_PTR    sParamName;
+   const CK_LMOTS_TYPE  uLMOTSType;
+}LMOTS_TYPE_ATTIBUTES;
+
+const CK_CHAR NAME_LMS_SHA256_M24_H5[]    = "sha256_m24_h5";
+const CK_CHAR NAME_LMS_SHA256_M24_H10[]   = "sha256_m24_h10";
+const CK_CHAR NAME_LMS_SHA256_M24_H15[]   = "sha256_m24_h15";
+const CK_CHAR NAME_LMS_SHA256_M24_H20[]   = "sha256_m24_h20";
+
+const CK_CHAR NAME_LMS_SHA256_M32_H5[]    = "sha256_m32_h5";
+const CK_CHAR NAME_LMS_SHA256_M32_H10[]   = "sha256_m32_h10";
+const CK_CHAR NAME_LMS_SHA256_M32_H15[]   = "sha256_m32_h15";
+const CK_CHAR NAME_LMS_SHA256_M32_H20[]   = "sha256_m32_h20";
+
+#define SIZE_LMS_TYPE_TABLE      DIM(lms_type_attributes)
+const LMS_TYPE_ATTIBUTES lms_type_attributes[] = {
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H5,         LMS_SHA256_M24_H5},
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H10,        LMS_SHA256_M24_H10 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H15,        LMS_SHA256_M24_H15 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M24_H20,        LMS_SHA256_M24_H20 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H5,         LMS_SHA256_M32_H5},
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H10,        LMS_SHA256_M32_H10 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H15,        LMS_SHA256_M32_H15 },
+   { (CK_CHAR_PTR)&NAME_LMS_SHA256_M32_H20,        LMS_SHA256_M32_H20 },
+};
+
+const CK_CHAR NAME_LMOTS_SHA256_N24_W1[] = "sha256_n24_w1";
+const CK_CHAR NAME_LMOTS_SHA256_N24_W2[] = "sha256_n24_w2";
+const CK_CHAR NAME_LMOTS_SHA256_N24_W4[] = "sha256_n24_w4";
+const CK_CHAR NAME_LMOTS_SHA256_N24_W8[] = "sha256_n24_w8";
+
+const CK_CHAR NAME_LMOTS_SHA256_N32_W1[] = "sha256_n32_w1";
+const CK_CHAR NAME_LMOTS_SHA256_N32_W2[] = "sha256_n32_w2";
+const CK_CHAR NAME_LMOTS_SHA256_N32_W4[] = "sha256_n32_w4";
+const CK_CHAR NAME_LMOTS_SHA256_N32_W8[] = "sha256_n32_w8";
+
+#define SIZE_LMOTS_TYPE_TABLE      DIM(lmots_type_attributes)
+const LMOTS_TYPE_ATTIBUTES lmots_type_attributes[] = {
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W1,       LMOTS_SHA256_N24_W1},
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W2,       LMOTS_SHA256_N24_W2 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W4,       LMOTS_SHA256_N24_W4 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N24_W8,       LMOTS_SHA256_N24_W8 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W1,       LMOTS_SHA256_N32_W1},
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W2,       LMOTS_SHA256_N32_W2 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W4,       LMOTS_SHA256_N32_W4 },
+   { (CK_CHAR_PTR)&NAME_LMOTS_SHA256_N32_W8,       LMOTS_SHA256_N32_W8 },
+
+};
+
 
 
 /******************** pkcs11 error *********************/
@@ -868,6 +994,8 @@ ATTRIBUTE_NAME attribute_table[] =
    {CKA_DERIVE,               "CKA_DERIVE" },
    {CKA_START_DATE,           "CKA_START_DATE" },
    {CKA_END_DATE,             "CKA_END_DATE" },
+   {CKA_ENCAPSULATE,          "CKA_ENCAPSULATE" },
+   {CKA_DECAPSULATE,          "CKA_DECAPSULATE" },
 };
 
 /*
@@ -936,7 +1064,7 @@ CK_CHAR_PTR P11Util_DisplayKeyTypeName(CK_KEY_TYPE keytype)
 {
    CK_BYTE u8Loop;
 
-   // loop on all rsa mech structure
+   // loop on all keygen structure
    for (u8Loop = 0; u8Loop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; u8Loop++)
    {
       if (arg_keygen_supported_type[u8Loop].cktype == keytype)
@@ -1136,6 +1264,76 @@ void P11Util_DisplaySupportedKeyType(CK_ULONG uFlag)
 }
 
 /*
+    FUNCTION:        void P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID)
+*/
+void P11Util_DisplayKeyGenMecanismInfo(CK_SLOT_ID u32_SlotID)
+{
+   CK_BYTE u8Loop;
+   CK_MECHANISM_INFO sInfo;
+
+   printf("Supported key generation mecanisms : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; u8Loop++)
+   {
+      // if flag ken gen
+      if (arg_keygen_supported_type[u8Loop].uFlag & KEY_TYPE_DISPLAY_MEC)
+      {
+         printf("-> %s\t\t", arg_keygen_supported_type[u8Loop].sKeyTypeName);
+
+         // if command name is shorter than 5, add an extra tag
+         if (strlen(arg_keygen_supported_type[u8Loop].sKeyTypeName) < 5)
+         {
+            printf("\t");
+         }
+
+         // if command name is shorter than 12, add an extra tag
+         if (strlen(arg_keygen_supported_type[u8Loop].sKeyTypeName) < 12)
+         {
+            printf("\t");
+         }
+
+
+         // get mecanism info
+         if (p11_GetMecanismInfo(u32_SlotID, arg_keygen_supported_type[u8Loop].cKeyGenMecanismType, &sInfo) == CK_TRUE)
+         {
+            if ((arg_keygen_supported_type[u8Loop].cktype == CKK_HSS))
+            {
+               printf("Supported. This algorithm does use size for keys. Refer to supported LMS type and LMS-OT type\n");
+            }
+            else
+            {
+               if (sInfo.ulMinKeySize != sInfo.ulMaxKeySize)
+               {
+                  printf("Minimum key size : %i\t\t", sInfo.ulMinKeySize);
+                  printf("Maximum key size : %i\n", sInfo.ulMaxKeySize);
+               }
+               else
+               {
+                  printf("Key size : %i\n", sInfo.ulMinKeySize);
+               }
+            }
+         }
+         else
+         {
+            printf("Not supported. ");
+
+            if ((arg_keygen_supported_type[u8Loop].cktype == CKK_ML_DSA) || (arg_keygen_supported_type[u8Loop].cktype == CKK_ML_KEM))
+            {
+               printf("This mecanism requires at least client 10.9.1 and firmware 7.9.1");
+            }
+
+            if (arg_keygen_supported_type[u8Loop].cktype == CKK_HSS)
+            {
+               printf("This mecanism requires at least client 10.8.0 and firmware 7.8.8");
+            }
+
+            printf("\n");
+         }
+      }
+   }
+}
+
+/*
     FUNCTION:        CK_OBJECT_CLASS P11Util_GetClassFromCKType(CK_CHAR_PTR sKeyType)
 */
 CK_OBJECT_CLASS P11Util_GetClass(CK_CHAR_PTR sKeyClass)
@@ -1225,13 +1423,35 @@ P11_ECC_OID* P11Util_GetEcCurveOIDParam(CK_CHAR_PTR sCurveName)
 }
 
 /*
+    FUNCTION:        P11_ECC_OID* P11Util_GetEcCurveOID(CK_CHAR_PTR sOid, CK_ULONG sOID_Size)
+*/
+P11_ECC_OID* P11Util_GetEcCurveOID(CK_CHAR_PTR sOid, CK_ULONG sOID_Size)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all curve structure
+   for (u8Loop = 0; u8Loop < SIZE_ECC_CURVE_TABLE; u8Loop++)
+   {
+      if (sOID_Size == ecc_curve_oid[u8Loop].oidLen)
+      {
+         // if curve name match, return OID
+         if (memcmp(ecc_curve_oid[u8Loop].oid, sOid, sOID_Size) == 0)
+         {
+            return (P11_ECC_OID*)&ecc_curve_oid[u8Loop];
+         }
+      }
+   };
+   return NULL;
+}
+
+/*
     FUNCTION:        void P11Util_DisplaySupportedCurveName(CK_KEY_TYPE sKeyType)
 */
 void P11Util_DisplaySupportedCurveName(CK_KEY_TYPE sKeyType)
 {
    CK_BYTE u8Loop;
 
-   printf("Supported public exponant value : \n");
+   printf("Supported curve name : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_ECC_CURVE_TABLE; u8Loop++)
    {
@@ -1249,7 +1469,7 @@ void P11Util_DisplayEncryptionParam(CK_ULONG    bKeyFlag)
 {
    CK_BYTE u8Loop;
 
-   printf("Supported public exponant value : \n");
+   printf("Supported encryption algorithm : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_ENCRYPTION_ALGO_TABLE; u8Loop++)
    {
@@ -1291,7 +1511,7 @@ void P11Util_DisplayDerivationParam()
 {
    CK_BYTE u8Loop;
 
-   printf("Supported public exponant value : \n");
+   printf("Supported derivation method : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_DERIVATION_ALGO_TABLE; u8Loop++)
    {
@@ -1360,7 +1580,7 @@ void P11Util_DisplayKdfScheme()
 {
    CK_BYTE u8Loop;
 
-   printf("Supported Key Derivation Function type value : \n");
+   printf("Supported Key Derivation Function scheme type value : \n");
    // loop on all structure
    for (u8Loop = 0; u8Loop < SIZE_KDF_SCHEME_TABLE; u8Loop++)
    {
@@ -1512,4 +1732,229 @@ BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sKCV)
    };
 
    return 0;
+}
+
+/*
+    FUNCTION:        CK_ATTRIBUTE_TYPE P11Util_GetAttributeType(CK_CHAR_PTR sAttribute)
+*/
+CK_ATTRIBUTE_TYPE P11Util_GetAttributeType(CK_CHAR_PTR sAttribute)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_ATTR_TYPE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (strcmp(attr_type[u8Loop].sAttributeType, sAttribute) == 0)
+      {
+
+         return attr_type[u8Loop].cAttributeType;
+
+      }
+   };
+
+   return -1;
+}
+
+/*
+    FUNCTION:        void P11Util_DisplaySupportedAttribute()
+*/
+void P11Util_DisplaySupportedAttribute()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported Attribute name : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_ATTR_TYPE_TABLE; u8Loop++)
+   {
+
+      printf("-> %s\n", attr_type[u8Loop].sAttributeType);
+
+   }
+}
+
+/*
+    FUNCTION:        P11_ML_DSA_KEY P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+*/
+P11_ML_DSA_KEY * P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_P11_ML_DSA_KEYSIZE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (ml_dsa_publickeysize[u8Loop].sPublicKeySize == sPublicKeySize)
+      {
+
+         return (P11_ML_DSA_KEY*) &ml_dsa_publickeysize[u8Loop];
+
+      }
+   };
+
+   return NULL;
+}
+
+/*
+    FUNCTION:        P11_ML_DSA_KEY* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
+*/
+P11_ML_DSA_KEY* P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_P11_ML_DSA_KEYSIZE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (ml_dsa_publickeysize[u8Loop].uML_DSA_Parameter_Set == sParameterSet)
+      {
+
+         return (P11_ML_DSA_KEY*)&ml_dsa_publickeysize[u8Loop];
+
+      }
+   };
+
+   return NULL;
+}
+
+/*
+    FUNCTION:        P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+*/
+P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromKeySize(CK_ULONG sPublicKeySize)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_P11_ML_KEM_KEYSIZE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (ml_kem_publickeysize[u8Loop].sPublicKeySize == sPublicKeySize)
+      {
+
+         return (P11_ML_KEM_KEY*)&ml_kem_publickeysize[u8Loop];
+
+      }
+   };
+
+   return NULL;
+}
+
+/*
+    FUNCTION:        P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet)
+*/
+P11_ML_KEM_KEY* P11Util_GetML_KEM_ParameterFromParameterSet(CK_ML_KEM_PARAMETER_SET_TYPE sParameterSet)
+{
+   CK_BYTE u8Loop;
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_P11_ML_KEM_KEYSIZE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (ml_kem_publickeysize[u8Loop].uML_KEM_Parameter_Set == sParameterSet)
+      {
+
+         return (P11_ML_KEM_KEY*)&ml_kem_publickeysize[u8Loop];
+
+      }
+   };
+
+   return NULL;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetLMSTypeName(CK_LMS_TYPE uLMStype)
+*/
+CK_CHAR_PTR P11Util_GetLMSTypeName(CK_LMS_TYPE uLMStype)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMS_TYPE_TABLE; u8Loop++)
+   {
+      if (lms_type_attributes[u8Loop].uLMSType == uLMStype)
+      {
+        return lms_type_attributes[u8Loop].sParamName;
+      }
+   };
+   return (CK_CHAR_PTR)CLASS_UNKNOWN;
+}
+
+/*
+    FUNCTION:        CK_LMS_TYPE P11Util_GetLMSType(CK_CHAR_PTR uLMStypeName)
+*/
+CK_LMS_TYPE P11Util_GetLMSType(CK_CHAR_PTR uLMStypeName)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMS_TYPE_TABLE; u8Loop++)
+   {
+      if (strcmp(lms_type_attributes[u8Loop].sParamName, uLMStypeName) == 0)
+      {
+         return lms_type_attributes[u8Loop].uLMSType;
+      }
+   };
+   return -1;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetLMOTSTypeName(CK_LMS_TYPE uLMOTStype)
+*/
+CK_CHAR_PTR P11Util_GetLMOTSTypeName(CK_LMS_TYPE uLMOTStype)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMOTS_TYPE_TABLE; u8Loop++)
+   {
+      if (lmots_type_attributes[u8Loop].uLMOTSType == uLMOTStype)
+      {
+         return lmots_type_attributes[u8Loop].sParamName;
+      }
+   };
+   return (CK_CHAR_PTR)CLASS_UNKNOWN;
+}
+
+/*
+    FUNCTION:        CK_LMS_TYPE P11Util_GetLMSOTSType(CK_CHAR_PTR uLMSOTtypeName)
+*/
+CK_LMOTS_TYPE P11Util_GetLMSOTSType(CK_CHAR_PTR uLMSOTtypeName)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMOTS_TYPE_TABLE; u8Loop++)
+   {
+      if (strcmp(lmots_type_attributes[u8Loop].sParamName, uLMSOTtypeName) == 0)
+      {
+         return lmots_type_attributes[u8Loop].uLMOTSType;
+      }
+   };
+   return -1;
+}
+
+/*
+    FUNCTION:        void P11Util_DisplaySupportedLMSType()
+*/
+void P11Util_DisplaySupportedLMSType()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported LMS type : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMS_TYPE_TABLE; u8Loop++)
+   {
+      printf("-> %s\n", lms_type_attributes[u8Loop].sParamName);
+   }
+}
+
+/*
+    FUNCTION:        void P11Util_DisplaySupportedLMSOTSType()
+*/
+void P11Util_DisplaySupportedLMSOTSType()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported LMS-OT type : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_LMOTS_TYPE_TABLE; u8Loop++)
+   {
+      printf("-> %s\n", lmots_type_attributes[u8Loop].sParamName);
+
+   }
 }

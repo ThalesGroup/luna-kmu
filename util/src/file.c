@@ -240,6 +240,7 @@ CK_BBOOL File_ReadHexFile(CK_CHAR_PTR sInputFilePath, CK_CHAR_PTR* sSource, CK_U
          *SourceSize = str_StringtoByteArray(*sSource, *SourceSize);
          if (*SourceSize == 0)
          {
+            free(*sSource);
             printf("File format error. Size must be multiple of 2 bytes and hexadecimal value\n");
             break;
          }
