@@ -14,7 +14,6 @@
 #define _CMD_C
 
 #ifdef OS_WIN32
-#include <io.h>
 #include <windows.h>
 #else
 #include <dlfcn.h>
@@ -1871,7 +1870,7 @@ CK_BBOOL cmd_kmu_digestKey(CK_BBOOL bIsConsole)
 CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
 {
    CK_OBJECT_HANDLE  hHandle = 0;
-   BYTE bKCV_Method;
+   CK_BYTE bKCV_Method;
    CK_CHAR_PTR pKcvBuffer = NULL;
 
    do
@@ -2684,7 +2683,7 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
 /*
     FUNCTION:        CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_BBOOL bIsPresent;
    CK_BBOOL bValue;
@@ -2706,9 +2705,9 @@ CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTR
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
 
@@ -2724,9 +2723,9 @@ CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRI
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
    CK_ULONG          sStringLength;

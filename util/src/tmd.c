@@ -13,11 +13,6 @@
 
 #define _TMD_C
 
-#ifdef OS_WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

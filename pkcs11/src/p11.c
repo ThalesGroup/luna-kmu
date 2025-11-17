@@ -4052,7 +4052,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
 /*
     FUNCTION:        CK_BBOOL P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR pKcvBuffer)
 */
- CK_BBOOL P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer)
+ CK_BBOOL P11_ComputeKCV(CK_BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer)
 {
     CK_RV                     retCode = CKR_DEVICE_ERROR;
     CK_MECHANISM              sMech = { 0 };

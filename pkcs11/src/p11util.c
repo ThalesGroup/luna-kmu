@@ -13,11 +13,6 @@
 
 #define _P11_UTIL_C_
 
-#ifdef OS_WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1713,9 +1708,9 @@ void P11Util_DisplaySupportedKCVMethod()
 }
 
 /*
-    FUNCTION:        BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sHash)
+    FUNCTION:        CK_BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sHash)
 */
-BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sKCV)
+CK_BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sKCV)
 {
    CK_BYTE u8Loop;
 

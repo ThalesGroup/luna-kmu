@@ -150,7 +150,7 @@ extern "C" {
       CK_ULONG          uFlag;
       CK_CHAR_PTR       sMechName;
       CK_MECHANISM_TYPE ckMechType;
-      union specific_alg_param
+      union
       {
          P11_DES_PARAM              des_param;
          P11_AES_PARAM              aes_param;
@@ -559,7 +559,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_DecryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pDecryptedData, CK_ULONG_PTR pDecryptedDataLength);
    _EXT  CK_BBOOL             P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSignauture, CK_ULONG_PTR pSignautureLength);
    _EXT  CK_BBOOL             P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey);
-   _EXT  CK_BBOOL             P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer);
+   _EXT  CK_BBOOL             P11_ComputeKCV(CK_BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer);
    _EXT  CK_BBOOL             P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANISM_PTR  sEncMech);
    _EXT  CK_BBOOL             P11_GenerateRandom(CK_BYTE_PTR pbBuffer, CK_ULONG uLength);
    _EXT  void                 P11_Init();

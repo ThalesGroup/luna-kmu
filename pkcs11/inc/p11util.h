@@ -46,7 +46,7 @@ extern "C" {
    _EXT  P11_HASH_MECH*                P11Util_GetHash(CK_CHAR_PTR sHash, CK_ULONG uFlag);
    _EXT  CK_CHAR_PTR                   P11Util_DisplayErrorName(CK_ULONG uErrorCode);
    _EXT  CK_CHAR_PTR                   P11Util_DisplayAttributeName(CK_ATTRIBUTE_TYPE ckAttribute);
-   _EXT  BYTE                          P11Util_GetKCVMethod(CK_CHAR_PTR sKCV);
+   _EXT  CK_BYTE                       P11Util_GetKCVMethod(CK_CHAR_PTR sKCV);
    _EXT  CK_ATTRIBUTE_TYPE             P11Util_GetAttributeType(CK_CHAR_PTR sAttribute);
    _EXT  P11_ML_DSA_KEY *              P11Util_GetML_DSA_ParameterFromKeySize(CK_ULONG sPublicKeySize);
    _EXT  P11_ML_DSA_KEY*               P11Util_GetML_DSA_ParameterFromParameterSet(CK_ML_DSA_PARAMETER_SET_TYPE sParameterSet);
