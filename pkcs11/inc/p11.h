@@ -137,7 +137,7 @@ extern "C" {
       CK_LONG                 sEnckeySize;
       CK_CHAR_PTR             pWrappedKey;
       CK_ULONG                ulWrappedKeyLen;
-      union pbe_alg_param
+      union
       {
          P11_PKCS5_PBKD2_ENC_PARAMS2  pbkdf2;
       };
