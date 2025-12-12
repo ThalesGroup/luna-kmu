@@ -126,6 +126,19 @@ const STRING_ARRAY ARG_LABEL_MZMK_HELP = "Key label value for the MZMK";
 
 const STRING_ARRAY ARG_HANDLE = "-handle";
 const STRING_ARRAY ARG_HANDLE_HELP = "Object handle value";
+const STRING_ARRAY ARG_HANDLE_WRAP_HELP = "Object handle value of the key to wrap.\n\t\t\t\t\t-If empty, mandatory to use -key-export-label and/or -key-export-id";
+
+const STRING_ARRAY ARG_KEY_LABEL = "-key-label";
+const STRING_ARRAY ARG_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the key.\n\t\t\t\t\t-Can be used with -key-id.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
+
+const STRING_ARRAY ARG_KEY_ID = "-key-id";
+const STRING_ARRAY ARG_KEY_ID_HELP = "Value of the attribute CKA_ID of the key.\n\t\t\t\t\t-Can be used with -key-label.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
+
+const STRING_ARRAY ARG_EXPORT_KEY_LABEL = "-key-export-label";
+const STRING_ARRAY ARG_EXPORT_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the key to export.\n\t\t\t\t\t-Can be used with -key-export-id.\n\t\t\t\t\t-Ignored if argument -key is not empty.";
+
+const STRING_ARRAY ARG_EXPORT_KEY_ID = "-key-export-id";
+const STRING_ARRAY ARG_EXPORT_KEY_ID_HELP = "Value of the attribute CKA_ID of the key to export.\n\t\t\t\t\t-Can be used with -key-export-label.\n\t\t\t\t\t-Ignored if argument -key is not empty.";
 
 const STRING_ARRAY ARG_KEY = "-key";
 const STRING_ARRAY ARG_KEY_HELP = "Object handle value of encryption or decryption key";
@@ -134,10 +147,17 @@ const STRING_ARRAY ARG_DERIVE_KEY = "-key";
 const STRING_ARRAY ARG_DERIVE_KEY_HELP = "Object handle value of master derivation key";
 
 const STRING_ARRAY ARG_WRAPKEY = "-key";
-const STRING_ARRAY ARG_WRAPKEY_HELP = "Object handle value for wrap key";
+const STRING_ARRAY ARG_WRAPKEY_HELP = "Object handle value for wrapping key.\n\t\t\t\t\t-If empty, mandatory to use -key-wrap-label and/or -key-wrap-id";
+
+const STRING_ARRAY ARG_WRAP_KEY_LABEL = "-key-wrap-label";
+const STRING_ARRAY ARG_WRAP_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the wrapping key. \n\t\t\t\t\t-Can be used with -key-wrap-id. \n\t\t\t\t\t-Ignored if argument -key is not empty.";
+
+const STRING_ARRAY ARG_WRAP_KEY_ID = "-key-wrap-id";
+const STRING_ARRAY ARG_WRAP_KEY_ID_HELP = "Value of the attribute CKA_ID of the wrapping key. \n\t\t\t\t\t-Can be used with -key-wrap-label. \n\t\t\t\t\t-Ignored if argument -key is not empty.";
 
 const STRING_ARRAY ARG_UNWRAPKEY = "-key";
-const STRING_ARRAY ARG_UNWRAPKEY_HELP = "Object handle value for unwrap key";
+const STRING_ARRAY ARG_UNWRAPKEY_HELP = "Object handle value for wrapping key.\n\t\t\t\t\t-If empty, mandatory to use -key-wrap-label and/or -key-wrap-id";
+
 
 const STRING_ARRAY ARG_LABEL_PRIVATE = "-labelprivate";
 const STRING_ARRAY ARG_LABEL_PRIVATE_HELP = "Key label value for private key object\n\t\t\t\t\t-Optionnal, if absent the label is taken in -label";
@@ -165,7 +185,7 @@ const STRING_ARRAY ARG_PUBLIC_EXP = "-publicexponent";
 const STRING_ARRAY ARG_PUBLIC_EXP_HELP = "Public exponent value to be used for generation of RSA key pairs\n\t\t\t\t\t-Supported value: 3, 17, 10001, 65537 ";
 
 const STRING_ARRAY ARG_ALGO = "-algo";
-const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbfkd2_aes128_cbc, pbfkd2_aes192_cbc, pbfkd2_aes256_cbc (password base encryption requires pkcs8 format)";
+const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_pkcs\n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbfkd2_aes128_cbc, pbfkd2_aes192_cbc, pbfkd2_aes256_cbc (password base encryption requires pkcs8 format)";
 
 const STRING_ARRAY ARG_IV = "-iv";
 const STRING_ARRAY ARG_IV_HELP = "Symmetric encryption algorithm IV as hexadecimal string\n\t\t\t\t\t-Optional. A default IV is used if absent\n\t\t\t\t\t-AES CBC, CFB, OFB : 16 bytes, default IV: '31323334353637383132333435363738'\n\t\t\t\t\t-AES GCM : 12 bytes or more, default IV: '00310000000000000000000000000000'\n\t\t\t\t\t-PBKDF2 with AES CBC : 16 bytes, default IV is random";
@@ -436,8 +456,12 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_EXPORT, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_EXPORT, (const CK_CHAR_PTR)ARG_HANDLE_WRAP_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL, ARG_TYPE_LABEL_KEY, (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID, ARG_TYPE_ID_KEY, (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAPKEY, ARG_TYPE_HANDLE_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAPKEY_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL, ARG_TYPE_LABEL_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_ID, ARG_TYPE_ID_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP, \
                                     (const CK_CHAR_PTR)ARG_ALGO, ARG_TYPE_WRAP_ALGO, (const CK_CHAR_PTR)ARG_ALGO_HELP ,\
@@ -461,6 +485,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_KEYSIZE, ARG_TYPE_KEYSIZE, (const CK_CHAR_PTR)ARG_IMPORTKEY_SIZE_HELP,\
                                     (const CK_CHAR_PTR)ARG_KEYCLASS, ARG_TYPE_KEYCLASS, (const CK_CHAR_PTR)ARG_KEYCLASS_HELP,\
                                     (const CK_CHAR_PTR)ARG_UNWRAPKEY, ARG_TYPE_HANDLE_UNWRAPKEY, (const CK_CHAR_PTR)ARG_UNWRAPKEY_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL, ARG_TYPE_LABEL_UNWRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_ID, ARG_TYPE_ID_UNWRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP, \
                                     (const CK_CHAR_PTR)ARG_ALGO, ARG_TYPE_UNWRAP_ALGO, (const CK_CHAR_PTR)ARG_ALGO_HELP ,\
@@ -560,6 +586,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_DELETE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_LABEL, ARG_TYPE_LABEL_KEY, (const CK_CHAR_PTR)ARG_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_ID, ARG_TYPE_ID_KEY, (const CK_CHAR_PTR)ARG_KEY_ID_HELP ,\
                                     }
 
 #define CMD_DIGEST_KEY_VALUE        (const CK_CHAR_PTR)CMD_DIGEST_KEY, (const P_fCMD)&cmd_kmu_digestKey, (const CK_CHAR_PTR)CMD_DIGEST_KEY_HELP, \
@@ -694,6 +722,10 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_UNWRAPKEY,
    (CK_CHAR_PTR)ARG_LABEL_PRIVATE,
    (CK_CHAR_PTR)ARG_LABEL_PUBLIC,
+   (CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_EXPORT_KEY_ID,
+   (CK_CHAR_PTR)ARG_WRAP_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_WRAP_KEY_ID,
    (CK_CHAR_PTR)ARG_KEYTYPE,
    (CK_CHAR_PTR)ARG_KEYSIZE,
    (CK_CHAR_PTR)ARG_KEYCLASS,

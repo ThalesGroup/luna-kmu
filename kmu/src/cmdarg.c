@@ -579,6 +579,40 @@ CK_OBJECT_HANDLE cmdarg_GetHandleValue(CK_BYTE bArgType)
 }
 
 /*
+    FUNCTION:        CK_OBJECT_HANDLE cmdarg_SearchKeyHandle(CK_BYTE bArgHandleType, CK_BYTE bArgLabelType, CK_BYTE bArgIdType)
+*/
+CK_OBJECT_HANDLE cmdarg_SearchKeyHandle(CK_BYTE bArgHandleType, CK_BYTE bArgLabelType, CK_BYTE bArgIdType)
+{
+   PARSER_CURRENT_CMD_ARG* sArgHandle;
+   PARSER_CURRENT_CMD_ARG* sArgLabel;
+   PARSER_CURRENT_CMD_ARG* sArgId;
+   sArgHandle = parser_SearchArgument(bArgHandleType);
+   sArgLabel = parser_SearchArgument(bArgLabelType);
+   sArgId = parser_SearchArgument(bArgIdType);
+   CK_CHAR_PTR sLabel = NULL;
+   CK_CHAR_PTR sId = NULL;
+   
+   // search by handle in handle is not empty, or if other field are empty
+   if (((sArgLabel == NULL) && (sArgId == NULL)) || (sArgHandle != NULL))
+   {
+      return cmdarg_GetHandleValue(bArgHandleType);
+   }
+
+   if (sArgLabel != NULL)
+   {
+      sLabel = sArgLabel->s_argPart2;
+   }
+
+   if (sArgId != NULL)
+   {
+      sId = sArgId->s_argPart2;
+   }
+
+   return P11_FindKeyObjectByLabelOrId(sLabel, sId);
+
+}
+
+/*
     FUNCTION:        CK_LONG cmdarg_SearchTypeInteger(CK_BYTE bArgType)
 */
 CK_LONG cmdarg_SearchTypeInteger(CK_BYTE bArgType)
@@ -1338,6 +1372,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(CK_BYTE bArgType)
       case CKM_AES_ECB:
       case CKM_AES_KWP:
       case CKM_AES_KW:
+      case CKM_RSA_PKCS:
          // return default enc param
          return DefaultEncryption_mech;
       case CKM_AES_CBC:

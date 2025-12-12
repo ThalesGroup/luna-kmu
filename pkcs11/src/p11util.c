@@ -503,6 +503,7 @@ const CK_CHAR ARG_ALG_AES_OFB[] = "aes_ofb";
 const CK_CHAR ARG_ALG_AES_GCM[] = "aes_gcm";
 const CK_CHAR ARG_ALG_AES_KW[] = "aes_kw";
 const CK_CHAR ARG_ALG_AES_KWP[] = "aes_kwp";
+const CK_CHAR ARG_ALG_RSA_PKCS[] = "rsa_pkcs";
 const CK_CHAR ARG_ALG_RSA_OAEP[]        = "rsa_oaep";
 const CK_CHAR ARG_ALG_RSA_SHA256_OAEP[] = "rsa_oaep_sha256";
 const CK_CHAR ARG_ALG_RSA_SHA384_OAEP[] = "rsa_oaep_sha384";
@@ -531,6 +532,7 @@ const P11_ENCRYPTION_MECH encryption_algo[] = {
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KW,                   CKM_AES_KW,             .aes_param.pIv = NULL},
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KWP,                  CKM_AES_KWP,            .aes_param.pIv = NULL},
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_GCM,                  CKM_AES_GCM,            .aes_gcm_param.pIv = (CK_CHAR_PTR)default_AES_GCM_IV, .aes_gcm_param.ulIvLen = AES_IV_LENGTH, .aes_gcm_param.ulIvBits = AES_IV_LENGTH << 3, .aes_gcm_param.pAAD = NULL,.aes_gcm_param.ulAADLen = 0, .aes_gcm_param.ulTagBits = AES_GCM_AUTH_TAG_LENGTH_96 },
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_PKCS,                 CKM_RSA_PKCS,            },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA256_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA256, .rsa_oeap_param.mgf = CKG_MGF1_SHA256, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA384_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA384, .rsa_oeap_param.mgf = CKG_MGF1_SHA384, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA512_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA512, .rsa_oeap_param.mgf = CKG_MGF1_SHA512, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },

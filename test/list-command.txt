@@ -97,6 +97,7 @@ import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=wrapp
 //import aes with aes kwp and kw
 import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kwp.bin -format=bin -key=426 -algo=aes_kwp -label=importaeskey -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kw.bin -format=bin -key=426 -keysize=32 -algo=aes_kw -label=importaeskey -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kw.bin -format=bin -key-wrap-label=AES-wrap-key -keysize=32 -algo=aes_kw -label=importaeskey -modifiable=true -extractable=true
 import ecdsa with aes key wrap
 import -slot=1 -password 00000000 -keyclass=private -keytype=ecdsa -inputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad -label=importecdsaprivate -modifiable=true -extractable=true
 //import dsa private
@@ -135,6 +136,8 @@ import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=priv
 # export key
 // export rsa with aes key wrap
 export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa.bin -format=bin -key=426 -algo=aes_cbc_pad
+export -slot=1 -password 00000000 -key-export-label=kmursaprivate -outputfile=private_rsa.bin -format=bin -key-wrap-label=AES-wrap-key -algo=aes_cbc_pad
+
 export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa_kwp.bin -format=bin -key=426 -algo=aes_kwp
 // export aes with aes key wrap
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=426 -algo=aes_cbc
@@ -145,6 +148,7 @@ export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha384
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha512
 export -slot=1 -password 00000000 -handle=535 -outputfile=wrapped_aes.txt -format=text -key=602 -algo=rsa_oaep_sha256
+export -slot=1 -password 00000000 -handle=535 -outputfile=aes_wrapped_rsa_pkcs.txt -format=text -key=602 -algo=rsa_pkcs
 // export ecdsa with aes key wrap
 export -slot=1 -password 00000000 -handle=453 -outputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad
 // export dsa with aes key wrap
@@ -242,6 +246,7 @@ convert -inputfile=private_rsa.txt -inform=txt -outputfile=private_rsa1.bin -out
 
 # delete an object
 delete -password 00000000 -handle=788
+delete -password 00000000 -key-label=importaeskey
 
 # digest a symetric key
 digestkey -password 00000000 -handle=426 -hash=sha1

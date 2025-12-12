@@ -102,6 +102,8 @@ extern "C" {
 #define DEFAULT_LMS_LEVEL                    1
 #define MAX_HSS_LEVEL                        8
 
+#define CK_KEY_NOT_FOUND                     (-2)
+
 
    typedef struct ck_des_param
    {
@@ -569,6 +571,7 @@ extern "C" {
    _EXT  void                 P11_Terminate();
    _EXT  CK_RV                P11_SelectStot(CK_SLOT_ID u32_SlotList);
    _EXT  CK_BBOOL             P11_FindKeyObject(CK_OBJECT_HANDLE Handle);
+   _EXT  CK_OBJECT_HANDLE     P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sId);
    _EXT  CK_BBOOL             P11_FindObject(CK_OBJECT_HANDLE Handle);
    _EXT  CK_LONG              P11_GetObjectSize(CK_OBJECT_HANDLE Handle);
    _EXT  CK_OBJECT_CLASS      P11_GetObjectClass(CK_OBJECT_HANDLE Handle);

@@ -98,6 +98,13 @@ extern "C" {
 #define ARG_TYPE_LMS_TYPE           72
 #define ARG_TYPE_LMOTS_TYPE         73
 #define ARG_TYPE_HSS_LEVEL          74
+#define ARG_TYPE_LABEL_WRAPKEY      75
+#define ARG_TYPE_ID_WRAPKEY         76
+#define ARG_TYPE_LABEL_UNWRAPKEY    78
+#define ARG_TYPE_ID_UNWRAPKEY       79
+#define ARG_TYPE_LABEL_KEY          80
+#define ARG_TYPE_ID_KEY             81
+
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -152,6 +159,7 @@ extern "C" {
    _EXT  CK_KEY_TYPE             cmdarg_GetKeytype(CK_BBOOL bForceRequest, CK_ULONG uFlag);
    _EXT  CK_OBJECT_CLASS         cmdarg_GetClassFromkeyType(CK_ULONG uFlag);
    _EXT  CK_OBJECT_HANDLE        cmdarg_GetHandleValue(CK_BYTE bArgType);
+   _EXT  CK_OBJECT_HANDLE        cmdarg_SearchKeyHandle(CK_BYTE bArgHandleType, CK_BYTE bArgLabelType, CK_BYTE bArgIdType);
    _EXT  CK_CHAR_PTR             cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK_ULONG sBufferSize);
    _EXT  CK_LONG                 cmdarg_SearchTypeHexString(CK_BYTE bArgType, CK_CHAR_PTR* sHexString);
    _EXT  CK_LONG                 cmdarg_GetKeySize(CK_ULONG uKeyType);

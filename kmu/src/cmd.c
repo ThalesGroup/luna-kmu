@@ -1127,10 +1127,17 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
          // continue
       case CKO_SECRET_KEY:
          // get handle for wrap key
-         sUnwrapTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_UNWRAPKEY);
+         sUnwrapTemplate.hWrappingKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_UNWRAPKEY, ARG_TYPE_LABEL_UNWRAPKEY, ARG_TYPE_ID_UNWRAPKEY);
+         
          if (sUnwrapTemplate.hWrappingKey == CK_NULL_ELEMENT)
          {
             printf("wrong argument : -key \n");
+            break;
+         }
+
+         if (sUnwrapTemplate.hWrappingKey == CK_KEY_NOT_FOUND)
+         {
+            printf("Cannot find key : incorrect value in -key-wrap-label or -key-wrap-id\n");
             break;
          }
 
@@ -1144,7 +1151,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
          // Check if wrapping key has attribute CKA_UNWRAP
          if (P11_GetBooleanAttribute(sUnwrapTemplate.hWrappingKey, CKA_UNWRAP) == CK_FALSE)
          {
-            printf("key with handle %i doesn't has CKA_UNWRAP attribute.\n", sUnwrapTemplate.hWrappingKey);
+            printf("key with handle %i doesn't have CKA_UNWRAP attribute.\n", sUnwrapTemplate.hWrappingKey);
             break;
          }
 
@@ -1197,10 +1204,16 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
       }
 
       // get handle for key to wrap
-      sExportTemplate.hKeyToExport = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_EXPORT);
+      sExportTemplate.hKeyToExport = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_EXPORT, ARG_TYPE_LABEL_KEY, ARG_TYPE_ID_KEY);
       if (sExportTemplate.hKeyToExport == CK_NULL_ELEMENT)
       {
          printf("wrong argument : -handle \n");
+         break;
+      }
+
+      if (sExportTemplate.hKeyToExport == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -key-export-label or -key-export-id\n");
          break;
       }
 
@@ -1267,10 +1280,16 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
             }
 
             // get handle for wrap key
-            sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
+            sExportTemplate.hWrappingKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_WRAPKEY, ARG_TYPE_LABEL_WRAPKEY, ARG_TYPE_ID_WRAPKEY);
+            
             if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
             {
                printf("wrong argument : -key \n");
+               break;
+            }
+            if (sExportTemplate.hWrappingKey == CK_KEY_NOT_FOUND)
+            {
+               printf("Cannot find key : incorrect value in -key-wrap-label or -key-wrap-id\n");
                break;
             }
 
@@ -1284,7 +1303,7 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
             // Check if wrapping key has wrap attribute
             if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
             {
-               printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
+               printf("key with handle %i doesn't have CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
                break;
             }
          }
@@ -1308,10 +1327,16 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          }
 
          // get handle for wrap key
-         sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
+         sExportTemplate.hWrappingKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_WRAPKEY, ARG_TYPE_LABEL_WRAPKEY, ARG_TYPE_ID_WRAPKEY);
          if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
          {
             printf("wrong argument : -key \n");
+            break;
+         }
+
+         if (sExportTemplate.hWrappingKey == CK_KEY_NOT_FOUND)
+         {
+            printf("Cannot find key : incorrect value in -key-wrap-label or -key-wrap-id\n");
             break;
          }
 
@@ -1325,7 +1350,7 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          // Check if wrapping key has wrap attribute
          if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
          {
-            printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
+            printf("key with handle %i doesn't have CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
             break;
          }
 
@@ -1387,7 +1412,7 @@ CK_BBOOL    cmd_kmu_encrypt(CK_BBOOL bIsConsole)
       // Check if wrapping key has attribute CKA_UNWRAP
       if (P11_GetBooleanAttribute(sEncryptTemplate.hEncyptiontKey, CKA_ENCRYPT) == CK_FALSE)
       {
-         printf("key with handle %i doesn't has CKA_ENCRYPT attribute.\n", sEncryptTemplate.hEncyptiontKey);
+         printf("key with handle %i doesn't have CKA_ENCRYPT attribute.\n", sEncryptTemplate.hEncyptiontKey);
          break;
       }
 
@@ -1501,7 +1526,7 @@ CK_BBOOL    cmd_kmu_decrypt(CK_BBOOL bIsConsole)
       // Check if wrapping key has attribute CKA_UNWRAP
       if (P11_GetBooleanAttribute(sDecryptTemplate.hEncyptiontKey, CKA_DECRYPT) == CK_FALSE)
       {
-         printf("key with handle %i doesn't has CKA_DECRYPT attribute.\n", sDecryptTemplate.hEncyptiontKey);
+         printf("key with handle %i doesn't have CKA_DECRYPT attribute.\n", sDecryptTemplate.hEncyptiontKey);
          break;
       }
 
@@ -1789,10 +1814,17 @@ CK_BBOOL cmd_kmu_delete(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      hHandle = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_DELETE);
+      hHandle = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DELETE, ARG_TYPE_LABEL_KEY, ARG_TYPE_ID_KEY);
+      
       if (hHandle == CK_NULL_ELEMENT)
       {
          printf("wrong or missing argument : -handle \n");
+         break;
+      }
+
+      if (hHandle == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -key_label or key-id\n");
          break;
       }
 
