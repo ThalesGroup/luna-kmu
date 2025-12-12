@@ -128,10 +128,10 @@ const STRING_ARRAY ARG_HANDLE = "-handle";
 const STRING_ARRAY ARG_HANDLE_HELP = "Object handle value";
 const STRING_ARRAY ARG_HANDLE_WRAP_HELP = "Object handle value of the key to wrap.\n\t\t\t\t\t-If empty, mandatory to use -key-export-label and/or -key-export-id";
 
-const STRING_ARRAY ARG_KEY_LABEL = "-key-label";
+const STRING_ARRAY ARG_KEY_LABEL = "-label";
 const STRING_ARRAY ARG_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the key.\n\t\t\t\t\t-Can be used with -key-id.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
 
-const STRING_ARRAY ARG_KEY_ID = "-key-id";
+const STRING_ARRAY ARG_KEY_ID = "-id";
 const STRING_ARRAY ARG_KEY_ID_HELP = "Value of the attribute CKA_ID of the key.\n\t\t\t\t\t-Can be used with -key-label.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
 
 const STRING_ARRAY ARG_EXPORT_KEY_LABEL = "-key-export-label";
@@ -457,8 +457,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_EXPORT, (const CK_CHAR_PTR)ARG_HANDLE_WRAP_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL, ARG_TYPE_LABEL_KEY, (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID, ARG_TYPE_ID_KEY, (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAPKEY, ARG_TYPE_HANDLE_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAPKEY_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL, ARG_TYPE_LABEL_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAP_KEY_ID, ARG_TYPE_ID_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_ID_HELP ,\
@@ -586,8 +586,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_DELETE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_KEY_LABEL, ARG_TYPE_LABEL_KEY, (const CK_CHAR_PTR)ARG_KEY_LABEL_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_KEY_ID, ARG_TYPE_ID_KEY, (const CK_CHAR_PTR)ARG_KEY_ID_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_KEY_ID_HELP ,\
                                     }
 
 #define CMD_DIGEST_KEY_VALUE        (const CK_CHAR_PTR)CMD_DIGEST_KEY, (const P_fCMD)&cmd_kmu_digestKey, (const CK_CHAR_PTR)CMD_DIGEST_KEY_HELP, \

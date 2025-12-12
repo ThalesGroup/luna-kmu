@@ -1204,7 +1204,7 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
       }
 
       // get handle for key to wrap
-      sExportTemplate.hKeyToExport = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_EXPORT, ARG_TYPE_LABEL_KEY, ARG_TYPE_ID_KEY);
+      sExportTemplate.hKeyToExport = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_EXPORT, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
       if (sExportTemplate.hKeyToExport == CK_NULL_ELEMENT)
       {
          printf("wrong argument : -handle \n");
@@ -1814,7 +1814,7 @@ CK_BBOOL cmd_kmu_delete(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      hHandle = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DELETE, ARG_TYPE_LABEL_KEY, ARG_TYPE_ID_KEY);
+      hHandle = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DELETE, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
       
       if (hHandle == CK_NULL_ELEMENT)
       {
@@ -1824,7 +1824,7 @@ CK_BBOOL cmd_kmu_delete(CK_BBOOL bIsConsole)
 
       if (hHandle == CK_KEY_NOT_FOUND)
       {
-         printf("Cannot find key : incorrect value in -key_label or key-id\n");
+         printf("Cannot find key : incorrect value in -label or -id\n");
          break;
       }
 

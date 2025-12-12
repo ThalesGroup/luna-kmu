@@ -1010,6 +1010,7 @@ CK_OBJECT_HANDLE P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sI
    CK_OBJECT_CLASS      sClass = 0;
    CK_BYTE              bOffset = 0;
    CK_ULONG             usCount = 1;
+   CK_ULONG             uIDLength = 0;
    CK_OBJECT_HANDLE     hAry[1] = { 0 };
    CK_OBJECT_HANDLE     hKey = CK_KEY_NOT_FOUND;;
    CK_BBOOL             bMatchLabel = CK_FALSE;
@@ -1036,6 +1037,19 @@ CK_OBJECT_HANDLE P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sI
    if (sId == NULL)
    {
       bMatchID = CK_TRUE;
+   }
+   else
+   {
+      // convert string to byte array
+      uIDLength = str_StringtoByteArray(sId, (CK_ULONG)strlen(sId));
+
+      // if length is zero, retrun error
+      if (uIDLength == 0)
+      {
+         printf("wrong CKA_ID value, not hexadecimal \n");
+         return CK_KEY_NOT_FOUND;
+      }
+
    }
 
    // call this function. Required if slot is HA, otherwise getattribute return error. 
@@ -1093,12 +1107,12 @@ CK_OBJECT_HANDLE P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sI
          if (retCodeAttr == CKR_OK)
          {
             // compare size et array value
-            if (sAttributeGeneric[1].usValueLen == strlen(sId))
+            if (sAttributeGeneric[1].usValueLen == uIDLength)
             {
                // compare ID
                if (memcmp(sAttributeGeneric[1].pValue, sId, sAttributeGeneric[1].usValueLen) == 0)
                {
-                  bMatchLabel = CK_TRUE;
+                  bMatchID = CK_TRUE;
                }
             }
          }
