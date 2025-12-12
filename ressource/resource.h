@@ -14,5 +14,5 @@
 #endif
 #endif
 
-#define PRODUCT_VERSION                "1.0.3.a"
+#define PRODUCT_VERSION                "1.0.3.b"
 

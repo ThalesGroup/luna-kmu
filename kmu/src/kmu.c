@@ -221,6 +221,7 @@ const STRING_ARRAY ARG_DH_SUBPRIME_HELP = "DH or DSA domain sub-prime q value\n\
 const STRING_ARRAY ARG_OUTPUT_FILE = "-outputfile";
 const STRING_ARRAY ARG_INPUT_FILE = "-inputfile";
 const STRING_ARRAY ARG_FILE_HELP = "Input file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)";
+const STRING_ARRAY ARG_OUTPUT_FILE_HELP = "Output file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)";
 const STRING_ARRAY ARG_FILE_MZMK_HELP = "Input file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)\n\t\t\t\t\tThe output tmd file will be stored in same path as input tmd file";
 
 const STRING_ARRAY ARG_FORMAT = "-format";
@@ -439,7 +440,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_ATTR_NAME, ARG_TYPE_ATTR_NAME, (const CK_CHAR_PTR)ARG_ATTR_NAME_HELP, \
                                     }
 
@@ -462,7 +463,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_WRAPKEY, ARG_TYPE_HANDLE_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAPKEY_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL, ARG_TYPE_LABEL_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAP_KEY_ID, ARG_TYPE_ID_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_ID_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP, \
                                     (const CK_CHAR_PTR)ARG_ALGO, ARG_TYPE_WRAP_ALGO, (const CK_CHAR_PTR)ARG_ALGO_HELP ,\
                                     (const CK_CHAR_PTR)ARG_IV, ARG_TYPE_IV, (const CK_CHAR_PTR)ARG_IV_HELP, \
@@ -524,7 +525,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA, ARG_TYPE_GCM_AUTH_DATA, (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA_HELP, \
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_ENCRYPT_HELP, \
                                     }
@@ -540,7 +541,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA, ARG_TYPE_GCM_AUTH_DATA, (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA_HELP, \
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_ENCRYPT_HELP, \
                                     }
@@ -576,7 +577,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
 
 #define CMD_CONVERT_VALUE           (const CK_CHAR_PTR)CMD_CONVERT, (const P_fCMD)&cmd_kmu_convert, (const CK_CHAR_PTR)CMD_CONVERT_HELP, \
                                     {(const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INFORMAT, ARG_TYPE_INFORM_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP,\
                                     (const CK_CHAR_PTR)ARG_OUTFORMAT, ARG_TYPE_OUTFORM_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP,\
                                     }
