@@ -227,7 +227,7 @@ const STRING_ARRAY ARG_FILE_MZMK_HELP = "Input file path\n\t\t\t\t\t-It can be r
 const STRING_ARRAY ARG_FORMAT = "-format";
 const STRING_ARRAY ARG_INFORMAT = "-inform";
 const STRING_ARRAY ARG_OUTFORMAT = "-outform";
-const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key: bin, txt or text\n\t\t\t\t\t-Supported value for public key: bin, text, txt or pkcs8, \n\t\t\t\t\t-Supported value for private key: bin, txt, text or pkcs8(requires pkfkd2 encryption)";
+const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key:\n\t\t\t\t\t\t- bin : encrypted secret key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted secret key, encoded in ascii format\n\t\t\t\t\t-Supported value for public key: \n\t\t\t\t\t\t- bin: DER binary format, \n\t\t\t\t\t\t- txt or text : DER encoded as ascii format\n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format, \n\t\t\t\t\t-Supported value for private key:\n\t\t\t\t\t\t- bin : encrypted DER private key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted DER private key, encoded in ascii format  \n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format (mandatory for pbkdf2 encryption)";
 const STRING_ARRAY ARG_FORMAT_ENCRYPT_HELP = "File format as binary or hexadecimal text \n\t\t\t\t\t-Supported value: bin, text, txt";
 
 const STRING_ARRAY ARG_ATTR_NAME = "-attribute";
