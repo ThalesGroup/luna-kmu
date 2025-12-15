@@ -154,3 +154,6 @@ Sonarqube
 /wrapped_aes.txt
 /hss-8-m24_h5-n24_w1.pem
 /lms-m24_h5-n24_w1.pem
+/private_rsa_2k_pkkdf2_aes128.pem
+/private_rsa_2k_pkkdf2_aes192.pem
+/private_rsa_2k_pkkdf2_aes256.pem
