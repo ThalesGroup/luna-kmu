@@ -185,7 +185,7 @@ const STRING_ARRAY ARG_PUBLIC_EXP = "-publicexponent";
 const STRING_ARRAY ARG_PUBLIC_EXP_HELP = "Public exponent value to be used for generation of RSA key pairs\n\t\t\t\t\t-Supported value: 3, 17, 10001, 65537 ";
 
 const STRING_ARRAY ARG_ALGO = "-algo";
-const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_pkcs\n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbfkd2_aes128_cbc, pbfkd2_aes192_cbc, pbfkd2_aes256_cbc (password base encryption requires pkcs8 format)";
+const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_pkcs\n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbkdf2_aes128_cbc, pbkdf2_aes192_cbc, pbkdf2_aes256_cbc (password base encryption requires pkcs8 format)";
 
 const STRING_ARRAY ARG_IV = "-iv";
 const STRING_ARRAY ARG_IV_HELP = "Symmetric encryption algorithm IV as hexadecimal string\n\t\t\t\t\t-Optional. A default IV is used if absent\n\t\t\t\t\t-AES CBC, CFB, OFB : 16 bytes, default IV: '31323334353637383132333435363738'\n\t\t\t\t\t-AES GCM : 12 bytes or more, default IV: '00310000000000000000000000000000'\n\t\t\t\t\t-PBKDF2 with AES CBC : 16 bytes, default IV is random";
@@ -227,7 +227,7 @@ const STRING_ARRAY ARG_FILE_MZMK_HELP = "Input file path\n\t\t\t\t\t-It can be r
 const STRING_ARRAY ARG_FORMAT = "-format";
 const STRING_ARRAY ARG_INFORMAT = "-inform";
 const STRING_ARRAY ARG_OUTFORMAT = "-outform";
-const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key:\n\t\t\t\t\t\t- bin : encrypted secret key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted secret key, encoded in ascii format\n\t\t\t\t\t-Supported value for public key: \n\t\t\t\t\t\t- bin: DER binary format, \n\t\t\t\t\t\t- txt or text : DER encoded as ascii format\n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format, \n\t\t\t\t\t-Supported value for private key:\n\t\t\t\t\t\t- bin : encrypted DER private key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted DER private key, encoded in ascii format  \n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format (mandatory for pbkdf2 encryption)";
+const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key:\n\t\t\t\t\t\t- bin : encrypted secret key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted secret key, encoded in ascii format\n\t\t\t\t\t-Supported value for public key: \n\t\t\t\t\t\t- bin: DER binary format, \n\t\t\t\t\t\t- txt or text : DER encoded as ascii format\n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format, \n\t\t\t\t\t-Supported value for private key:\n\t\t\t\t\t\t- bin : encrypted DER private key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted DER private key, encoded in ascii format  \n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format (mandatory for password based encryption)";
 const STRING_ARRAY ARG_FORMAT_ENCRYPT_HELP = "File format as binary or hexadecimal text \n\t\t\t\t\t-Supported value: bin, text, txt";
 
 const STRING_ARRAY ARG_ATTR_NAME = "-attribute";
@@ -306,7 +306,7 @@ const STRING_ARRAY ARG_KCV_COMP = "-clearcomponents";
 const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and calculate KCV for each component with PCI method \n\t\t\t\t\t-Number of compoments for symetric keys between 2 to 16";
 
 const STRING_ARRAY ARG_KEYPASSWORD_COMP = "-keypassword";
-const STRING_ARRAY ARG_KEYPASSWORD_COMP_HELP = "password of the key for PBKDF2 key generation. \n\t\t\t\t\t-Mandatory if using pbfkd2.";
+const STRING_ARRAY ARG_KEYPASSWORD_COMP_HELP = "password of the key for PBKDF2 key generation. \n\t\t\t\t\t-Mandatory if using pbkdf2.";
 
 const STRING_ARRAY ARG_SALT_COMP = "-salt";
 const STRING_ARRAY ARG_SALT_COMP_HELP = "salt value for PBKDF2 key generation. \n\t\t\t\t\t-Optional. If empty, the salt is randomly generated with 16 bytes length ";

@@ -199,8 +199,10 @@ export -slot=1 -password 00000000 -handle=1347 -outputfile=mlkem768privatekey.tx
 export -slot=1 -password 00000000 -handle=1398 -outputfile=mlkem1024privatekey.txt -format=txt -key=426 -algo=aes_kwp
 
 // export encrypted pkcs8 with password
-export -password 00000000 -handle=377 -outputfile=private_rsa_2k.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
-export -password 00000000 -handle=377 -outputfile=private_rsa1.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes256.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes128.pem -format=PKCS8 -algo=pbkdf2_aes128_cbc -keypassword=000000000
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes192.pem -format=PKCS8 -algo=pbkdf2_aes192_cbc -keypassword=000000000
+export -password 00000000 -handle=377 -outputfile=private_rsa1.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265
 
 # encrypt a file
 // aes
