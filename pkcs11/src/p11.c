@@ -95,6 +95,7 @@ CK_CHAR           pTempBuffer[TEMP_BUFFER_SIZE];
 CK_SLOT_ID_PTR pSlotList = NULL;
 CK_ULONG uSlotCount = 0;
 CK_BBOOL bIsLoginPasswordRequired;
+CK_BBOOL bIsAlreadyConnected;
 
 CK_FUNCTION_LIST* P11Functions;
 CK_SFNT_CA_FUNCTION_LIST* SfntFunctions;
@@ -112,6 +113,7 @@ void P11_Init()
    pSlotList = NULL;
    uSlotCount;
    bIsLoginPasswordRequired = CK_TRUE;
+   bIsAlreadyConnected = CK_FALSE;
 }
 
 /*
@@ -637,6 +639,57 @@ CK_BBOOL P11_IsLoginPasswordRequired(void)
 }
 
 /*
+    FUNCTION:        CK_BBOOL P11_IsAlreadyConnected(void)
+*/
+CK_BBOOL P11_IsAlreadyConnected(void)
+{
+   return bIsAlreadyConnected;
+}
+
+
+
+/*
+    FUNCTION:        CK_RV P11_OpenSession(CK_SLOT_ID ckSlot)
+*/
+CK_RV P11_OpenSession(CK_SLOT_ID ckSlot)
+{
+   CK_RV rv = CKR_TOKEN_NOT_PRESENT;
+   CK_SESSION_INFO info = {0};
+
+   bIsAlreadyConnected = CK_FALSE;
+
+   if (hSession != CK_INVALID_HANDLE)
+   {
+      printf("Already loggin to a slot. Please logout first\n");
+      return CK_FALSE;
+   }
+
+   // Open P11 Session
+   rv = P11Functions->C_OpenSession(ckSlot, CKF_RW_SESSION | CKF_SERIAL_SESSION, NULL, NULL, &hSession);
+
+   if (rv == CKR_OK)
+   {
+      // get session info to determine if it is already open
+      rv = P11Functions->C_GetSessionInfo(hSession, &info);
+
+      // If user already already open, don't authenticate.
+      if (info.state == CKS_RW_USER_FUNCTIONS)
+      {
+         printf("Already connected by an external application such as salogin\n\n");
+         bIsAlreadyConnected = CK_TRUE;
+      }
+      else if (info.state == CKS_RW_USER_FUNCTIONS)
+      {
+         printf("Already connected by an external application such as salogin\n\n");
+         bIsAlreadyConnected = CK_TRUE;
+      }
+
+   }
+
+   return rv;
+}
+
+/*
     FUNCTION:        CK_RV P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser)
 */
 CK_RV P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser)
@@ -654,51 +707,39 @@ CK_RV P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser
       userType = CKU_USER;
    }
    
-
-   if (hSession != CK_INVALID_HANDLE)
+   // check if the password is NULL
+   if (sPassword == NULL)
    {
-      printf("Already loggin to a slot. Please logout first\n");
-      return CK_FALSE;
+      // login without password -> case where partition is protected by PED wihtout challenge
+      rv = P11Functions->C_Login(hSession, userType, NULL, 0);
    }
-
-   // Open P11 Session
-   rv = P11Functions->C_OpenSession(ckSlot, CKF_RW_SESSION | CKF_SERIAL_SESSION, NULL, NULL, &hSession);
-
-   if (rv == CKR_OK)
+   else
    {
+      // P11 Login
+      rv = P11Functions->C_Login(hSession, userType, sPassword, (CK_ULONG)strlen((char*)sPassword));
 
-      if (sPassword == NULL)
+   }
+   if (rv != CKR_OK)
+   {
+      P11_Logout();
+      printf("\nC_Login error code : %s \n", P11Util_DisplayErrorName(rv));
+   }
+   else
+   {
+      printf("Success");
+
+      if (bISCryptoUser == CK_TRUE)
       {
-         rv = P11Functions->C_Login(hSession, userType, NULL, 0);
-      }
-      else
-      {      
-         // P11 Login
-         rv = P11Functions->C_Login(hSession, userType, sPassword, (CK_ULONG)strlen((char*)sPassword));
-
-      }
-
-      if (rv != CKR_OK)
-      {
-         P11_Logout();
-         printf("\nC_Login error code : %s \n", P11Util_DisplayErrorName(rv));
+         printf(" -> Connected as Crypto User");
       }
       else
       {
-         printf("Success");
-
-         if (bISCryptoUser == CK_TRUE)
-         {
-            printf(" -> Connected as Crypto User");
-         }
-         else
-         {
-            printf(" -> Connected as Crypto Officer");
-         }
-
-         printf("\n\n");
+         printf(" -> Connected as Crypto Officer");
       }
+
+      printf("\n\n");
    }
+
    return rv;
 }
 
@@ -727,8 +768,12 @@ CK_RV P11_Logout()
 
    if (P11Functions != NULL)
    {
-      // Logout
-      rv = P11Functions->C_Logout(hSession);
+      // if already connected, no login performed, call logout breaks the session.
+      if (bIsAlreadyConnected == CK_FALSE)
+      {
+         // Logout
+         rv = P11Functions->C_Logout(hSession);
+      }
 
       // Close session
       rv = P11Functions->C_CloseSession(hSession);

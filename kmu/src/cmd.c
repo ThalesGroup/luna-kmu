@@ -165,56 +165,64 @@ CK_BBOOL cmd_kmu_login(CK_BBOOL bIsConsole)
          break;
       }
 
-
-      // Get the password from argument
-      sPassword = cmdarg_GetPassword();
-
-
-      // request if need to use ped
-      if ((sPassword == NULL) && (P11_IsLoginPasswordRequired() == CK_FALSE))
+      // open slot session
+      if (P11_OpenSession(u32_SlotID) == CK_TRUE)
       {
-         printf("\n\nThe TokenInfo flag CKF_PROTECTED_AUTHENTICATION_PATH is set.\n");
-         printf("If the partition challenge is not initialized, you should use PED without password.\n");
-         printf("Do you want to use PED without providing password ? (y/n): ");
-         if (Console_RequestString() < 0)
-         {
-            break;
-         }
-         sString = Console_GetBuffer();
-         uStringLength = (CK_ULONG)strlen(sString);
-
-         // if answer is yes, use the PED
-         if ((uStringLength == 1) && (sString[0] == 'y'))
-         {
-            bUsePassword = CK_FALSE;
-            sPassword = NULL;
-         }
-      }
-
-      // check if use password or not
-      if (bUsePassword == CK_TRUE)
-      {
-         // request password if not provided
-         if (sPassword == NULL)
-         {
-            // request for password
-            printf("\nEnter the password : ");
-            if (Console_RequestPassword() > 0)
-            {
-               // get password buffer
-               sPassword = Console_GetBuffer();
-            }
-            printf("\n");
-         }
-      }
-
-      // authenticate to selected slot ID
-      if (P11_Login(u32_SlotID, sPassword, cmdarg_isCryptoUserLoginRequested()) != CKR_OK)
-      {
-         printf("login error\n");
+         printf("OpenSession error\n");
          break;
       }
 
+      // Check if the session is already open, and skip password in such case
+      if (P11_IsAlreadyConnected() == CK_FALSE)
+      {
+         // Get the password from argument
+         sPassword = cmdarg_GetPassword();
+
+         // request if need to use ped
+         if ((sPassword == NULL) && (P11_IsLoginPasswordRequired() == CK_FALSE))
+         {
+            printf("\n\nThe TokenInfo flag CKF_PROTECTED_AUTHENTICATION_PATH is set.\n");
+            printf("If the partition challenge is not initialized, you should use PED without password.\n");
+            printf("Do you want to use PED without providing password ? (y/n): ");
+            if (Console_RequestString() < 0)
+            {
+               break;
+            }
+            sString = Console_GetBuffer();
+            uStringLength = (CK_ULONG)strlen(sString);
+
+            // if answer is yes, use the PED
+            if ((uStringLength == 1) && (sString[0] == 'y'))
+            {
+               bUsePassword = CK_FALSE;
+               sPassword = NULL;
+            }
+         }
+
+         // check if use password or not
+         if (bUsePassword == CK_TRUE)
+         {
+            // request password if not provided
+            if (sPassword == NULL)
+            {
+               // request for password
+               printf("\nEnter the password : ");
+               if (Console_RequestPassword() > 0)
+               {
+                  // get password buffer
+                  sPassword = Console_GetBuffer();
+               }
+               printf("\n");
+            }
+         }
+
+         // authenticate to selected slot ID
+         if (P11_Login(u32_SlotID, sPassword, cmdarg_isCryptoUserLoginRequested()) != CKR_OK)
+         {
+            printf("login error\n");
+            break;
+         }
+      }
       return CK_TRUE;
    } while (FALSE);
    return CK_FALSE;

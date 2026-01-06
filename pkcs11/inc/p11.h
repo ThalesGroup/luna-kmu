@@ -525,12 +525,14 @@ extern "C" {
 
 
    _EXT  CK_RV                P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser);
+   _EXT  CK_RV                P11_OpenSession(CK_SLOT_ID ckSlot);
    _EXT  CK_RV                P11_Logout();
    _EXT  CK_BBOOL             P11_IsLoggedIn();
    _EXT  CK_LONG              P11_ListStot();
    _EXT  CK_BBOOL             p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO* slotInfo);
    _EXT  CK_BBOOL             p11_GetMecanismInfo(CK_SLOT_ID u32_SlotID, CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO* info);
    _EXT  CK_BBOOL             P11_IsLoginPasswordRequired(void);
+   _EXT  CK_BBOOL             P11_IsAlreadyConnected(void);
    _EXT  CK_BBOOL             P11_FindAllObjects(CK_LONG uLimit);
    _EXT  CK_BBOOL             P11_DeleteObject(CK_OBJECT_HANDLE Handle);
    _EXT  CK_BBOOL             P11_GetAttributes(CK_OBJECT_HANDLE Handle);
