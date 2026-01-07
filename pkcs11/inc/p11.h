@@ -196,6 +196,12 @@ extern "C" {
       CK_KDF_PRF_TYPE   cKdfMechType;
    }P11_KDF_TYPE;
 
+   typedef struct p11_pbkdf2_type
+   {
+      CK_CHAR_PTR                                  sKdfMechType;
+      CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE   cKdfMechType;
+   }P11_PBKDF2_TYPE;
+
    typedef struct p11_kcv_type
    {
       CK_CHAR_PTR       sKCVMechType;

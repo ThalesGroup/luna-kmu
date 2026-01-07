@@ -1500,6 +1500,52 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(CK_BYTE bArgType)
 }
 
 /*
+    FUNCTION:       CK_KDF_PRF_TYPE CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE cmdarg_GetpbKdf2Type()
+*/
+CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE cmdarg_GetpbKdf2Type()
+{
+   PARSER_CURRENT_CMD_ARG* arg;
+   CK_CHAR_PTR sString = NULL;
+
+   do
+   {
+      // get KDF type
+      arg = parser_SearchArgument(ARG_TYPE_PRF);
+
+      if (arg == NULL)
+      {
+         P11Util_DisplayPBKdf2_Type();
+
+         // request user to enter a string
+         printf("Enter Pseudo Random Function for PKKDF2 algorithm : ");
+
+         // request user
+         if (Console_RequestString() < 0)
+         {
+            break;
+         }
+
+         // get string
+         sString = Console_GetBuffer();
+
+      }
+      else
+      {
+         // use string in parameter
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      return P11Util_GetPbkdf2_Type(sString);
+   } while (FALSE);
+
+
+   return CK_NULL_ELEMENT;
+}
+
+/*
 P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 */
 P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
@@ -1550,7 +1596,8 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
          }
 
          // Set default prf (only hmac-sha1 supported by hsm)
-         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = DefaultEncryption_mech->pbe_param.pbkdf2.pbfkd2_param.prf;
+         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = cmdarg_GetpbKdf2Type();
+            
 
          // Set the salt
          sSalt = cmdarg_ArgGetSalt();

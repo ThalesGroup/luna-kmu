@@ -596,6 +596,23 @@ const P11_KDF_TYPE kdf_type[] = {
 
 };
 
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA1[] = "hmac-sha1";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA224[] = "hmac-sha224";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA256[] = "hmac-sha256";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA384[] = "hmac-sha384";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA512[] = "hmac-sha512";
+
+#define SIZE_PBKDF2_KDF_TYPE_TABLE     DIM(pbkdf2_kdf_type)
+const P11_PBKDF2_TYPE pbkdf2_kdf_type[] = {
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA1,             CKP_PKCS5_PBKD2_HMAC_SHA1},
+   /*
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA224,           CKP_PKCS5_PBKD2_HMAC_SHA224},
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA256,           CKP_PKCS5_PBKD2_HMAC_SHA256},
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA384,           CKP_PKCS5_PBKD2_HMAC_SHA384},
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA512,           CKP_PKCS5_PBKD2_HMAC_SHA512},
+   */
+};
+
 const CK_CHAR ARG_DERIVE_KDF_SCHEME_1[] = "scheme1";
 const CK_CHAR ARG_DERIVE_KDF_SCHEME_2[] = "scheme2";
 const CK_CHAR ARG_DERIVE_KDF_SCHEME_3[] = "scheme3";
@@ -1552,7 +1569,7 @@ void P11Util_DisplayKdfType()
 }
 
 /*
-    FUNCTION:        P11_DERIVE_MECH* P11Util_GetKdfType(CK_CHAR_PTR sParamName)
+    FUNCTION:        CK_KDF_PRF_TYPE P11Util_GetKdfType(CK_CHAR_PTR sParamName)
 */
 CK_KDF_PRF_TYPE P11Util_GetKdfType(CK_CHAR_PTR sParamName)
 {
@@ -1565,6 +1582,40 @@ CK_KDF_PRF_TYPE P11Util_GetKdfType(CK_CHAR_PTR sParamName)
       if (strcmp(kdf_type[u8Loop].sKdfMechType, sParamName) == 0)
       {
          return kdf_type[u8Loop].cKdfMechType;
+      }
+   };
+   return 0;
+}
+
+/*
+    FUNCTION:        void P11Util_DisplayPBKdf2_Type()
+*/
+void P11Util_DisplayPBKdf2_Type()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported Key Derivation Function type value : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_PBKDF2_KDF_TYPE_TABLE; u8Loop++)
+   {
+      printf("-> %s\n", pbkdf2_kdf_type[u8Loop].sKdfMechType);
+   }
+}
+
+/*
+    FUNCTION:        CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sParamName)
+*/
+CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sParamName)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all curve structure
+   for (u8Loop = 0; u8Loop < SIZE_PBKDF2_KDF_TYPE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (strcmp(pbkdf2_kdf_type[u8Loop].sKdfMechType, sParamName) == 0)
+      {
+         return pbkdf2_kdf_type[u8Loop].cKdfMechType;
       }
    };
    return 0;

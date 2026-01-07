@@ -34,6 +34,7 @@ extern "C" {
    _EXT  P11_ENCRYPTION_MECH*          P11Util_GetEncryptionParam(CK_CHAR_PTR sParamName, CK_ULONG    bKeyFlag);
    _EXT  P11_DERIVE_MECH*              P11Util_GetDerivationParam(CK_CHAR_PTR sParamName);
    _EXT  CK_KDF_PRF_TYPE               P11Util_GetKdfType(CK_CHAR_PTR sParamName);
+   _EXT  CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sParamName);
    _EXT  CK_KDF_PRF_ENCODING_SCHEME    P11Util_GetKdfScheme(CK_CHAR_PTR sParamName);
    _EXT  CK_KEY_TYPE                   P11Util_GetCKType(CK_CHAR_PTR sKeyType, CK_ULONG uFlag);
    _EXT  CK_KEY_TYPE                   P11Util_GetClassFromCKType(CK_CHAR_PTR sKeyType,CK_ULONG uFlag);
@@ -61,6 +62,7 @@ extern "C" {
    _EXT  void                          P11Util_DisplayEncryptionParam(CK_ULONG    bKeyFlag);
    _EXT  void                          P11Util_DisplayDerivationParam();
    _EXT  void                          P11Util_DisplayKdfType();
+   _EXT  void                          P11Util_DisplayPBKdf2_Type();
    _EXT  void                          P11Util_DisplayKdfScheme();
    _EXT  void                          P11Util_DisplaySupportedClass();
    _EXT  void                          P11Util_DisplaySupportedDHGenMechParam();
