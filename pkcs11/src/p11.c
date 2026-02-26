@@ -3991,6 +3991,14 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR
       sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
       break;
 
+   case CKM_AES_ECB_ENCRYPT_DATA:
+   case CKM_DES_ECB_ENCRYPT_DATA:
+   case CKM_DES3_ECB_ENCRYPT_DATA:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sKeyDerivationStringData;
+      sDeriveMech.usParameterLen = sizeof(CK_KEY_DERIVATION_STRING_DATA);
+      break;
+
    default:
       printf("C_DeriveKey unknown mecanism : %i \n", sDeriveTemplate->sDeriveMech->ckMechType);
       return CK_FALSE;

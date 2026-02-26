@@ -1747,6 +1747,34 @@ P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(CK_BYTE bArgType)
       case CKM_SHA3_512_KEY_DERIVE:
          // do nothing, return DefaultDerive_mech
          break;
+      case CKM_AES_ECB_ENCRYPT_DATA:
+      case CKM_DES_ECB_ENCRYPT_DATA:
+      case CKM_DES3_ECB_ENCRYPT_DATA:
+ 
+         // set the derive mech in sDerive_Mech
+         sDerive_Mech.ckMechType = DefaultDerive_mech->ckMechType;
+
+         // get the derivation data from argument kdf-data
+         sBufferLength = cmdarg_SearchTypeHexString(ARG_TYPE_KDF_DATA, &sDerive_Mech.sKeyDerivationStringData.pData);
+
+
+         if (sBufferLength <= 0)
+         {
+            printf("wrong value -kdf-data \n");
+            return NULL;
+         }
+
+         // set the length of the derivation data
+         sDerive_Mech.sKeyDerivationStringData.ulLen = sBufferLength;
+
+
+         return &sDerive_Mech;
+
+      case CKM_AES_CBC_ENCRYPT_DATA:
+         
+
+         //CK_AES_CBC_ENCRYPT_DATA_PARAMS
+         break;
 
       default:
          printf("wrong argument : -mech \n");

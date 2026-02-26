@@ -104,6 +104,7 @@ extern "C" {
 #define ARG_TYPE_ID_UNWRAPKEY       79
 #define ARG_TYPE_LABEL_OBJ          80
 #define ARG_TYPE_ID_OBJ             81
+#define ARG_TYPE_KDF_DATA           82
 
 
 #define MASK_BINARY                 CK_TRUE

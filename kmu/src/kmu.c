@@ -305,6 +305,9 @@ const STRING_ARRAY ARG_KDF_LABEL_HELP = "Luna Key Derivation Function label as h
 const STRING_ARRAY ARG_KDF_CONTEXT = "-kdf-context";
 const STRING_ARRAY ARG_KDF_CONTEXT_HELP = "Luna Key Derivation Function context as hex string. \n\t\t\t\t\t-Optional. If empty, context is set as empty string";
 
+const STRING_ARRAY ARG_KDF_DATA = "-kdf-data";
+const STRING_ARRAY ARG_KDF_DATA_HELP = "Key Derivation Function data as hex string. \n\t\t\t\t\t-Optional. If empty, context is set as empty string";
+
 const STRING_ARRAY ARG_KCV_METHOD = "-method";
 const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method, supported value: \n\t\t\t\t\t-pkcs11\n\t\t\t\t\t\t-DES keys: 3 first bytes of ECB encryption of one block set to 00..00\n\t\t\t\t\t\t-AES keys: 3 first bytes of ECB encryption of one block set to 00..00 \n\t\t\t\t\t-pci(banking) \n\t\t\t\t\t\t-DES keys : 3 first bytes of MAC signature of one block set to 00..00 \n\t\t\t\t\t\t-AES keys : 3 first bytes of MAC signature of one block set to 00..00  \n\t\t\t\t\t-gp (global platform)\n\t\t\t\t\t\t-DES keys : 3 first bytes MAC signature of one block set to 00..00\n\t\t\t\t\t\t-AES keys: 3 first bytes of CMAC signature of one block set to 01..01\n\t\t\t\t\t-hmac-sha-256\n\t\t\t\t\t\t-HMAC, GENERIC keys: : 3 first bytes of HMAC signature of a null block";
 
@@ -585,6 +588,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_KDF_COUNTER, ARG_TYPE_KDF_COUNTER, (const CK_CHAR_PTR)ARG_KDF_COUNTER_HELP,\
                                     (const CK_CHAR_PTR)ARG_KDF_LABEL, ARG_TYPE_KDF_LABEL, (const CK_CHAR_PTR)ARG_KDF_LABEL_HELP,\
                                     (const CK_CHAR_PTR)ARG_KDF_CONTEXT, ARG_TYPE_KDF_CONTEXT, (const CK_CHAR_PTR)ARG_KDF_CONTEXT_HELP,\
+                                    (const CK_CHAR_PTR)ARG_KDF_DATA, ARG_TYPE_KDF_DATA, (const CK_CHAR_PTR)ARG_KDF_DATA_HELP,\
                                     }
 
 #define CMD_CONVERT_VALUE           (const CK_CHAR_PTR)CMD_CONVERT, (const P_fCMD)&cmd_kmu_convert, (const CK_CHAR_PTR)CMD_CONVERT_HELP, \
@@ -788,6 +792,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_KDF_COUNTER,
    (CK_CHAR_PTR)ARG_KDF_LABEL,
    (CK_CHAR_PTR)ARG_KDF_CONTEXT,
+   (CK_CHAR_PTR)ARG_KDF_DATA,
    (CK_CHAR_PTR)ARG_KCV_METHOD,
    (CK_CHAR_PTR)ARG_CU,
    (CK_CHAR_PTR)ARG_KCV_COMP,

@@ -182,11 +182,13 @@ extern "C" {
       CK_MECHANISM_TYPE ckMechType;
       union
       {
-         CK_ECDH1_DERIVE_PARAMS       sEcdh1DeriveParams;
-         CK_ECDH2_DERIVE_PARAMS       sEcdh2DeriveParams;
-         CK_X9_42_DH1_DERIVE_PARAMS   sx942DhDeriveParams;
-         CK_PRF_KDF_PARAMS            sPrfKdfParams;
-
+         CK_ECDH1_DERIVE_PARAMS           sEcdh1DeriveParams;
+         CK_ECDH2_DERIVE_PARAMS           sEcdh2DeriveParams;
+         CK_X9_42_DH1_DERIVE_PARAMS       sx942DhDeriveParams;
+         CK_PRF_KDF_PARAMS                sPrfKdfParams;
+         CK_KEY_DERIVATION_STRING_DATA    sKeyDerivationStringData;
+         CK_AES_CBC_ENCRYPT_DATA_PARAMS   sAESKeyDerivationData;
+         CK_DES_CBC_ENCRYPT_DATA_PARAMS   sDESKeyDerivationData;
       };
    }P11_DERIVE_MECH;
 
