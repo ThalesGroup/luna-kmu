@@ -157,3 +157,9 @@ Sonarqube
 /private_rsa_2k_pkkdf2_aes128.pem
 /private_rsa_2k_pkkdf2_aes192.pem
 /private_rsa_2k_pkkdf2_aes256.pem
+/Initial-IK.encrypt.txt
+/Initial-IK.txt
+/NexoAESD128TestKey.encrypt.txt
+/NexoAESD128TestKey.txt
+/workingkey.encrypt.txt
+/workingkey.txt
