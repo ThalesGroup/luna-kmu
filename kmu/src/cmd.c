@@ -1400,10 +1400,17 @@ CK_BBOOL    cmd_kmu_encrypt(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      sEncryptTemplate.hEncyptiontKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_ENCRYPT);
+      sEncryptTemplate.hEncyptiontKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_ENCRYPT, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+
       if (sEncryptTemplate.hEncyptiontKey == CK_NULL_ELEMENT)
       {
-         printf("wrong or missing argument : -key \n");
+         printf("wrong or missing argument : -handle \n");
+         break;
+      }
+
+      if (sEncryptTemplate.hEncyptiontKey == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
          break;
       }
 
@@ -1514,10 +1521,17 @@ CK_BBOOL    cmd_kmu_decrypt(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      sDecryptTemplate.hEncyptiontKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_DECRYPT);
+      sDecryptTemplate.hEncyptiontKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DECRYPT, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+
       if (sDecryptTemplate.hEncyptiontKey == CK_NULL_ELEMENT)
       {
-         printf("wrong argument : -key \n");
+         printf("wrong or missing argument : -handle \n");
+         break;
+      }
+
+      if (sDecryptTemplate.hEncyptiontKey == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
          break;
       }
 
@@ -1640,12 +1654,22 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
          break;
       }
 
-      // get handle for master derivation key key
-      sDeriveTemplate.hMasterKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_DERIVE);
+
+      // get handle for encrpyion key
+      sDeriveTemplate.hMasterKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DERIVE, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+
       if (sDeriveTemplate.hMasterKey == CK_NULL_ELEMENT)
       {
+         printf("wrong or missing argument : -handle \n");
          break;
       }
+
+      if (sDeriveTemplate.hMasterKey == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
+         break;
+      }
+
 
       // get key class 
       sDeriveTemplate.sDerivedClass = cmdarg_GetClassFromkeyType(KEY_TYPE_DERIVEKEY);
