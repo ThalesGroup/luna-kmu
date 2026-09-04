@@ -542,7 +542,53 @@ const P11_ENCRYPTION_MECH encryption_algo[] = {
    {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBKDF2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_256_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH }
 };
 
+/* Sign/verify names follow luna-samples-fork C_Samples/signing and pqc. */
+const CK_CHAR ARG_ALG_SIGN_RSA_PKCS[] = "rsa_pkcs";
+const CK_CHAR ARG_ALG_SIGN_SHA1_RSA_PKCS[] = "sha1_rsa_pkcs";
+const CK_CHAR ARG_ALG_SIGN_SHA256_RSA_PKCS[] = "sha256_rsa_pkcs";
+const CK_CHAR ARG_ALG_SIGN_SHA384_RSA_PKCS[] = "sha384_rsa_pkcs";
+const CK_CHAR ARG_ALG_SIGN_SHA512_RSA_PKCS[] = "sha512_rsa_pkcs";
+const CK_CHAR ARG_ALG_SIGN_RSA_PKCS_PSS[] = "rsa_pkcs_pss";
+const CK_CHAR ARG_ALG_SIGN_SHA256_RSA_PKCS_PSS[] = "sha256_rsa_pkcs_pss";
+const CK_CHAR ARG_ALG_SIGN_SHA384_RSA_PKCS_PSS[] = "sha384_rsa_pkcs_pss";
+const CK_CHAR ARG_ALG_SIGN_SHA512_RSA_PKCS_PSS[] = "sha512_rsa_pkcs_pss";
+const CK_CHAR ARG_ALG_SIGN_ECDSA[] = "ecdsa";
+const CK_CHAR ARG_ALG_SIGN_ECDSA_SHA256[] = "ecdsa_sha256";
+const CK_CHAR ARG_ALG_SIGN_ECDSA_SHA384[] = "ecdsa_sha384";
+const CK_CHAR ARG_ALG_SIGN_ECDSA_SHA512[] = "ecdsa_sha512";
+const CK_CHAR ARG_ALG_SIGN_EDDSA[] = "eddsa";
+const CK_CHAR ARG_ALG_SIGN_SHA1_HMAC[] = "sha1_hmac";
+const CK_CHAR ARG_ALG_SIGN_SHA256_HMAC[] = "sha256_hmac";
+const CK_CHAR ARG_ALG_SIGN_SHA384_HMAC[] = "sha384_hmac";
+const CK_CHAR ARG_ALG_SIGN_SHA512_HMAC[] = "sha512_hmac";
+const CK_CHAR ARG_ALG_SIGN_AES_CMAC[] = "aes_cmac";
+const CK_CHAR ARG_ALG_SIGN_ML_DSA[] = "ml_dsa";
+const CK_CHAR ARG_ALG_SIGN_HSS[] = "hss";
 
+#define SIZE_SIGN_ALGO_TABLE     DIM(sign_algo)
+const P11_SIGN_MECH sign_algo[] = {
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_RSA_PKCS,            CKM_RSA_PKCS},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA1_RSA_PKCS,       CKM_SHA1_RSA_PKCS},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA256_RSA_PKCS,     CKM_SHA256_RSA_PKCS},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA384_RSA_PKCS,     CKM_SHA384_RSA_PKCS},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA512_RSA_PKCS,     CKM_SHA512_RSA_PKCS},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_RSA_PKCS_PSS,         CKM_RSA_PKCS_PSS,         .rsa_pss_param.hashAlg = 0, .rsa_pss_param.mgf = 0, .rsa_pss_param.usSaltLen = 0},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA256_RSA_PKCS_PSS, CKM_SHA256_RSA_PKCS_PSS,  .rsa_pss_param.hashAlg = CKM_SHA256, .rsa_pss_param.mgf = CKG_MGF1_SHA256, .rsa_pss_param.usSaltLen = 32},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA384_RSA_PKCS_PSS, CKM_SHA384_RSA_PKCS_PSS,  .rsa_pss_param.hashAlg = CKM_SHA384, .rsa_pss_param.mgf = CKG_MGF1_SHA384, .rsa_pss_param.usSaltLen = 48},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA512_RSA_PKCS_PSS, CKM_SHA512_RSA_PKCS_PSS,  .rsa_pss_param.hashAlg = CKM_SHA512, .rsa_pss_param.mgf = CKG_MGF1_SHA512, .rsa_pss_param.usSaltLen = 64},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_ECDSA,               CKM_ECDSA},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_ECDSA_SHA256,        CKM_ECDSA_SHA256},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_ECDSA_SHA384,        CKM_ECDSA_SHA384},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_ECDSA_SHA512,        CKM_ECDSA_SHA512},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_EDDSA,               CKM_EDDSA},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA1_HMAC,           CKM_SHA_1_HMAC},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA256_HMAC,         CKM_SHA256_HMAC},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA384_HMAC,         CKM_SHA384_HMAC},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_SHA512_HMAC,         CKM_SHA512_HMAC},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_AES_CMAC,            CKM_AES_CMAC,             .aes_param.pIv = NULL},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_ML_DSA,              CKM_ML_DSA,               .ml_dsa_param.hedgeVariant = CKH_HEDGE_PREFERRED, .ml_dsa_param.pContext = NULL, .ml_dsa_param.ulContextLen = 0},
+   {KEY_TYPE_SIGN, (CK_CHAR_PTR)&ARG_ALG_SIGN_HSS,                 CKM_HSS}
+};
 
 //CKM_RSA_AES_KEY_WRAP
 
@@ -2008,4 +2054,600 @@ void P11Util_DisplaySupportedLMSOTSType()
       printf("-> %s\n", lmots_type_attributes[u8Loop].sParamName);
 
    }
+}
+
+static CK_BBOOL P11Util_KeyTypeNameSeen(CK_ULONG uFlag, CK_ULONG uBefore, CK_CHAR_PTR sName)
+{
+   CK_ULONG uLoop;
+
+   for (uLoop = 0; uLoop < uBefore; uLoop++)
+   {
+      if ((arg_keygen_supported_type[uLoop].uFlag & uFlag) == 0)
+      {
+         continue;
+      }
+      if (strcmp(arg_keygen_supported_type[uLoop].sKeyTypeName, sName) == 0)
+      {
+         return CK_TRUE;
+      }
+   }
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetKeyTypeNameCount(CK_ULONG uFlag)
+*/
+CK_ULONG P11Util_GetKeyTypeNameCount(CK_ULONG uFlag)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; uLoop++)
+   {
+      if ((arg_keygen_supported_type[uLoop].uFlag & uFlag) == 0)
+      {
+         continue;
+      }
+      if (P11Util_KeyTypeNameSeen(uFlag, uLoop, arg_keygen_supported_type[uLoop].sKeyTypeName) == CK_TRUE)
+      {
+         continue;
+      }
+      uCount++;
+   }
+   return uCount;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetKeyTypeNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetKeyTypeNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; uLoop++)
+   {
+      if ((arg_keygen_supported_type[uLoop].uFlag & uFlag) == 0)
+      {
+         continue;
+      }
+      if (P11Util_KeyTypeNameSeen(uFlag, uLoop, arg_keygen_supported_type[uLoop].sKeyTypeName) == CK_TRUE)
+      {
+         continue;
+      }
+      if (uCount == uIndex)
+      {
+         return arg_keygen_supported_type[uLoop].sKeyTypeName;
+      }
+      uCount++;
+   }
+   return NULL;
+}
+
+static CK_BBOOL P11Util_CurveNameSeen(CK_KEY_TYPE sKeyType, CK_ULONG uBefore, CK_CHAR_PTR sName)
+{
+   CK_ULONG uLoop;
+
+   for (uLoop = 0; uLoop < uBefore; uLoop++)
+   {
+      if (ecc_curve_oid[uLoop].cktype != sKeyType)
+      {
+         continue;
+      }
+      if (strcmp(ecc_curve_oid[uLoop].sCurveName, sName) == 0)
+      {
+         return CK_TRUE;
+      }
+   }
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetEcCurveCount(CK_KEY_TYPE sKeyType)
+*/
+CK_ULONG P11Util_GetEcCurveCount(CK_KEY_TYPE sKeyType)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_ECC_CURVE_TABLE; uLoop++)
+   {
+      if (ecc_curve_oid[uLoop].cktype != sKeyType)
+      {
+         continue;
+      }
+      if (P11Util_CurveNameSeen(sKeyType, uLoop, ecc_curve_oid[uLoop].sCurveName) == CK_TRUE)
+      {
+         continue;
+      }
+      uCount++;
+   }
+   return uCount;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetEcCurveNameAt(CK_KEY_TYPE sKeyType, CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetEcCurveNameAt(CK_KEY_TYPE sKeyType, CK_ULONG uIndex)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_ECC_CURVE_TABLE; uLoop++)
+   {
+      if (ecc_curve_oid[uLoop].cktype != sKeyType)
+      {
+         continue;
+      }
+      if (P11Util_CurveNameSeen(sKeyType, uLoop, ecc_curve_oid[uLoop].sCurveName) == CK_TRUE)
+      {
+         continue;
+      }
+      if (uCount == uIndex)
+      {
+         return ecc_curve_oid[uLoop].sCurveName;
+      }
+      uCount++;
+   }
+   return NULL;
+}
+
+CK_ULONG P11Util_GetRSAGenMechCount(void)
+{
+   return SIZE_RSA_MECH_TABLE;
+}
+
+CK_CHAR_PTR P11Util_GetRSAGenMechNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_RSA_MECH_TABLE)
+   {
+      return NULL;
+   }
+   return p11_rsa_mech[uIndex].sMechName;
+}
+
+CK_ULONG P11Util_GetDHGenMechCount(void)
+{
+   return SIZE_DH_MECH_TABLE;
+}
+
+CK_CHAR_PTR P11Util_GetDHGenMechNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_DH_MECH_TABLE)
+   {
+      return NULL;
+   }
+   return p11_dh_mech[uIndex].sMechName;
+}
+
+CK_ULONG P11Util_GetPublicExpCount(void)
+{
+   return SIZE_RSA_PUBEXP_TABLE;
+}
+
+CK_CHAR_PTR P11Util_GetPublicExpNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_RSA_PUBEXP_TABLE)
+   {
+      return NULL;
+   }
+   return rsa_public_exp[uIndex].sExpName;
+}
+
+CK_ULONG P11Util_GetLMSTypeCount(void)
+{
+   return SIZE_LMS_TYPE_TABLE;
+}
+
+CK_CHAR_PTR P11Util_GetLMSTypeNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_LMS_TYPE_TABLE)
+   {
+      return NULL;
+   }
+   return lms_type_attributes[uIndex].sParamName;
+}
+
+CK_ULONG P11Util_GetLMSOTSTypeCount(void)
+{
+   return SIZE_LMOTS_TYPE_TABLE;
+}
+
+CK_CHAR_PTR P11Util_GetLMSOTSTypeNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_LMOTS_TYPE_TABLE)
+   {
+      return NULL;
+   }
+   return lmots_type_attributes[uIndex].sParamName;
+}
+
+CK_ULONG P11Util_GetML_DSA_Count(void)
+{
+   return SIZE_P11_ML_DSA_KEYSIZE_TABLE;
+}
+
+P11_ML_DSA_KEY* P11Util_GetML_DSA_At(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_P11_ML_DSA_KEYSIZE_TABLE)
+   {
+      return NULL;
+   }
+   return (P11_ML_DSA_KEY*)&ml_dsa_publickeysize[uIndex];
+}
+
+CK_ULONG P11Util_GetML_KEM_Count(void)
+{
+   return SIZE_P11_ML_KEM_KEYSIZE_TABLE;
+}
+
+P11_ML_KEM_KEY* P11Util_GetML_KEM_At(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_P11_ML_KEM_KEYSIZE_TABLE)
+   {
+      return NULL;
+   }
+   return (P11_ML_KEM_KEY*)&ml_kem_publickeysize[uIndex];
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetHashCount(CK_ULONG uFlag)
+*/
+CK_ULONG P11Util_GetHashCount(CK_ULONG uFlag)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_HASH_ALGO_TABLE; uLoop++)
+   {
+      if (hash_algo[uLoop].uFlag & uFlag)
+      {
+         uCount++;
+      }
+   }
+   return uCount;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetHashNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetHashNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_HASH_ALGO_TABLE; uLoop++)
+   {
+      if ((hash_algo[uLoop].uFlag & uFlag) == 0)
+      {
+         continue;
+      }
+      if (uCount == uIndex)
+      {
+         return hash_algo[uLoop].sHashName;
+      }
+      uCount++;
+   }
+   return NULL;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetKCVMethodCount(void)
+*/
+CK_ULONG P11Util_GetKCVMethodCount(void)
+{
+   return SIZE_KCV_TYPE_TABLE;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetKCVMethodNameAt(CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetKCVMethodNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_KCV_TYPE_TABLE)
+   {
+      return NULL;
+   }
+   return kcv_type[uIndex].sKCVMechType;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetCapMechCount(void)
+*/
+CK_ULONG P11Util_GetCapMechCount(void)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; uLoop++)
+   {
+      if (arg_keygen_supported_type[uLoop].uFlag & KEY_TYPE_DISPLAY_MEC)
+      {
+         uCount++;
+      }
+   }
+   return uCount;
+}
+
+/*
+    FUNCTION:        CK_BBOOL P11Util_GetCapMechAt(...)
+*/
+CK_BBOOL P11Util_GetCapMechAt(CK_ULONG uIndex, CK_CHAR_PTR* ppName,
+   CK_KEY_TYPE* pType, CK_MECHANISM_TYPE* pMech)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   if (ppName != NULL)
+   {
+      *ppName = NULL;
+   }
+   if (pType != NULL)
+   {
+      *pType = 0;
+   }
+   if (pMech != NULL)
+   {
+      *pMech = 0;
+   }
+
+   for (uLoop = 0; uLoop < SIZE_KEYGEN_SUPPORTED_TYPE_TABLE; uLoop++)
+   {
+      if ((arg_keygen_supported_type[uLoop].uFlag & KEY_TYPE_DISPLAY_MEC) == 0)
+      {
+         continue;
+      }
+      if (uCount == uIndex)
+      {
+         if (ppName != NULL)
+         {
+            *ppName = arg_keygen_supported_type[uLoop].sKeyTypeName;
+         }
+         if (pType != NULL)
+         {
+            *pType = arg_keygen_supported_type[uLoop].cktype;
+         }
+         if (pMech != NULL)
+         {
+            *pMech = arg_keygen_supported_type[uLoop].cKeyGenMecanismType;
+         }
+         return CK_TRUE;
+      }
+      uCount++;
+   }
+   return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetEncryptionCount(CK_ULONG uFlag)
+*/
+CK_ULONG P11Util_GetEncryptionCount(CK_ULONG uFlag)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_ENCRYPTION_ALGO_TABLE; uLoop++)
+   {
+      if (encryption_algo[uLoop].uFlag & uFlag)
+      {
+         uCount++;
+      }
+   }
+   return uCount;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetEncryptionNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetEncryptionNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_ENCRYPTION_ALGO_TABLE; uLoop++)
+   {
+      if ((encryption_algo[uLoop].uFlag & uFlag) == 0)
+      {
+         continue;
+      }
+      if (uCount == uIndex)
+      {
+         return encryption_algo[uLoop].sMechName;
+      }
+      uCount++;
+   }
+   return NULL;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetKeyClassCount(void)
+*/
+CK_ULONG P11Util_GetKeyClassCount(void)
+{
+   return SIZE_ARG_KEY_CLASS;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetKeyClassNameAt(CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetKeyClassNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_ARG_KEY_CLASS)
+   {
+      return NULL;
+   }
+   return arg_keyclass[uIndex].sParamName;
+}
+
+/*
+    FUNCTION:        P11_SIGN_MECH* P11Util_GetSignParam(CK_CHAR_PTR sParamName, CK_ULONG bKeyFlag)
+*/
+P11_SIGN_MECH* P11Util_GetSignParam(CK_CHAR_PTR sParamName, CK_ULONG bKeyFlag)
+{
+   CK_ULONG uLoop;
+
+   if (sParamName == NULL)
+   {
+      return NULL;
+   }
+   for (uLoop = 0; uLoop < SIZE_SIGN_ALGO_TABLE; uLoop++)
+   {
+      if (strcmp(sign_algo[uLoop].sMechName, sParamName) == 0)
+      {
+         if (sign_algo[uLoop].uFlag & bKeyFlag)
+         {
+            return (P11_SIGN_MECH*)&sign_algo[uLoop];
+         }
+      }
+   }
+   return NULL;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetSignCount(CK_ULONG uFlag)
+*/
+CK_ULONG P11Util_GetSignCount(CK_ULONG uFlag)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_SIGN_ALGO_TABLE; uLoop++)
+   {
+      if (sign_algo[uLoop].uFlag & uFlag)
+      {
+         uCount++;
+      }
+   }
+   return uCount;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetSignNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetSignNameAt(CK_ULONG uFlag, CK_ULONG uIndex)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = 0;
+
+   for (uLoop = 0; uLoop < SIZE_SIGN_ALGO_TABLE; uLoop++)
+   {
+      if ((sign_algo[uLoop].uFlag & uFlag) == 0)
+      {
+         continue;
+      }
+      if (uCount == uIndex)
+      {
+         return sign_algo[uLoop].sMechName;
+      }
+      uCount++;
+   }
+   return NULL;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetDerivationCount(void)
+*/
+CK_ULONG P11Util_GetDerivationCount(void)
+{
+   return SIZE_DERIVATION_ALGO_TABLE;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetDerivationNameAt(CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetDerivationNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_DERIVATION_ALGO_TABLE)
+   {
+      return NULL;
+   }
+   return derivation_algo[uIndex].sMechName;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetKdfTypeCount(void)
+*/
+CK_ULONG P11Util_GetKdfTypeCount(void)
+{
+   return SIZE_KDF_TYPE_TABLE;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetKdfTypeNameAt(CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetKdfTypeNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_KDF_TYPE_TABLE)
+   {
+      return NULL;
+   }
+   return kdf_type[uIndex].sKdfMechType;
+}
+
+/*
+    FUNCTION:        CK_BBOOL P11Util_FindKdfType(CK_CHAR_PTR sName, CK_KDF_PRF_TYPE* pType)
+*/
+CK_BBOOL P11Util_FindKdfType(CK_CHAR_PTR sName, CK_KDF_PRF_TYPE* pType)
+{
+   CK_KDF_PRF_TYPE t;
+
+   if ((sName == NULL) || (sName[0] == 0))
+   {
+      return CK_FALSE;
+   }
+   t = P11Util_GetKdfType(sName);
+   if (t == 0)
+   {
+      return CK_FALSE;
+   }
+   if (pType != NULL)
+   {
+      *pType = t;
+   }
+   return CK_TRUE;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetKdfSchemeCount(void)
+*/
+CK_ULONG P11Util_GetKdfSchemeCount(void)
+{
+   return SIZE_KDF_SCHEME_TABLE;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetKdfSchemeNameAt(CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetKdfSchemeNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_KDF_SCHEME_TABLE)
+   {
+      return NULL;
+   }
+   return kdf_scheme[uIndex].sKdfScheme;
+}
+
+/*
+    FUNCTION:        CK_BBOOL P11Util_FindKdfScheme(CK_CHAR_PTR sName, CK_KDF_PRF_ENCODING_SCHEME* pScheme)
+*/
+CK_BBOOL P11Util_FindKdfScheme(CK_CHAR_PTR sName, CK_KDF_PRF_ENCODING_SCHEME* pScheme)
+{
+   CK_ULONG uLoop;
+
+   if ((sName == NULL) || (sName[0] == 0))
+   {
+      return CK_FALSE;
+   }
+   for (uLoop = 0; uLoop < SIZE_KDF_SCHEME_TABLE; uLoop++)
+   {
+      if (strcmp(kdf_scheme[uLoop].sKdfScheme, sName) == 0)
+      {
+         if (pScheme != NULL)
+         {
+            *pScheme = kdf_scheme[uLoop].cKdfScheme;
+         }
+         return CK_TRUE;
+      }
+   }
+   return CK_FALSE;
 }

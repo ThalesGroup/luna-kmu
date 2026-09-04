@@ -18,6 +18,7 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#include <unistd.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -82,15 +83,14 @@ CK_ULONG File_Read(CK_CHAR_PTR pbFileName, CK_CHAR_PTR * ppMemBlock, CK_BBOOL is
       }
 
 #ifdef OS_UNIX
-      struct stat fileStat;
-      if (fstat(fileHandle, &fileStat))
       {
-         isOK = 0;
+         struct stat fileStat;
+         if (fstat(fileHandle, &fileStat) != 0)
+         {
+            break;
+         }
+         FileSize = (CK_ULONG)fileStat.st_size;
       }
-      *pulMemSize = fileStat.st_size;
-      }
-   if (isOK)
-   {
 #else
       FileSize = _filelength(fileHandle);
 #endif
@@ -118,7 +118,17 @@ CK_ULONG File_Read(CK_CHAR_PTR pbFileName, CK_CHAR_PTR * ppMemBlock, CK_BBOOL is
 
 
 #ifdef OS_UNIX
-      bytesRead = (int)read(fileHandle, *ppMemBlock, bytesSupplied);
+      {
+         ssize_t nRead = read(fileHandle, *ppMemBlock, FileSize);
+         if (nRead < 0)
+         {
+            FileSize = 0;
+            free(*ppMemBlock);
+            *ppMemBlock = NULL;
+            break;
+         }
+         bytesRead = (CK_ULONG)nRead;
+      }
 #else
       bytesRead = _read(fileHandle, *ppMemBlock, FileSize);
 #endif
@@ -134,6 +144,21 @@ CK_ULONG File_Read(CK_CHAR_PTR pbFileName, CK_CHAR_PTR * ppMemBlock, CK_BBOOL is
       // if non binary file, put \0 at the last byte
       if (!isBinary)
       {
+#ifdef OS_UNIX
+         /* Match Windows text-mode reads: drop CR so PEM banners match "\n". */
+         {
+            CK_ULONG uWrite = 0;
+            CK_ULONG uRead;
+            for (uRead = 0; uRead < bytesRead; uRead++)
+            {
+               if ((*ppMemBlock)[uRead] != '\r')
+               {
+                  (*ppMemBlock)[uWrite++] = (*ppMemBlock)[uRead];
+               }
+            }
+            bytesRead = uWrite;
+         }
+#endif
          (*ppMemBlock)[bytesRead] = 0;
          FileSize = bytesRead;
       }
@@ -199,7 +224,7 @@ CK_LONG File_Write(CK_CHAR_PTR pbFileName, CK_CHAR_PTR pMemBlock, CK_ULONG ulMem
 
 
 #ifdef OS_UNIX
-         result = (int)write(fileHandle, pMemBlock, ulMemSize);
+         writtenSize = (CK_LONG)write(fileHandle, pMemBlock, ulMemSize);
 #else
          writtenSize = _write(fileHandle, pMemBlock, ulMemSize);
 #endif
