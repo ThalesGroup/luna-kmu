@@ -13,11 +13,6 @@
 
 #define _PARSER_C
 
-#ifdef OS_WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,7 +153,7 @@ void parser_ArgHelp()
          printf("\t");
       }
 
-      if (strlen(kmu_current_cmd.sCommand[u32count].s_argName) < 14)
+      if (strlen(kmu_current_cmd.sCommand[u32count].s_argName) < 15)
       {
          printf("\t");
       }

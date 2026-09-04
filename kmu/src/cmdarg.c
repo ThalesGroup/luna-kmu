@@ -13,11 +13,6 @@
 
 #define _CMD_ARG_C
 
-#ifdef OS_WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -175,9 +170,9 @@ CK_BBOOL cmdarg_isCryptoUserLoginRequested()
 }
 
 /*
-    FUNCTION:        CK_BBOOL cmdarg_SearchTypeBoolean(BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL bdefaultValue)
+    FUNCTION:        CK_BBOOL cmdarg_SearchTypeBoolean(CK_BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL bdefaultValue)
 */
-CK_BBOOL cmdarg_SearchTypeBoolean(BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL bdefaultValue)
+CK_BBOOL cmdarg_SearchTypeBoolean(CK_BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL bdefaultValue)
 {
    PARSER_CURRENT_CMD_ARG* arg = parser_SearchArgument(bArgType);
    CK_BYTE u8Loop;
@@ -234,9 +229,9 @@ void P11STR_DisplaySupportedFileFormat()
 }
 
 /*
-    FUNCTION:        CK_BYTE cmdarg_SearchFileFormat(BYTE bArgType)
+    FUNCTION:        CK_BYTE cmdarg_SearchFileFormat(CK_BYTE bArgType)
 */
-CK_BYTE cmdarg_SearchFileFormat(BYTE bArgType)
+CK_BYTE cmdarg_SearchFileFormat(CK_BYTE bArgType)
 {
    PARSER_CURRENT_CMD_ARG* arg = parser_SearchArgument(bArgType);
    CK_BYTE u8Loop;
@@ -411,9 +406,9 @@ CK_OBJECT_CLASS cmdarg_GetClassFromkeyType(CK_ULONG uFlag)
 }
 
 /*
-    FUNCTION:        CK_LONG cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString)
+    FUNCTION:        CK_LONG cmdarg_SearchTypeHexString(CK_BYTE bArgType, CK_CHAR_PTR* sHexString)
 */
-CK_LONG cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString)
+CK_LONG cmdarg_SearchTypeHexString(CK_BYTE bArgType, CK_CHAR_PTR* sHexString)
 {
    CK_LONG uLength;
    CK_CHAR_PTR sBuffer;
@@ -581,6 +576,40 @@ CK_OBJECT_HANDLE cmdarg_GetHandleValue(CK_BYTE bArgType)
 
    // return the object handle
    return (CK_OBJECT_HANDLE)sValue;
+}
+
+/*
+    FUNCTION:        CK_OBJECT_HANDLE cmdarg_SearchKeyHandle(CK_BYTE bArgHandleType, CK_BYTE bArgLabelType, CK_BYTE bArgIdType)
+*/
+CK_OBJECT_HANDLE cmdarg_SearchKeyHandle(CK_BYTE bArgHandleType, CK_BYTE bArgLabelType, CK_BYTE bArgIdType)
+{
+   PARSER_CURRENT_CMD_ARG* sArgHandle;
+   PARSER_CURRENT_CMD_ARG* sArgLabel;
+   PARSER_CURRENT_CMD_ARG* sArgId;
+   sArgHandle = parser_SearchArgument(bArgHandleType);
+   sArgLabel = parser_SearchArgument(bArgLabelType);
+   sArgId = parser_SearchArgument(bArgIdType);
+   CK_CHAR_PTR sLabel = NULL;
+   CK_CHAR_PTR sId = NULL;
+   
+   // search by handle in handle is not empty, or if other field are empty
+   if (((sArgLabel == NULL) && (sArgId == NULL)) || (sArgHandle != NULL))
+   {
+      return cmdarg_GetHandleValue(bArgHandleType);
+   }
+
+   if (sArgLabel != NULL)
+   {
+      sLabel = sArgLabel->s_argPart2;
+   }
+
+   if (sArgId != NULL)
+   {
+      sId = sArgId->s_argPart2;
+   }
+
+   return P11_FindKeyObjectByLabelOrId(sLabel, sId);
+
 }
 
 /*
@@ -1138,15 +1167,15 @@ P11_ECC_OID* cmdarg_ArgGetEcCurveOIDParam(CK_KEY_TYPE sKeyType)
 }
 
 /*
-    FUNCTION:        P11_ENCRYPTION_MECH* cmdarg_GetWrapAlgoValue()
+    FUNCTION:        P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(CK_BYTE bArgType)
 */
-P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(BYTE bArgType)
+P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(CK_BYTE bArgType)
 {
    PARSER_CURRENT_CMD_ARG* arg;
    P11_ENCRYPTION_MECH* wrapalgo;
    CK_CHAR_PTR sString = NULL;
    CK_ULONG    bKeyFlag = KEY_TYPE_IMPORT_EXPORTKEY; //set the flag encrypt to accept only wrap algo
-   BYTE bArgTypeOri = bArgType;
+   CK_BYTE     bArgTypeOri = bArgType;
 
    // if the keytype is encryption, set the flag encrypt to accept only encryption algo
    if (bArgType == ARG_TYPE_ALGO)
@@ -1221,9 +1250,9 @@ P11_ENCRYPTION_MECH* cmdarg_SearchEncryptionAlgoValue(BYTE bArgType)
 }
 
 /*
-    FUNCTION:       P11_DERIVE_MECH* cmdarg_SearchDerivationAlgoValue(BYTE bArgType)
+    FUNCTION:       P11_DERIVE_MECH* cmdarg_SearchDerivationAlgoValue(CK_BYTE bArgType)
 */
-P11_DERIVE_MECH* cmdarg_SearchDerivationAlgoValue(BYTE bArgType)
+P11_DERIVE_MECH* cmdarg_SearchDerivationAlgoValue(CK_BYTE bArgType)
 {
    PARSER_CURRENT_CMD_ARG* arg;
    P11_DERIVE_MECH* sDeriveAlgo;
@@ -1277,9 +1306,9 @@ P11_DERIVE_MECH* cmdarg_SearchDerivationAlgoValue(BYTE bArgType)
 
 
 /*
-    FUNCTION:        CK_MECHANISM_TYPE cmdarg_SearchHash(BYTE bArgType)
+    FUNCTION:        CK_MECHANISM_TYPE cmdarg_SearchHash(CK_BYTE bArgType)
 */
-P11_HASH_MECH* cmdarg_SearchHash(BYTE bArgType)
+P11_HASH_MECH* cmdarg_SearchHash(CK_BYTE bArgType)
 {
    PARSER_CURRENT_CMD_ARG* arg = NULL;
    CK_CHAR_PTR          sString;
@@ -1317,9 +1346,9 @@ P11_HASH_MECH* cmdarg_SearchHash(BYTE bArgType)
 }
 
 /*
-P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
+P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(CK_BYTE bArgType)
 */
-P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
+P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(CK_BYTE bArgType)
 {
    P11_ENCRYPTION_MECH* DefaultEncryption_mech = NULL;
    CK_CHAR_PTR          sIV;
@@ -1343,6 +1372,7 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
       case CKM_AES_ECB:
       case CKM_AES_KWP:
       case CKM_AES_KW:
+      case CKM_RSA_PKCS:
          // return default enc param
          return DefaultEncryption_mech;
       case CKM_AES_CBC:
@@ -1470,6 +1500,52 @@ P11_ENCRYPTION_MECH* cmdarg_GetEncryptionMecansim(BYTE bArgType)
 }
 
 /*
+    FUNCTION:       CK_KDF_PRF_TYPE CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE cmdarg_GetpbKdf2Type()
+*/
+CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE cmdarg_GetpbKdf2Type()
+{
+   PARSER_CURRENT_CMD_ARG* arg;
+   CK_CHAR_PTR sString = NULL;
+
+   do
+   {
+      // get KDF type
+      arg = parser_SearchArgument(ARG_TYPE_PRF);
+
+      if (arg == NULL)
+      {
+         P11Util_DisplayPBKdf2_Type();
+
+         // request user to enter a string
+         printf("Enter Pseudo Random Function for PKKDF2 algorithm : ");
+
+         // request user
+         if (Console_RequestString() < 0)
+         {
+            break;
+         }
+
+         // get string
+         sString = Console_GetBuffer();
+
+      }
+      else
+      {
+         // use string in parameter
+         sString = arg->s_argPart2;
+      }
+
+      // Uppercase to lowercase
+      sString = str_tolower(sString);
+
+      return P11Util_GetPbkdf2_Type(sString);
+   } while (FALSE);
+
+
+   return CK_NULL_ELEMENT;
+}
+
+/*
 P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 */
 P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
@@ -1520,7 +1596,8 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
          }
 
          // Set default prf (only hmac-sha1 supported by hsm)
-         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = DefaultEncryption_mech->pbe_param.pbkdf2.pbfkd2_param.prf;
+         sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = cmdarg_GetpbKdf2Type();
+            
 
          // Set the salt
          sSalt = cmdarg_ArgGetSalt();
@@ -1582,9 +1659,9 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 }
 
 /*
-    FUNCTION:       P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
+    FUNCTION:       P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(CK_BYTE bArgType)
 */
-P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
+P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(CK_BYTE bArgType)
 {
    P11_DERIVE_MECH* DefaultDerive_mech = NULL;
    CK_LONG_64           i64_Counter;
@@ -1669,6 +1746,34 @@ P11_DERIVE_MECH* cmdarg_GetDerivationMecansim(BYTE bArgType)
       case CKM_SHA3_384_KEY_DERIVE:
       case CKM_SHA3_512_KEY_DERIVE:
          // do nothing, return DefaultDerive_mech
+         break;
+      case CKM_AES_ECB_ENCRYPT_DATA:
+      case CKM_DES_ECB_ENCRYPT_DATA:
+      case CKM_DES3_ECB_ENCRYPT_DATA:
+ 
+         // set the derive mech in sDerive_Mech
+         sDerive_Mech.ckMechType = DefaultDerive_mech->ckMechType;
+
+         // get the derivation data from argument kdf-data
+         sBufferLength = cmdarg_SearchTypeHexString(ARG_TYPE_KDF_DATA, &sDerive_Mech.sKeyDerivationStringData.pData);
+
+
+         if (sBufferLength <= 0)
+         {
+            printf("wrong value -kdf-data \n");
+            return NULL;
+         }
+
+         // set the length of the derivation data
+         sDerive_Mech.sKeyDerivationStringData.ulLen = sBufferLength;
+
+
+         return &sDerive_Mech;
+
+      case CKM_AES_CBC_ENCRYPT_DATA:
+         
+
+         //CK_AES_CBC_ENCRYPT_DATA_PARAMS
          break;
 
       default:
@@ -1820,9 +1925,9 @@ CK_LONG_64 cmdarg_GetKdfCounter()
 
 
 /*
-    FUNCTION:        BYTE cmdarg_GetKCVMethod()
+    FUNCTION:        CK_BYTE cmdarg_GetKCVMethod()
 */
-BYTE cmdarg_GetKCVMethod()
+CK_BYTE cmdarg_GetKCVMethod()
 {
    PARSER_CURRENT_CMD_ARG* arg = NULL;
    CK_CHAR_PTR          sString;

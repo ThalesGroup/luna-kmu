@@ -95,6 +95,7 @@ CK_CHAR           pTempBuffer[TEMP_BUFFER_SIZE];
 CK_SLOT_ID_PTR pSlotList = NULL;
 CK_ULONG uSlotCount = 0;
 CK_BBOOL bIsLoginPasswordRequired;
+CK_BBOOL bIsAlreadyConnected;
 
 CK_FUNCTION_LIST* P11Functions;
 CK_SFNT_CA_FUNCTION_LIST* SfntFunctions;
@@ -112,6 +113,7 @@ void P11_Init()
    pSlotList = NULL;
    uSlotCount;
    bIsLoginPasswordRequired = CK_TRUE;
+   bIsAlreadyConnected = CK_FALSE;
 }
 
 /*
@@ -534,8 +536,37 @@ CK_SLOT_ID P11_SelectStot(CK_SLOT_ID u32_SlotList)
             {
                bIsLoginPasswordRequired = CK_TRUE;
             }
+/*
+            if (SfntFunctions->CA_GetHSMPolicySetting(u32_SlotList,12, &u32_SlotID) == CK_FALSE)
+            { 
+               if (u32_SlotID == 0)
+               {
+                  printf("HSM FIPS MODE Enabled ... \n");
+               }
+               else
+               {
+                  printf("HSM FIPS MODE Disabled ... \n");
+               }
+            }
+
             
+            if(SfntFunctions->CA_GetContainerPolicySetting(u32_SlotList, u32_SlotList, 43, &u32_SlotID) == CK_FALSE)
+            {
+               if (u32_SlotID == 0)
+               {
+                  printf("Partition FIPS MODE Enabled ... \n");
+               }
+               else
+               {
+                  printf("Partition FIPS MODE Disabled ... \n");
+               }
+            }
+
+            printf("\n");
+*/
             printf("Authentication with slot [%X] : %s ... ", pList[0], sTokenInfo.label);
+
+            
             u32_SlotID = u32_SlotList;
             bFound = CK_TRUE;
             break;
@@ -608,6 +639,57 @@ CK_BBOOL P11_IsLoginPasswordRequired(void)
 }
 
 /*
+    FUNCTION:        CK_BBOOL P11_IsAlreadyConnected(void)
+*/
+CK_BBOOL P11_IsAlreadyConnected(void)
+{
+   return bIsAlreadyConnected;
+}
+
+
+
+/*
+    FUNCTION:        CK_RV P11_OpenSession(CK_SLOT_ID ckSlot)
+*/
+CK_RV P11_OpenSession(CK_SLOT_ID ckSlot)
+{
+   CK_RV rv = CKR_TOKEN_NOT_PRESENT;
+   CK_SESSION_INFO info = {0};
+
+   bIsAlreadyConnected = CK_FALSE;
+
+   if (hSession != CK_INVALID_HANDLE)
+   {
+      printf("Already loggin to a slot. Please logout first\n");
+      return CK_FALSE;
+   }
+
+   // Open P11 Session
+   rv = P11Functions->C_OpenSession(ckSlot, CKF_RW_SESSION | CKF_SERIAL_SESSION, NULL, NULL, &hSession);
+
+   if (rv == CKR_OK)
+   {
+      // get session info to determine if it is already open
+      rv = P11Functions->C_GetSessionInfo(hSession, &info);
+
+      // If user already already open, don't authenticate.
+      if (info.state == CKS_RW_USER_FUNCTIONS)
+      {
+         printf("Already connected by an external application such as salogin\n\n");
+         bIsAlreadyConnected = CK_TRUE;
+      }
+      else if (info.state == CKS_RW_USER_FUNCTIONS)
+      {
+         printf("Already connected by an external application such as salogin\n\n");
+         bIsAlreadyConnected = CK_TRUE;
+      }
+
+   }
+
+   return rv;
+}
+
+/*
     FUNCTION:        CK_RV P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser)
 */
 CK_RV P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser)
@@ -625,51 +707,39 @@ CK_RV P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser
       userType = CKU_USER;
    }
    
-
-   if (hSession != CK_INVALID_HANDLE)
+   // check if the password is NULL
+   if (sPassword == NULL)
    {
-      printf("Already loggin to a slot. Please logout first\n");
-      return CK_FALSE;
+      // login without password -> case where partition is protected by PED wihtout challenge
+      rv = P11Functions->C_Login(hSession, userType, NULL, 0);
    }
-
-   // Open P11 Session
-   rv = P11Functions->C_OpenSession(ckSlot, CKF_RW_SESSION | CKF_SERIAL_SESSION, NULL, NULL, &hSession);
-
-   if (rv == CKR_OK)
+   else
    {
+      // P11 Login
+      rv = P11Functions->C_Login(hSession, userType, sPassword, (CK_ULONG)strlen((char*)sPassword));
 
-      if (sPassword == NULL)
+   }
+   if (rv != CKR_OK)
+   {
+      P11_Logout();
+      printf("\nC_Login error code : %s \n", P11Util_DisplayErrorName(rv));
+   }
+   else
+   {
+      printf("Success");
+
+      if (bISCryptoUser == CK_TRUE)
       {
-         rv = P11Functions->C_Login(hSession, userType, NULL, 0);
-      }
-      else
-      {      
-         // P11 Login
-         rv = P11Functions->C_Login(hSession, userType, sPassword, (CK_ULONG)strlen((char*)sPassword));
-
-      }
-
-      if (rv != CKR_OK)
-      {
-         P11_Logout();
-         printf("\nC_Login error code : %s \n", P11Util_DisplayErrorName(rv));
+         printf(" -> Connected as Crypto User");
       }
       else
       {
-         printf("Success");
-
-         if (bISCryptoUser == CK_TRUE)
-         {
-            printf(" -> Connected as Crypto User");
-         }
-         else
-         {
-            printf(" -> Connected as Crypto Officer");
-         }
-
-         printf("\n\n");
+         printf(" -> Connected as Crypto Officer");
       }
+
+      printf("\n\n");
    }
+
    return rv;
 }
 
@@ -698,8 +768,12 @@ CK_RV P11_Logout()
 
    if (P11Functions != NULL)
    {
-      // Logout
-      rv = P11Functions->C_Logout(hSession);
+      // if already connected, no login performed, call logout breaks the session.
+      if (bIsAlreadyConnected == CK_FALSE)
+      {
+         // Logout
+         rv = P11Functions->C_Logout(hSession);
+      }
 
       // Close session
       rv = P11Functions->C_CloseSession(hSession);
@@ -808,6 +882,9 @@ CK_BBOOL P11_FindAllObjects(CK_LONG uLimit)
    {
       printf("\n no object found\n");
    }
+
+   //close session
+   P11Functions->C_FindObjectsFinal(hSession);
 
    return CK_TRUE;
 }
@@ -968,6 +1045,141 @@ CK_BBOOL P11_FindKeyObject(CK_OBJECT_HANDLE Handle)
    } while (FALSE);
 
    return CK_FALSE;
+}
+
+/*
+    FUNCTION:        CK_OBJECT_HANDLE P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sId)
+*/
+CK_OBJECT_HANDLE P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sId)
+{
+   CK_OBJECT_CLASS      sClass = 0;
+   CK_BYTE              bOffset = 0;
+   CK_ULONG             usCount = 1;
+   CK_ULONG             uIDLength = 0;
+   CK_OBJECT_HANDLE     hAry[1] = { 0 };
+   CK_OBJECT_HANDLE     hKey = CK_KEY_NOT_FOUND;;
+   CK_BBOOL             bMatchLabel = CK_FALSE;
+   CK_BBOOL             bMatchID = CK_FALSE;
+   CK_RV                retCode = CKR_SESSION_CLOSED;
+   CK_RV                retCodeAttr = CKR_SESSION_CLOSED;
+   CK_ATTRIBUTE sAttributeGeneric[2] = {
+      { CKA_LABEL,             pTempBuffer,             0},
+      { CKA_ID,                pTempBuffer,             0},
+   };
+
+   if ((sLabel == NULL) && (sId == NULL))
+   {
+      return CK_KEY_NOT_FOUND;
+   }
+
+   // Ignore label if NULL for search
+   if (sLabel == NULL)
+   {
+      bMatchLabel = CK_TRUE;
+   }
+   
+   // Ignore ID if NULL for search
+   if (sId == NULL)
+   {
+      bMatchID = CK_TRUE;
+   }
+   else
+   {
+      // convert string to byte array
+      uIDLength = str_StringtoByteArray(sId, (CK_ULONG)strlen(sId));
+
+      // if length is zero, retrun error
+      if (uIDLength == 0)
+      {
+         printf("wrong CKA_ID value, not hexadecimal \n");
+         return CK_KEY_NOT_FOUND;
+      }
+
+   }
+
+   // call this function. Required if slot is HA, otherwise getattribute return error. 
+   retCode = P11Functions->C_FindObjectsInit(hSession, NULL, 0);
+
+   // check if error. 
+   if (retCode != CKR_OK)
+   {
+      printf("C_FindObjectsInit error code : %s \n", P11Util_DisplayErrorName(retCode));
+      return CK_NULL_ELEMENT;
+   }
+
+   // Loop while searching objects
+   while ((retCode == CKR_OK) && (usCount == 1))
+   {
+      // get the list of objects
+      retCode = P11Functions->C_FindObjects(hSession, hAry, 1, &usCount);
+
+      // if error returned or not object returned, stop the loop
+      if ((retCode != CKR_OK) || (usCount == 0))
+      {
+         break;
+      }
+
+      // Check Label
+      if (sLabel != NULL)
+      {
+         sAttributeGeneric[0].usValueLen = TEMP_BUFFER_SIZE;
+
+         // Get object attribute (CKA_LABEL)
+         retCodeAttr = P11Functions->C_GetAttributeValue(hSession, hAry[0], &sAttributeGeneric[0], 1);
+
+         if (retCodeAttr == CKR_OK)
+         {
+            // compare size et array value
+            if (sAttributeGeneric[0].usValueLen == strlen(sLabel))
+            {
+               // compare label
+               if (memcmp(sAttributeGeneric[0].pValue, sLabel, sAttributeGeneric[0].usValueLen) == 0)
+               {
+                  bMatchLabel = CK_TRUE;
+               }
+            }
+         }
+      }
+
+      // Check ID
+      if (sId != NULL)
+      {
+         sAttributeGeneric[1].usValueLen = TEMP_BUFFER_SIZE;
+
+         // Get object attribute (CKA_ID)
+         retCodeAttr = P11Functions->C_GetAttributeValue(hSession, hAry[0], &sAttributeGeneric[1], 1);
+
+         if (retCodeAttr == CKR_OK)
+         {
+            // compare size et array value
+            if (sAttributeGeneric[1].usValueLen == uIDLength)
+            {
+               // compare ID
+               if (memcmp(sAttributeGeneric[1].pValue, sId, sAttributeGeneric[1].usValueLen) == 0)
+               {
+                  bMatchID = CK_TRUE;
+               }
+            }
+         }
+      }
+
+      // if both match, return handle
+      if ((bMatchLabel == CK_TRUE) && (bMatchID == CK_TRUE))
+      {
+         // Set the key handle
+         hKey = hAry[0];
+
+         // stop loop
+         break;
+      }
+
+   }
+
+   //close session
+   P11Functions->C_FindObjectsFinal(hSession);
+
+   // return hKey (NULL or valid handle)
+   return hKey;
 }
 
 /*
@@ -3549,6 +3761,7 @@ CK_BBOOL P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANI
    case CKM_AES_KW:
    case CKM_DES_ECB:
    case CKM_DES3_ECB:
+   case CKM_RSA_PKCS:
       sEncMech->pParameter = NULL;
       sEncMech->usParameterLen = 0;
       break;
@@ -3776,6 +3989,14 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR
       sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
       sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
       sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
+      break;
+
+   case CKM_AES_ECB_ENCRYPT_DATA:
+   case CKM_DES_ECB_ENCRYPT_DATA:
+   case CKM_DES3_ECB_ENCRYPT_DATA:
+      sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sKeyDerivationStringData;
+      sDeriveMech.usParameterLen = sizeof(CK_KEY_DERIVATION_STRING_DATA);
       break;
 
    default:
@@ -4052,7 +4273,7 @@ CK_BBOOL P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey)
 /*
     FUNCTION:        CK_BBOOL P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR pKcvBuffer)
 */
- CK_BBOOL P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer)
+ CK_BBOOL P11_ComputeKCV(CK_BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer)
 {
     CK_RV                     retCode = CKR_DEVICE_ERROR;
     CK_MECHANISM              sMech = { 0 };

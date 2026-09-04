@@ -14,7 +14,6 @@
 #define _CMD_C
 
 #ifdef OS_WIN32
-#include <io.h>
 #include <windows.h>
 #else
 #include <dlfcn.h>
@@ -166,56 +165,64 @@ CK_BBOOL cmd_kmu_login(CK_BBOOL bIsConsole)
          break;
       }
 
-
-      // Get the password from argument
-      sPassword = cmdarg_GetPassword();
-
-
-      // request if need to use ped
-      if ((sPassword == NULL) && (P11_IsLoginPasswordRequired() == CK_FALSE))
+      // open slot session
+      if (P11_OpenSession(u32_SlotID) == CK_TRUE)
       {
-         printf("\n\nThe TokenInfo flag CKF_PROTECTED_AUTHENTICATION_PATH is set.\n");
-         printf("If the partition challenge is not initialized, you should use PED without password.\n");
-         printf("Do you want to use PED without providing password ? (y/n): ");
-         if (Console_RequestString() < 0)
-         {
-            break;
-         }
-         sString = Console_GetBuffer();
-         uStringLength = (CK_ULONG)strlen(sString);
-
-         // if answer is yes, use the PED
-         if ((uStringLength == 1) && (sString[0] == 'y'))
-         {
-            bUsePassword = CK_FALSE;
-            sPassword = NULL;
-         }
-      }
-
-      // check if use password or not
-      if (bUsePassword == CK_TRUE)
-      {
-         // request password if not provided
-         if (sPassword == NULL)
-         {
-            // request for password
-            printf("\nEnter the password : ");
-            if (Console_RequestPassword() > 0)
-            {
-               // get password buffer
-               sPassword = Console_GetBuffer();
-            }
-            printf("\n");
-         }
-      }
-
-      // authenticate to selected slot ID
-      if (P11_Login(u32_SlotID, sPassword, cmdarg_isCryptoUserLoginRequested()) != CKR_OK)
-      {
-         printf("login error\n");
+         printf("OpenSession error\n");
          break;
       }
 
+      // Check if the session is already open, and skip password in such case
+      if (P11_IsAlreadyConnected() == CK_FALSE)
+      {
+         // Get the password from argument
+         sPassword = cmdarg_GetPassword();
+
+         // request if need to use ped
+         if ((sPassword == NULL) && (P11_IsLoginPasswordRequired() == CK_FALSE))
+         {
+            printf("\n\nThe TokenInfo flag CKF_PROTECTED_AUTHENTICATION_PATH is set.\n");
+            printf("If the partition challenge is not initialized, you should use PED without password.\n");
+            printf("Do you want to use PED without providing password ? (y/n): ");
+            if (Console_RequestString() < 0)
+            {
+               break;
+            }
+            sString = Console_GetBuffer();
+            uStringLength = (CK_ULONG)strlen(sString);
+
+            // if answer is yes, use the PED
+            if ((uStringLength == 1) && (sString[0] == 'y'))
+            {
+               bUsePassword = CK_FALSE;
+               sPassword = NULL;
+            }
+         }
+
+         // check if use password or not
+         if (bUsePassword == CK_TRUE)
+         {
+            // request password if not provided
+            if (sPassword == NULL)
+            {
+               // request for password
+               printf("\nEnter the password : ");
+               if (Console_RequestPassword() > 0)
+               {
+                  // get password buffer
+                  sPassword = Console_GetBuffer();
+               }
+               printf("\n");
+            }
+         }
+
+         // authenticate to selected slot ID
+         if (P11_Login(u32_SlotID, sPassword, cmdarg_isCryptoUserLoginRequested()) != CKR_OK)
+         {
+            printf("login error\n");
+            break;
+         }
+      }
       return CK_TRUE;
    } while (FALSE);
    return CK_FALSE;
@@ -1128,10 +1135,17 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
          // continue
       case CKO_SECRET_KEY:
          // get handle for wrap key
-         sUnwrapTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_UNWRAPKEY);
+         sUnwrapTemplate.hWrappingKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_UNWRAPKEY, ARG_TYPE_LABEL_UNWRAPKEY, ARG_TYPE_ID_UNWRAPKEY);
+         
          if (sUnwrapTemplate.hWrappingKey == CK_NULL_ELEMENT)
          {
             printf("wrong argument : -key \n");
+            break;
+         }
+
+         if (sUnwrapTemplate.hWrappingKey == CK_KEY_NOT_FOUND)
+         {
+            printf("Cannot find key : incorrect value in -key-wrap-label or -key-wrap-id\n");
             break;
          }
 
@@ -1145,7 +1159,7 @@ CK_BBOOL cmd_kmu_import(CK_BBOOL bIsConsole)
          // Check if wrapping key has attribute CKA_UNWRAP
          if (P11_GetBooleanAttribute(sUnwrapTemplate.hWrappingKey, CKA_UNWRAP) == CK_FALSE)
          {
-            printf("key with handle %i doesn't has CKA_UNWRAP attribute.\n", sUnwrapTemplate.hWrappingKey);
+            printf("key with handle %i doesn't have CKA_UNWRAP attribute.\n", sUnwrapTemplate.hWrappingKey);
             break;
          }
 
@@ -1198,10 +1212,16 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
       }
 
       // get handle for key to wrap
-      sExportTemplate.hKeyToExport = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_EXPORT);
+      sExportTemplate.hKeyToExport = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_EXPORT, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
       if (sExportTemplate.hKeyToExport == CK_NULL_ELEMENT)
       {
          printf("wrong argument : -handle \n");
+         break;
+      }
+
+      if (sExportTemplate.hKeyToExport == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -key-export-label or -key-export-id\n");
          break;
       }
 
@@ -1268,10 +1288,16 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
             }
 
             // get handle for wrap key
-            sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
+            sExportTemplate.hWrappingKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_WRAPKEY, ARG_TYPE_LABEL_WRAPKEY, ARG_TYPE_ID_WRAPKEY);
+            
             if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
             {
                printf("wrong argument : -key \n");
+               break;
+            }
+            if (sExportTemplate.hWrappingKey == CK_KEY_NOT_FOUND)
+            {
+               printf("Cannot find key : incorrect value in -key-wrap-label or -key-wrap-id\n");
                break;
             }
 
@@ -1285,7 +1311,7 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
             // Check if wrapping key has wrap attribute
             if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
             {
-               printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
+               printf("key with handle %i doesn't have CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
                break;
             }
          }
@@ -1309,10 +1335,16 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          }
 
          // get handle for wrap key
-         sExportTemplate.hWrappingKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_WRAPKEY);
+         sExportTemplate.hWrappingKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_WRAPKEY, ARG_TYPE_LABEL_WRAPKEY, ARG_TYPE_ID_WRAPKEY);
          if (sExportTemplate.hWrappingKey == CK_NULL_ELEMENT)
          {
             printf("wrong argument : -key \n");
+            break;
+         }
+
+         if (sExportTemplate.hWrappingKey == CK_KEY_NOT_FOUND)
+         {
+            printf("Cannot find key : incorrect value in -key-wrap-label or -key-wrap-id\n");
             break;
          }
 
@@ -1326,7 +1358,7 @@ CK_BBOOL cmd_kmu_export(CK_BBOOL bIsConsole)
          // Check if wrapping key has wrap attribute
          if (P11_GetBooleanAttribute(sExportTemplate.hWrappingKey, CKA_WRAP) == CK_FALSE)
          {
-            printf("key with handle %i doesn't has CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
+            printf("key with handle %i doesn't have CKA_WRAP attribute.\n", sExportTemplate.hKeyToExport);
             break;
          }
 
@@ -1368,10 +1400,17 @@ CK_BBOOL    cmd_kmu_encrypt(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      sEncryptTemplate.hEncyptiontKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_ENCRYPT);
+      sEncryptTemplate.hEncyptiontKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_ENCRYPT, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+
       if (sEncryptTemplate.hEncyptiontKey == CK_NULL_ELEMENT)
       {
-         printf("wrong or missing argument : -key \n");
+         printf("wrong or missing argument : -handle \n");
+         break;
+      }
+
+      if (sEncryptTemplate.hEncyptiontKey == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
          break;
       }
 
@@ -1388,7 +1427,7 @@ CK_BBOOL    cmd_kmu_encrypt(CK_BBOOL bIsConsole)
       // Check if wrapping key has attribute CKA_UNWRAP
       if (P11_GetBooleanAttribute(sEncryptTemplate.hEncyptiontKey, CKA_ENCRYPT) == CK_FALSE)
       {
-         printf("key with handle %i doesn't has CKA_ENCRYPT attribute.\n", sEncryptTemplate.hEncyptiontKey);
+         printf("key with handle %i doesn't have CKA_ENCRYPT attribute.\n", sEncryptTemplate.hEncyptiontKey);
          break;
       }
 
@@ -1482,10 +1521,17 @@ CK_BBOOL    cmd_kmu_decrypt(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      sDecryptTemplate.hEncyptiontKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_DECRYPT);
+      sDecryptTemplate.hEncyptiontKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DECRYPT, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+
       if (sDecryptTemplate.hEncyptiontKey == CK_NULL_ELEMENT)
       {
-         printf("wrong argument : -key \n");
+         printf("wrong or missing argument : -handle \n");
+         break;
+      }
+
+      if (sDecryptTemplate.hEncyptiontKey == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
          break;
       }
 
@@ -1502,7 +1548,7 @@ CK_BBOOL    cmd_kmu_decrypt(CK_BBOOL bIsConsole)
       // Check if wrapping key has attribute CKA_UNWRAP
       if (P11_GetBooleanAttribute(sDecryptTemplate.hEncyptiontKey, CKA_DECRYPT) == CK_FALSE)
       {
-         printf("key with handle %i doesn't has CKA_DECRYPT attribute.\n", sDecryptTemplate.hEncyptiontKey);
+         printf("key with handle %i doesn't have CKA_DECRYPT attribute.\n", sDecryptTemplate.hEncyptiontKey);
          break;
       }
 
@@ -1608,12 +1654,22 @@ CK_BBOOL cmd_kmu_derive(CK_BBOOL bIsConsole)
          break;
       }
 
-      // get handle for master derivation key key
-      sDeriveTemplate.hMasterKey = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_DERIVE);
+
+      // get handle for encrpyion key
+      sDeriveTemplate.hMasterKey = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DERIVE, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+
       if (sDeriveTemplate.hMasterKey == CK_NULL_ELEMENT)
       {
+         printf("wrong or missing argument : -handle \n");
          break;
       }
+
+      if (sDeriveTemplate.hMasterKey == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
+         break;
+      }
+
 
       // get key class 
       sDeriveTemplate.sDerivedClass = cmdarg_GetClassFromkeyType(KEY_TYPE_DERIVEKEY);
@@ -1790,10 +1846,17 @@ CK_BBOOL cmd_kmu_delete(CK_BBOOL bIsConsole)
       }
 
       // get handle for encrpyion key
-      hHandle = cmdarg_GetHandleValue(ARG_TYPE_HANDLE_DELETE);
+      hHandle = cmdarg_SearchKeyHandle(ARG_TYPE_HANDLE_DELETE, ARG_TYPE_LABEL_OBJ, ARG_TYPE_ID_OBJ);
+      
       if (hHandle == CK_NULL_ELEMENT)
       {
          printf("wrong or missing argument : -handle \n");
+         break;
+      }
+
+      if (hHandle == CK_KEY_NOT_FOUND)
+      {
+         printf("Cannot find key : incorrect value in -label or -id\n");
          break;
       }
 
@@ -1871,7 +1934,7 @@ CK_BBOOL cmd_kmu_digestKey(CK_BBOOL bIsConsole)
 CK_BBOOL cmd_kmu_compute_KCV(CK_BBOOL bIsConsole)
 {
    CK_OBJECT_HANDLE  hHandle = 0;
-   BYTE bKCV_Method;
+   CK_BYTE bKCV_Method;
    CK_CHAR_PTR pKcvBuffer = NULL;
 
    do
@@ -2684,7 +2747,7 @@ CK_BBOOL cmd_ExportPublickey(P11_WRAPTEMPLATE* sExportTemplate, CK_CHAR_PTR sFil
 /*
     FUNCTION:        CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_BBOOL bIsPresent;
    CK_BBOOL bValue;
@@ -2706,9 +2769,9 @@ CK_BYTE cmd_setattributeBoolean(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTR
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
 
@@ -2724,9 +2787,9 @@ CK_BYTE cmd_setattributeString(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRI
 }
 
 /*
-    FUNCTION:        CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+    FUNCTION:        CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 */
-CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
+CK_BYTE cmd_setattributeArray(CK_OBJECT_HANDLE hHandle, CK_BYTE bArgType, CK_ATTRIBUTE_TYPE cAttribute)
 {
    CK_CHAR_PTR       sString;
    CK_ULONG          sStringLength;

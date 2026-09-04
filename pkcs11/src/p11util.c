@@ -13,11 +13,6 @@
 
 #define _P11_UTIL_C_
 
-#ifdef OS_WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -508,6 +503,7 @@ const CK_CHAR ARG_ALG_AES_OFB[] = "aes_ofb";
 const CK_CHAR ARG_ALG_AES_GCM[] = "aes_gcm";
 const CK_CHAR ARG_ALG_AES_KW[] = "aes_kw";
 const CK_CHAR ARG_ALG_AES_KWP[] = "aes_kwp";
+const CK_CHAR ARG_ALG_RSA_PKCS[] = "rsa_pkcs";
 const CK_CHAR ARG_ALG_RSA_OAEP[]        = "rsa_oaep";
 const CK_CHAR ARG_ALG_RSA_SHA256_OAEP[] = "rsa_oaep_sha256";
 const CK_CHAR ARG_ALG_RSA_SHA384_OAEP[] = "rsa_oaep_sha384";
@@ -515,9 +511,9 @@ const CK_CHAR ARG_ALG_RSA_SHA512_OAEP[] = "rsa_oaep_sha512";
 const CK_CHAR ARG_ALG_RSA_AES128_KEY_WRAP[] = "rsa_aes128";
 const CK_CHAR ARG_ALG_RSA_AES192_KEY_WRAP[] = "rsa_aes192";
 const CK_CHAR ARG_ALG_RSA_AES256_KEY_WRAP[] = "rsa_aes256";
-const CK_CHAR ARG_ALG_RSA_PBFKD2_AES_128_CBC[] = "pbfkd2_aes128_cbc";
-const CK_CHAR ARG_ALG_RSA_PBFKD2_AES_192_CBC[] = "pbfkd2_aes192_cbc";
-const CK_CHAR ARG_ALG_RSA_PBFKD2_AES_256_CBC[] = "pbfkd2_aes256_cbc";
+const CK_CHAR ARG_ALG_RSA_PBKDF2_AES_128_CBC[] = "pbkdf2_aes128_cbc";
+const CK_CHAR ARG_ALG_RSA_PBKDF2_AES_192_CBC[] = "pbkdf2_aes192_cbc";
+const CK_CHAR ARG_ALG_RSA_PBKDF2_AES_256_CBC[] = "pbkdf2_aes256_cbc";
 
 const CK_CHAR default_DES_IV[DES_IV_LENGTH] = { '1', '2', '3', '4', '5', '6', '7', '8'};
 const CK_CHAR default_AES_IV[AES_IV_LENGTH] = { '1', '2', '3', '4', '5', '6', '7', '8', '1', '2', '3', '4', '5', '6', '7', '8' };
@@ -536,13 +532,14 @@ const P11_ENCRYPTION_MECH encryption_algo[] = {
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KW,                   CKM_AES_KW,             .aes_param.pIv = NULL},
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_KWP,                  CKM_AES_KWP,            .aes_param.pIv = NULL},
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_AES_GCM,                  CKM_AES_GCM,            .aes_gcm_param.pIv = (CK_CHAR_PTR)default_AES_GCM_IV, .aes_gcm_param.ulIvLen = AES_IV_LENGTH, .aes_gcm_param.ulIvBits = AES_IV_LENGTH << 3, .aes_gcm_param.pAAD = NULL,.aes_gcm_param.ulAADLen = 0, .aes_gcm_param.ulTagBits = AES_GCM_AUTH_TAG_LENGTH_96 },
+   {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_PKCS,                 CKM_RSA_PKCS,            },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA256_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA256, .rsa_oeap_param.mgf = CKG_MGF1_SHA256, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA384_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA384, .rsa_oeap_param.mgf = CKG_MGF1_SHA384, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_SHA512_OAEP,          CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = CKM_SHA512, .rsa_oeap_param.mgf = CKG_MGF1_SHA512, .rsa_oeap_param.source = CKZ_DATA_SPECIFIED, .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
    {KEY_TYPE_ENCRYPT | KEY_TYPE_IMPORT_EXPORTKEY,  (CK_CHAR_PTR)&ARG_ALG_RSA_OAEP,                 CKM_RSA_PKCS_OAEP,      .rsa_oeap_param.hashAlg = 0,          .rsa_oeap_param.mgf = 0,               .rsa_oeap_param.source = 0,                  .rsa_oeap_param.pSourceData = NULL,.rsa_oeap_param.ulSourceDataLen = 0 },
-   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_128_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
-   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_192_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
-   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBFKD2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_256_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH }
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBKDF2_AES_128_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_128_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBKDF2_AES_192_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_192_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH },
+   {KEY_TYPE_PBE,                                  (CK_CHAR_PTR)&ARG_ALG_RSA_PBKDF2_AES_256_CBC,   CKM_PKCS5_PBKD2,        .pbe_param.ckEncMechType = CKM_AES_CBC_PAD, .pbe_param.sEnckeySize = AES_256_KEY_LENGTH , .pbe_param.sEnckeyType = CKK_AES, .pbe_param.sEncClass = CKO_SECRET_KEY ,.pbe_param.pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1, .pbe_param.ulIvLen = AES_IV_LENGTH }
 };
 
 
@@ -562,20 +559,23 @@ const CK_CHAR ARG_DERIVE_SHA3_384[] = "sha3-384";
 const CK_CHAR ARG_DERIVE_SHA3_512[] = "sha3-512";
 const CK_CHAR ARG_DERIVE_KDF[] = "luna-kdf";
 const CK_CHAR ARG_DERIVE_NIST_KDF[] = "luna-nist-kdf";
+const CK_CHAR ARG_DERIVE_AES_ENCRYPT_ECB[] = "aes-encrypt-ecb";
+
 
 #define SIZE_DERIVATION_ALGO_TABLE     DIM(derivation_algo)
 const P11_DERIVE_MECH derivation_algo[] = {
    {(CK_CHAR_PTR)&ARG_DERIVE_SHA1,              CKM_SHA1_KEY_DERIVATION    },
    {(CK_CHAR_PTR)&ARG_DERIVE_SHA224,            CKM_SHA224_KEY_DERIVATION  },
    {(CK_CHAR_PTR)&ARG_DERIVE_SHA256,            CKM_SHA256_KEY_DERIVATION  },
-   {(CK_CHAR_PTR)&ARG_DERIVE_SHA384,            CKM_SHA384_KEY_DERIVATION, },
-   {(CK_CHAR_PTR)&ARG_DERIVE_SHA512,            CKM_SHA512_KEY_DERIVATION, },
-   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_224,          CKM_SHA3_224_KEY_DERIVE,   },
-   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_256,          CKM_SHA3_256_KEY_DERIVE,   },
-   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_384,          CKM_SHA3_384_KEY_DERIVE,   },
-   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_512,          CKM_SHA3_512_KEY_DERIVE,   },
-   {(CK_CHAR_PTR)&ARG_DERIVE_KDF,               CKM_PRF_KDF,               },
-   {(CK_CHAR_PTR)&ARG_DERIVE_NIST_KDF,          CKM_NIST_PRF_KDF,          },
+   {(CK_CHAR_PTR)&ARG_DERIVE_SHA384,            CKM_SHA384_KEY_DERIVATION  },
+   {(CK_CHAR_PTR)&ARG_DERIVE_SHA512,            CKM_SHA512_KEY_DERIVATION  },
+   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_224,          CKM_SHA3_224_KEY_DERIVE    },
+   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_256,          CKM_SHA3_256_KEY_DERIVE    },
+   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_384,          CKM_SHA3_384_KEY_DERIVE    },
+   {(CK_CHAR_PTR)&ARG_DERIVE_SHA3_512,          CKM_SHA3_512_KEY_DERIVE    },
+   {(CK_CHAR_PTR)&ARG_DERIVE_KDF,               CKM_PRF_KDF                },
+   {(CK_CHAR_PTR)&ARG_DERIVE_NIST_KDF,          CKM_NIST_PRF_KDF           },
+   {(CK_CHAR_PTR)&ARG_DERIVE_AES_ENCRYPT_ECB,   CKM_AES_ECB_ENCRYPT_DATA   },
 };
 
 //aes-cmac, tdes-cmac, hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
@@ -597,6 +597,23 @@ const P11_KDF_TYPE kdf_type[] = {
    {(CK_CHAR_PTR)&ARG_DERIVE_KDF_TYPE_HMAC_SHA384,             CK_NIST_PRF_KDF_HMAC_SHA384},
    {(CK_CHAR_PTR)&ARG_DERIVE_KDF_TYPE_HMAC_SHA512,             CK_NIST_PRF_KDF_HMAC_SHA512},
 
+};
+
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA1[] = "hmac-sha1";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA224[] = "hmac-sha224";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA256[] = "hmac-sha256";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA384[] = "hmac-sha384";
+const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA512[] = "hmac-sha512";
+
+#define SIZE_PBKDF2_KDF_TYPE_TABLE     DIM(pbkdf2_kdf_type)
+const P11_PBKDF2_TYPE pbkdf2_kdf_type[] = {
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA1,             CKP_PKCS5_PBKD2_HMAC_SHA1},
+   /*
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA224,           CKP_PKCS5_PBKD2_HMAC_SHA224},
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA256,           CKP_PKCS5_PBKD2_HMAC_SHA256},
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA384,           CKP_PKCS5_PBKD2_HMAC_SHA384},
+   {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA512,           CKP_PKCS5_PBKD2_HMAC_SHA512},
+   */
 };
 
 const CK_CHAR ARG_DERIVE_KDF_SCHEME_1[] = "scheme1";
@@ -1555,7 +1572,7 @@ void P11Util_DisplayKdfType()
 }
 
 /*
-    FUNCTION:        P11_DERIVE_MECH* P11Util_GetKdfType(CK_CHAR_PTR sParamName)
+    FUNCTION:        CK_KDF_PRF_TYPE P11Util_GetKdfType(CK_CHAR_PTR sParamName)
 */
 CK_KDF_PRF_TYPE P11Util_GetKdfType(CK_CHAR_PTR sParamName)
 {
@@ -1568,6 +1585,40 @@ CK_KDF_PRF_TYPE P11Util_GetKdfType(CK_CHAR_PTR sParamName)
       if (strcmp(kdf_type[u8Loop].sKdfMechType, sParamName) == 0)
       {
          return kdf_type[u8Loop].cKdfMechType;
+      }
+   };
+   return 0;
+}
+
+/*
+    FUNCTION:        void P11Util_DisplayPBKdf2_Type()
+*/
+void P11Util_DisplayPBKdf2_Type()
+{
+   CK_BYTE u8Loop;
+
+   printf("Supported Key Derivation Function type value : \n");
+   // loop on all structure
+   for (u8Loop = 0; u8Loop < SIZE_PBKDF2_KDF_TYPE_TABLE; u8Loop++)
+   {
+      printf("-> %s\n", pbkdf2_kdf_type[u8Loop].sKdfMechType);
+   }
+}
+
+/*
+    FUNCTION:        CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sParamName)
+*/
+CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sParamName)
+{
+   CK_BYTE u8Loop;
+
+   // loop on all curve structure
+   for (u8Loop = 0; u8Loop < SIZE_PBKDF2_KDF_TYPE_TABLE; u8Loop++)
+   {
+      // if curve name match, return OID
+      if (strcmp(pbkdf2_kdf_type[u8Loop].sKdfMechType, sParamName) == 0)
+      {
+         return pbkdf2_kdf_type[u8Loop].cKdfMechType;
       }
    };
    return 0;
@@ -1713,9 +1764,9 @@ void P11Util_DisplaySupportedKCVMethod()
 }
 
 /*
-    FUNCTION:        BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sHash)
+    FUNCTION:        CK_BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sHash)
 */
-BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sKCV)
+CK_BYTE P11Util_GetKCVMethod(CK_CHAR_PTR sKCV)
 {
    CK_BYTE u8Loop;
 

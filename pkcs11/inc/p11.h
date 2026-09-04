@@ -102,6 +102,8 @@ extern "C" {
 #define DEFAULT_LMS_LEVEL                    1
 #define MAX_HSS_LEVEL                        8
 
+#define CK_KEY_NOT_FOUND                     (-2)
+
 
    typedef struct ck_des_param
    {
@@ -137,7 +139,7 @@ extern "C" {
       CK_LONG                 sEnckeySize;
       CK_CHAR_PTR             pWrappedKey;
       CK_ULONG                ulWrappedKeyLen;
-      union pbe_alg_param
+      union
       {
          P11_PKCS5_PBKD2_ENC_PARAMS2  pbkdf2;
       };
@@ -150,7 +152,7 @@ extern "C" {
       CK_ULONG          uFlag;
       CK_CHAR_PTR       sMechName;
       CK_MECHANISM_TYPE ckMechType;
-      union specific_alg_param
+      union
       {
          P11_DES_PARAM              des_param;
          P11_AES_PARAM              aes_param;
@@ -180,11 +182,13 @@ extern "C" {
       CK_MECHANISM_TYPE ckMechType;
       union
       {
-         CK_ECDH1_DERIVE_PARAMS       sEcdh1DeriveParams;
-         CK_ECDH2_DERIVE_PARAMS       sEcdh2DeriveParams;
-         CK_X9_42_DH1_DERIVE_PARAMS   sx942DhDeriveParams;
-         CK_PRF_KDF_PARAMS            sPrfKdfParams;
-
+         CK_ECDH1_DERIVE_PARAMS           sEcdh1DeriveParams;
+         CK_ECDH2_DERIVE_PARAMS           sEcdh2DeriveParams;
+         CK_X9_42_DH1_DERIVE_PARAMS       sx942DhDeriveParams;
+         CK_PRF_KDF_PARAMS                sPrfKdfParams;
+         CK_KEY_DERIVATION_STRING_DATA    sKeyDerivationStringData;
+         CK_AES_CBC_ENCRYPT_DATA_PARAMS   sAESKeyDerivationData;
+         CK_DES_CBC_ENCRYPT_DATA_PARAMS   sDESKeyDerivationData;
       };
    }P11_DERIVE_MECH;
 
@@ -193,6 +197,12 @@ extern "C" {
       CK_CHAR_PTR       sKdfMechType;
       CK_KDF_PRF_TYPE   cKdfMechType;
    }P11_KDF_TYPE;
+
+   typedef struct p11_pbkdf2_type
+   {
+      CK_CHAR_PTR                                  sKdfMechType;
+      CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE   cKdfMechType;
+   }P11_PBKDF2_TYPE;
 
    typedef struct p11_kcv_type
    {
@@ -523,12 +533,14 @@ extern "C" {
 
 
    _EXT  CK_RV                P11_Login(CK_SLOT_ID ckSlot, CK_CHAR_PTR sPassword, CK_BBOOL bISCryptoUser);
+   _EXT  CK_RV                P11_OpenSession(CK_SLOT_ID ckSlot);
    _EXT  CK_RV                P11_Logout();
    _EXT  CK_BBOOL             P11_IsLoggedIn();
    _EXT  CK_LONG              P11_ListStot();
    _EXT  CK_BBOOL             p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO* slotInfo);
    _EXT  CK_BBOOL             p11_GetMecanismInfo(CK_SLOT_ID u32_SlotID, CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO* info);
    _EXT  CK_BBOOL             P11_IsLoginPasswordRequired(void);
+   _EXT  CK_BBOOL             P11_IsAlreadyConnected(void);
    _EXT  CK_BBOOL             P11_FindAllObjects(CK_LONG uLimit);
    _EXT  CK_BBOOL             P11_DeleteObject(CK_OBJECT_HANDLE Handle);
    _EXT  CK_BBOOL             P11_GetAttributes(CK_OBJECT_HANDLE Handle);
@@ -559,7 +571,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_DecryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pDecryptedData, CK_ULONG_PTR pDecryptedDataLength);
    _EXT  CK_BBOOL             P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSignauture, CK_ULONG_PTR pSignautureLength);
    _EXT  CK_BBOOL             P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey);
-   _EXT  CK_BBOOL             P11_ComputeKCV(BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer);
+   _EXT  CK_BBOOL             P11_ComputeKCV(CK_BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer);
    _EXT  CK_BBOOL             P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANISM_PTR  sEncMech);
    _EXT  CK_BBOOL             P11_GenerateRandom(CK_BYTE_PTR pbBuffer, CK_ULONG uLength);
    _EXT  void                 P11_Init();
@@ -569,6 +581,7 @@ extern "C" {
    _EXT  void                 P11_Terminate();
    _EXT  CK_RV                P11_SelectStot(CK_SLOT_ID u32_SlotList);
    _EXT  CK_BBOOL             P11_FindKeyObject(CK_OBJECT_HANDLE Handle);
+   _EXT  CK_OBJECT_HANDLE     P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sId);
    _EXT  CK_BBOOL             P11_FindObject(CK_OBJECT_HANDLE Handle);
    _EXT  CK_LONG              P11_GetObjectSize(CK_OBJECT_HANDLE Handle);
    _EXT  CK_OBJECT_CLASS      P11_GetObjectClass(CK_OBJECT_HANDLE Handle);

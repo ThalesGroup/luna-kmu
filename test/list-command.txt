@@ -97,6 +97,7 @@ import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=wrapp
 //import aes with aes kwp and kw
 import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kwp.bin -format=bin -key=426 -algo=aes_kwp -label=importaeskey -modifiable=true -extractable=true
 import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kw.bin -format=bin -key=426 -keysize=32 -algo=aes_kw -label=importaeskey -modifiable=true -extractable=true
+import -slot=1 -password 00000000 -keyclass=secret -keytype=aes -inputfile=aes_kw.bin -format=bin -key-wrap-label=AES-wrap-key -keysize=32 -algo=aes_kw -label=importaeskey -modifiable=true -extractable=true
 import ecdsa with aes key wrap
 import -slot=1 -password 00000000 -keyclass=private -keytype=ecdsa -inputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad -label=importecdsaprivate -modifiable=true -extractable=true
 //import dsa private
@@ -135,6 +136,8 @@ import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=priv
 # export key
 // export rsa with aes key wrap
 export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa.bin -format=bin -key=426 -algo=aes_cbc_pad
+export -slot=1 -password 00000000 -key-export-label=kmursaprivate -outputfile=private_rsa.bin -format=bin -key-wrap-label=AES-wrap-key -algo=aes_cbc_pad
+
 export -slot=1 -password 00000000 -handle=377 -outputfile=private_rsa_kwp.bin -format=bin -key=426 -algo=aes_kwp
 // export aes with aes key wrap
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=426 -algo=aes_cbc
@@ -145,6 +148,7 @@ export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha384
 export -slot=1 -password 00000000 -handle=535 -outputfile=file.bin -format=bin -key=602 -algo=rsa_oaep_sha512
 export -slot=1 -password 00000000 -handle=535 -outputfile=wrapped_aes.txt -format=text -key=602 -algo=rsa_oaep_sha256
+export -slot=1 -password 00000000 -handle=535 -outputfile=aes_wrapped_rsa_pkcs.txt -format=text -key=602 -algo=rsa_pkcs
 // export ecdsa with aes key wrap
 export -slot=1 -password 00000000 -handle=453 -outputfile=private_ecdsa.txt -format=text -key=426 -algo=aes_cbc_pad
 // export dsa with aes key wrap
@@ -195,8 +199,10 @@ export -slot=1 -password 00000000 -handle=1347 -outputfile=mlkem768privatekey.tx
 export -slot=1 -password 00000000 -handle=1398 -outputfile=mlkem1024privatekey.txt -format=txt -key=426 -algo=aes_kwp
 
 // export encrypted pkcs8 with password
-export -password 00000000 -handle=377 -outputfile=private_rsa_2k.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000
-export -password 00000000 -handle=377 -outputfile=private_rsa1.pem -format=PKCS8 -algo=pbfkd2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes256.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -prf=hmac-sha1
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes128.pem -format=PKCS8 -algo=pbkdf2_aes128_cbc -keypassword=000000000 -prf=hmac-sha1
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes192.pem -format=PKCS8 -algo=pbkdf2_aes192_cbc -keypassword=000000000 -prf=hmac-sha1
+export -password 00000000 -handle=377 -outputfile=private_rsa1.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265 -prf=hmac-sha1
 
 # encrypt a file
 // aes
@@ -242,6 +248,8 @@ convert -inputfile=private_rsa.txt -inform=txt -outputfile=private_rsa1.bin -out
 
 # delete an object
 delete -password 00000000 -handle=788
+delete -password 00000000 -label=importaeskey
+delete -password 00000000 -id=30820129300d02050080000010020401000000302402050080000011021b57494e2d56514f3751524a4c5045352e73656c616266722e78797a305302050080000014024a360033003800300031006400630036002d0039003300390064002d0034006600300030002d0038006500340031002d003800650036006600390037003800390030003500350064000000301d02050080000013021400000000000000000000000000000000000000003051020500800000150248010004940000000000000000000000001400000002003400020000000003180000000010010200000000000520000000200200000003140000000010010100000000000512000000300d02050080000016020400000000300d02050080000017020400000000300d02050080000018020400000000
 
 # digest a symetric key
 digestkey -password 00000000 -handle=426 -hash=sha1

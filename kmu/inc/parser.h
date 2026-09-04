@@ -29,7 +29,7 @@ extern "C" {
    typedef struct parser_cmd_arg
    {
       CK_CHAR_PTR s_argName;
-      BYTE  s_argType;
+      CK_BYTE  s_argType;
       CK_CHAR_PTR s_argHelp;
 
    }PARSER_CMD_ARG;

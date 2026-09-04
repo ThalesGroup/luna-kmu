@@ -98,6 +98,14 @@ extern "C" {
 #define ARG_TYPE_LMS_TYPE           72
 #define ARG_TYPE_LMOTS_TYPE         73
 #define ARG_TYPE_HSS_LEVEL          74
+#define ARG_TYPE_LABEL_WRAPKEY      75
+#define ARG_TYPE_ID_WRAPKEY         76
+#define ARG_TYPE_LABEL_UNWRAPKEY    78
+#define ARG_TYPE_ID_UNWRAPKEY       79
+#define ARG_TYPE_LABEL_OBJ          80
+#define ARG_TYPE_ID_OBJ             81
+#define ARG_TYPE_KDF_DATA           82
+
 
 #define MASK_BINARY                 CK_TRUE
 #define FILE_FORMAT_BINARY          (0x10 | MASK_BINARY)
@@ -146,25 +154,26 @@ extern "C" {
 
    _EXT  CK_CHAR_PTR             cmdarg_GetPassword();
    _EXT  CK_SLOT_ID              cmdarg_GetSlotID();
-   _EXT  CK_BBOOL                cmdarg_SearchTypeBoolean(BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL bdefaultValue);
-   _EXT  CK_BYTE                 cmdarg_SearchFileFormat(BYTE bArgType);
+   _EXT  CK_BBOOL                cmdarg_SearchTypeBoolean(CK_BYTE bArgType, CK_BBOOL* bOutValue, CK_BBOOL bdefaultValue);
+   _EXT  CK_BYTE                 cmdarg_SearchFileFormat(CK_BYTE bArgType);
    _EXT  CK_OBJECT_CLASS         cmdarg_GetKeyClass();
    _EXT  CK_KEY_TYPE             cmdarg_GetKeytype(CK_BBOOL bForceRequest, CK_ULONG uFlag);
    _EXT  CK_OBJECT_CLASS         cmdarg_GetClassFromkeyType(CK_ULONG uFlag);
    _EXT  CK_OBJECT_HANDLE        cmdarg_GetHandleValue(CK_BYTE bArgType);
+   _EXT  CK_OBJECT_HANDLE        cmdarg_SearchKeyHandle(CK_BYTE bArgHandleType, CK_BYTE bArgLabelType, CK_BYTE bArgIdType);
    _EXT  CK_CHAR_PTR             cmdarg_SearchTypeString(CK_BYTE bLabelType, CK_CHAR_PTR sBuffer, CK_ULONG sBufferSize);
-   _EXT  CK_LONG                 cmdarg_SearchTypeHexString(BYTE bArgType, CK_CHAR_PTR* sHexString);
+   _EXT  CK_LONG                 cmdarg_SearchTypeHexString(CK_BYTE bArgType, CK_CHAR_PTR* sHexString);
    _EXT  CK_LONG                 cmdarg_GetKeySize(CK_ULONG uKeyType);
    _EXT  P11_RSA_EXP*            cmdarg_GetPublicExponant();
    _EXT  CK_MECHANISM_TYPE       cmdarg_GetRSAGenMechParam();
    _EXT  CK_MECHANISM_TYPE       cmdarg_GetDHGenMechParam();
    _EXT  P11_ECC_OID*            cmdarg_ArgGetEcCurveOIDParam(CK_KEY_TYPE sKeyType);
    _EXT  P11_EXP_DOMAIN*         cmdarg_GetExpDomain(CK_BBOOL bIsSubPrime);
-   _EXT  P11_ENCRYPTION_MECH*    cmdarg_SearchEncryptionAlgoValue(BYTE bArgType);
-   _EXT  P11_HASH_MECH*          cmdarg_SearchHash(BYTE bArgType);
-   _EXT  P11_DERIVE_MECH*        cmdarg_SearchDerivationAlgoValue(BYTE bArgType);
-   _EXT  P11_DERIVE_MECH*        cmdarg_GetDerivationMecansim(BYTE bArgType);
-   _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetEncryptionMecansim(BYTE bArgType);
+   _EXT  P11_ENCRYPTION_MECH*    cmdarg_SearchEncryptionAlgoValue(CK_BYTE bArgType);
+   _EXT  P11_HASH_MECH*          cmdarg_SearchHash(CK_BYTE bArgType);
+   _EXT  P11_DERIVE_MECH*        cmdarg_SearchDerivationAlgoValue(CK_BYTE bArgType);
+   _EXT  P11_DERIVE_MECH*        cmdarg_GetDerivationMecansim(CK_BYTE bArgType);
+   _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetEncryptionMecansim(CK_BYTE bArgType);
    _EXT  P11_ENCRYPTION_MECH*    cmdarg_GetPBEMecansim();
    _EXT  CK_KDF_PRF_TYPE         cmdarg_GetKdfType();
    _EXT  CK_KDF_PRF_ENCODING_SCHEME cmdarg_GetKdfScheme();
@@ -172,7 +181,7 @@ extern "C" {
    _EXT  CK_LONG                 cmdarg_SearchTypeInteger(CK_BYTE bArgType);
    _EXT  CK_LONG                 cmdarg_SearchTypeUnsignedInteger(CK_BYTE bArgType);
    _EXT  CK_LONG                 cmdarg_GetCKA_ID(CK_CHAR_PTR sCkaId, CK_ULONG sBufferSize);
-   _EXT  BYTE                    cmdarg_GetKCVMethod();
+   _EXT  CK_BYTE                 cmdarg_GetKCVMethod();
    _EXT  CK_ATTRIBUTE_TYPE       cmdarg_AttributeType();
    _EXT  CK_BBOOL                cmdarg_isCryptoUserLoginRequested();
    _EXT  CK_LONG                 cmdarg_GetCompomentsNumber();

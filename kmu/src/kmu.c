@@ -126,6 +126,19 @@ const STRING_ARRAY ARG_LABEL_MZMK_HELP = "Key label value for the MZMK";
 
 const STRING_ARRAY ARG_HANDLE = "-handle";
 const STRING_ARRAY ARG_HANDLE_HELP = "Object handle value";
+const STRING_ARRAY ARG_HANDLE_WRAP_HELP = "Object handle value of the key to wrap.\n\t\t\t\t\t-If empty, mandatory to use -key-export-label and/or -key-export-id";
+
+const STRING_ARRAY ARG_KEY_LABEL = "-key-label";
+const STRING_ARRAY ARG_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the key.\n\t\t\t\t\t-Can be used with -key-id.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
+
+const STRING_ARRAY ARG_KEY_ID = "key-id";
+const STRING_ARRAY ARG_KEY_ID_HELP = "Value of the attribute CKA_ID of the key.\n\t\t\t\t\t-Can be used with -key-label.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
+
+const STRING_ARRAY ARG_EXPORT_KEY_LABEL = "-key-export-label";
+const STRING_ARRAY ARG_EXPORT_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the key to export.\n\t\t\t\t\t-Can be used with -key-export-id.\n\t\t\t\t\t-Ignored if argument -key is not empty.";
+
+const STRING_ARRAY ARG_EXPORT_KEY_ID = "-key-export-id";
+const STRING_ARRAY ARG_EXPORT_KEY_ID_HELP = "Value of the attribute CKA_ID of the key to export.\n\t\t\t\t\t-Can be used with -key-export-label.\n\t\t\t\t\t-Ignored if argument -key is not empty.";
 
 const STRING_ARRAY ARG_KEY = "-key";
 const STRING_ARRAY ARG_KEY_HELP = "Object handle value of encryption or decryption key";
@@ -133,11 +146,24 @@ const STRING_ARRAY ARG_KEY_HELP = "Object handle value of encryption or decrypti
 const STRING_ARRAY ARG_DERIVE_KEY = "-key";
 const STRING_ARRAY ARG_DERIVE_KEY_HELP = "Object handle value of master derivation key";
 
+const STRING_ARRAY ARG_DERIVE_KEY_LABEL = "-key-derive-label";
+const STRING_ARRAY ARG_DERIVE_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the wrapping key. \n\t\t\t\t\t-Can be used with -key-derive-id. \n\t\t\t\t\t-Ignored if argument -key is not empty.";
+
+const STRING_ARRAY ARG_DERIVE_KEY_ID = "-key-derive-id";
+const STRING_ARRAY ARG_DERIVE_KEY_ID_HELP = "Value of the attribute CKA_ID of the wrapping key. \n\t\t\t\t\t-Can be used with -key-derive-label. \n\t\t\t\t\t-Ignored if argument -key is not empty.";
+
 const STRING_ARRAY ARG_WRAPKEY = "-key";
-const STRING_ARRAY ARG_WRAPKEY_HELP = "Object handle value for wrap key";
+const STRING_ARRAY ARG_WRAPKEY_HELP = "Object handle value for wrapping key.\n\t\t\t\t\t-If empty, mandatory to use -key-wrap-label and/or -key-wrap-id";
+
+const STRING_ARRAY ARG_WRAP_KEY_LABEL = "-key-wrap-label";
+const STRING_ARRAY ARG_WRAP_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the wrapping key. \n\t\t\t\t\t-Can be used with -key-wrap-id. \n\t\t\t\t\t-Ignored if argument -key is not empty.";
+
+const STRING_ARRAY ARG_WRAP_KEY_ID = "-key-wrap-id";
+const STRING_ARRAY ARG_WRAP_KEY_ID_HELP = "Value of the attribute CKA_ID of the wrapping key. \n\t\t\t\t\t-Can be used with -key-wrap-label. \n\t\t\t\t\t-Ignored if argument -key is not empty.";
 
 const STRING_ARRAY ARG_UNWRAPKEY = "-key";
-const STRING_ARRAY ARG_UNWRAPKEY_HELP = "Object handle value for unwrap key";
+const STRING_ARRAY ARG_UNWRAPKEY_HELP = "Object handle value for wrapping key.\n\t\t\t\t\t-If empty, mandatory to use -key-wrap-label and/or -key-wrap-id";
+
 
 const STRING_ARRAY ARG_LABEL_PRIVATE = "-labelprivate";
 const STRING_ARRAY ARG_LABEL_PRIVATE_HELP = "Key label value for private key object\n\t\t\t\t\t-Optionnal, if absent the label is taken in -label";
@@ -165,7 +191,7 @@ const STRING_ARRAY ARG_PUBLIC_EXP = "-publicexponent";
 const STRING_ARRAY ARG_PUBLIC_EXP_HELP = "Public exponent value to be used for generation of RSA key pairs\n\t\t\t\t\t-Supported value: 3, 17, 10001, 65537 ";
 
 const STRING_ARRAY ARG_ALGO = "-algo";
-const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbfkd2_aes128_cbc, pbfkd2_aes192_cbc, pbfkd2_aes256_cbc (password base encryption requires pkcs8 format)";
+const STRING_ARRAY ARG_ALGO_HELP = "Encryption algorithm. Supported algorithm: \n\t\t\t\t\t-aes_cbc_pad (PKCS padding), aes_cbc, aes_ecb, aes_gcm, aes_kw, aes_kwp, aes_cbc_pad_ipsec, aes_cfb8, aes_cfb128, aes_ofb \n\t\t\t\t\t-rsa_pkcs\n\t\t\t\t\t-rsa_oaep_sha256, rsa_oaep_sha384, rsa_oaep_sha512, rsa_oaep \n\t\t\t\t\t-pbkdf2_aes128_cbc, pbkdf2_aes192_cbc, pbkdf2_aes256_cbc (password base encryption requires pkcs8 format)";
 
 const STRING_ARRAY ARG_IV = "-iv";
 const STRING_ARRAY ARG_IV_HELP = "Symmetric encryption algorithm IV as hexadecimal string\n\t\t\t\t\t-Optional. A default IV is used if absent\n\t\t\t\t\t-AES CBC, CFB, OFB : 16 bytes, default IV: '31323334353637383132333435363738'\n\t\t\t\t\t-AES GCM : 12 bytes or more, default IV: '00310000000000000000000000000000'\n\t\t\t\t\t-PBKDF2 with AES CBC : 16 bytes, default IV is random";
@@ -201,12 +227,13 @@ const STRING_ARRAY ARG_DH_SUBPRIME_HELP = "DH or DSA domain sub-prime q value\n\
 const STRING_ARRAY ARG_OUTPUT_FILE = "-outputfile";
 const STRING_ARRAY ARG_INPUT_FILE = "-inputfile";
 const STRING_ARRAY ARG_FILE_HELP = "Input file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)";
+const STRING_ARRAY ARG_OUTPUT_FILE_HELP = "Output file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)";
 const STRING_ARRAY ARG_FILE_MZMK_HELP = "Input file path\n\t\t\t\t\t-It can be relative in current path (file.txt) or full path (c:\\file.txt)\n\t\t\t\t\tThe output tmd file will be stored in same path as input tmd file";
 
 const STRING_ARRAY ARG_FORMAT = "-format";
 const STRING_ARRAY ARG_INFORMAT = "-inform";
 const STRING_ARRAY ARG_OUTFORMAT = "-outform";
-const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key: bin, txt or text\n\t\t\t\t\t-Supported value for public key: bin, text, txt or pkcs8, \n\t\t\t\t\t-Supported value for private key: bin, txt, text or pkcs8(requires pkfkd2 encryption)";
+const STRING_ARRAY ARG_FORMAT_HELP = "File format \n\t\t\t\t\t-Supported value for secret key:\n\t\t\t\t\t\t- bin : encrypted secret key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted secret key, encoded in ascii format\n\t\t\t\t\t-Supported value for public key: \n\t\t\t\t\t\t- bin: DER binary format, \n\t\t\t\t\t\t- txt or text : DER encoded as ascii format\n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format, \n\t\t\t\t\t-Supported value for private key:\n\t\t\t\t\t\t- bin : encrypted DER private key, in binary format, \n\t\t\t\t\t\t- txt or text : encrypted DER private key, encoded in ascii format  \n\t\t\t\t\t\t- pkcs8 : PEM pkcs8 format (mandatory for password based encryption)";
 const STRING_ARRAY ARG_FORMAT_ENCRYPT_HELP = "File format as binary or hexadecimal text \n\t\t\t\t\t-Supported value: bin, text, txt";
 
 const STRING_ARRAY ARG_ATTR_NAME = "-attribute";
@@ -278,6 +305,9 @@ const STRING_ARRAY ARG_KDF_LABEL_HELP = "Luna Key Derivation Function label as h
 const STRING_ARRAY ARG_KDF_CONTEXT = "-kdf-context";
 const STRING_ARRAY ARG_KDF_CONTEXT_HELP = "Luna Key Derivation Function context as hex string. \n\t\t\t\t\t-Optional. If empty, context is set as empty string";
 
+const STRING_ARRAY ARG_KDF_DATA = "-kdf-data";
+const STRING_ARRAY ARG_KDF_DATA_HELP = "Key Derivation Function data as hex string. \n\t\t\t\t\t-Optional. If empty, context is set as empty string";
+
 const STRING_ARRAY ARG_KCV_METHOD = "-method";
 const STRING_ARRAY ARG_KCV_METHOD_HELP = "KCV computation method, supported value: \n\t\t\t\t\t-pkcs11\n\t\t\t\t\t\t-DES keys: 3 first bytes of ECB encryption of one block set to 00..00\n\t\t\t\t\t\t-AES keys: 3 first bytes of ECB encryption of one block set to 00..00 \n\t\t\t\t\t-pci(banking) \n\t\t\t\t\t\t-DES keys : 3 first bytes of MAC signature of one block set to 00..00 \n\t\t\t\t\t\t-AES keys : 3 first bytes of MAC signature of one block set to 00..00  \n\t\t\t\t\t-gp (global platform)\n\t\t\t\t\t\t-DES keys : 3 first bytes MAC signature of one block set to 00..00\n\t\t\t\t\t\t-AES keys: 3 first bytes of CMAC signature of one block set to 01..01\n\t\t\t\t\t-hmac-sha-256\n\t\t\t\t\t\t-HMAC, GENERIC keys: : 3 first bytes of HMAC signature of a null block";
 
@@ -285,7 +315,7 @@ const STRING_ARRAY ARG_KCV_COMP = "-clearcomponents";
 const STRING_ARRAY ARG_KCV_COMP_HELP = "generate a key with clear components and calculate KCV for each component with PCI method \n\t\t\t\t\t-Number of compoments for symetric keys between 2 to 16";
 
 const STRING_ARRAY ARG_KEYPASSWORD_COMP = "-keypassword";
-const STRING_ARRAY ARG_KEYPASSWORD_COMP_HELP = "password of the key for PBKDF2 key generation. \n\t\t\t\t\t-Mandatory if using pbfkd2.";
+const STRING_ARRAY ARG_KEYPASSWORD_COMP_HELP = "password of the key for PBKDF2 key generation. \n\t\t\t\t\t-Mandatory if using pbkdf2.";
 
 const STRING_ARRAY ARG_SALT_COMP = "-salt";
 const STRING_ARRAY ARG_SALT_COMP_HELP = "salt value for PBKDF2 key generation. \n\t\t\t\t\t-Optional. If empty, the salt is randomly generated with 16 bytes length ";
@@ -419,7 +449,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_ATTR_NAME, ARG_TYPE_ATTR_NAME, (const CK_CHAR_PTR)ARG_ATTR_NAME_HELP, \
                                     }
 
@@ -436,9 +466,13 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_EXPORT, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_EXPORT, (const CK_CHAR_PTR)ARG_HANDLE_WRAP_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_EXPORT_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_WRAPKEY, ARG_TYPE_HANDLE_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAPKEY_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL, ARG_TYPE_LABEL_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_ID, ARG_TYPE_ID_WRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_ID_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP, \
                                     (const CK_CHAR_PTR)ARG_ALGO, ARG_TYPE_WRAP_ALGO, (const CK_CHAR_PTR)ARG_ALGO_HELP ,\
                                     (const CK_CHAR_PTR)ARG_IV, ARG_TYPE_IV, (const CK_CHAR_PTR)ARG_IV_HELP, \
@@ -461,6 +495,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_KEYSIZE, ARG_TYPE_KEYSIZE, (const CK_CHAR_PTR)ARG_IMPORTKEY_SIZE_HELP,\
                                     (const CK_CHAR_PTR)ARG_KEYCLASS, ARG_TYPE_KEYCLASS, (const CK_CHAR_PTR)ARG_KEYCLASS_HELP,\
                                     (const CK_CHAR_PTR)ARG_UNWRAPKEY, ARG_TYPE_HANDLE_UNWRAPKEY, (const CK_CHAR_PTR)ARG_UNWRAPKEY_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL, ARG_TYPE_LABEL_UNWRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_WRAP_KEY_ID, ARG_TYPE_ID_UNWRAPKEY, (const CK_CHAR_PTR)ARG_WRAP_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP, \
                                     (const CK_CHAR_PTR)ARG_ALGO, ARG_TYPE_UNWRAP_ALGO, (const CK_CHAR_PTR)ARG_ALGO_HELP ,\
@@ -498,9 +534,11 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA, ARG_TYPE_GCM_AUTH_DATA, (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA_HELP, \
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_ENCRYPT_HELP, \
+                                    (const CK_CHAR_PTR)ARG_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_KEY_ID_HELP ,\
                                     }
 
 
@@ -514,9 +552,11 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA, ARG_TYPE_GCM_AUTH_DATA, (const CK_CHAR_PTR)ARG_ADDITONAL_AUTH_DATA_HELP, \
                                     (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN, ARG_TYPE_GCM_TAG_LEN, (const CK_CHAR_PTR)ARG_AUTH_TAG_LEN_HELP, \
                                     (const CK_CHAR_PTR)ARG_HASH, ARG_TYPE_RSA_OAEP_HASH, (const CK_CHAR_PTR)ARG_OEAP_HASH_HELP, \
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_FORMAT, ARG_TYPE_FORMAT_FILE, (const CK_CHAR_PTR)ARG_FORMAT_ENCRYPT_HELP, \
+                                    (const CK_CHAR_PTR)ARG_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_KEY_ID_HELP ,\
                                     }
 
 #define CMD_DERIVE_VALUE            (const CK_CHAR_PTR)CMD_DERIVE, (const P_fCMD)&cmd_kmu_derive, (const CK_CHAR_PTR)CMD_DERIVE_HELP, \
@@ -524,6 +564,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_DERIVE_KEY, ARG_TYPE_HANDLE_DERIVE, (const CK_CHAR_PTR)ARG_DERIVE_KEY_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_DERIVE_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_DERIVE_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_DERIVE_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_DERIVE_KEY_ID_HELP ,\
                                     (const CK_CHAR_PTR)ARG_DERIVE_MECH, ARG_TYPE_DERIVE_MECH, (const CK_CHAR_PTR)ARG_DERIVE_MECH_HELP ,\
                                     (const CK_CHAR_PTR)ARG_LABEL,	ARG_TYPE_CKA_LABEL, (const CK_CHAR_PTR)ARG_LABEL_DERIVEKEY_HELP,\
                                     (const CK_CHAR_PTR)ARG_KEYTYPE, ARG_TYPE_KEYTYPE, (const CK_CHAR_PTR)ARG_DERIVEKEY_TYPE_HELP,\
@@ -546,11 +588,12 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_KDF_COUNTER, ARG_TYPE_KDF_COUNTER, (const CK_CHAR_PTR)ARG_KDF_COUNTER_HELP,\
                                     (const CK_CHAR_PTR)ARG_KDF_LABEL, ARG_TYPE_KDF_LABEL, (const CK_CHAR_PTR)ARG_KDF_LABEL_HELP,\
                                     (const CK_CHAR_PTR)ARG_KDF_CONTEXT, ARG_TYPE_KDF_CONTEXT, (const CK_CHAR_PTR)ARG_KDF_CONTEXT_HELP,\
+                                    (const CK_CHAR_PTR)ARG_KDF_DATA, ARG_TYPE_KDF_DATA, (const CK_CHAR_PTR)ARG_KDF_DATA_HELP,\
                                     }
 
 #define CMD_CONVERT_VALUE           (const CK_CHAR_PTR)CMD_CONVERT, (const P_fCMD)&cmd_kmu_convert, (const CK_CHAR_PTR)CMD_CONVERT_HELP, \
                                     {(const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INFORMAT, ARG_TYPE_INFORM_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP,\
                                     (const CK_CHAR_PTR)ARG_OUTFORMAT, ARG_TYPE_OUTFORM_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP,\
                                     }
@@ -560,6 +603,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
                                     (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
                                     (const CK_CHAR_PTR)ARG_HANDLE, ARG_TYPE_HANDLE_DELETE, (const CK_CHAR_PTR)ARG_HANDLE_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_LABEL, ARG_TYPE_LABEL_OBJ, (const CK_CHAR_PTR)ARG_KEY_LABEL_HELP ,\
+                                    (const CK_CHAR_PTR)ARG_KEY_ID, ARG_TYPE_ID_OBJ, (const CK_CHAR_PTR)ARG_KEY_ID_HELP ,\
                                     }
 
 #define CMD_DIGEST_KEY_VALUE        (const CK_CHAR_PTR)CMD_DIGEST_KEY, (const P_fCMD)&cmd_kmu_digestKey, (const CK_CHAR_PTR)CMD_DIGEST_KEY_HELP, \
@@ -692,8 +737,18 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_KEY,
    (CK_CHAR_PTR)ARG_WRAPKEY,
    (CK_CHAR_PTR)ARG_UNWRAPKEY,
+   (CK_CHAR_PTR)ARG_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_KEY_ID,
+   (CK_CHAR_PTR)ARG_DERIVE_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_DERIVE_KEY_ID,
+   (CK_CHAR_PTR)ARG_WRAP_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_WRAP_KEY_ID,
    (CK_CHAR_PTR)ARG_LABEL_PRIVATE,
    (CK_CHAR_PTR)ARG_LABEL_PUBLIC,
+   (CK_CHAR_PTR)ARG_EXPORT_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_EXPORT_KEY_ID,
+   (CK_CHAR_PTR)ARG_WRAP_KEY_LABEL,
+   (CK_CHAR_PTR)ARG_WRAP_KEY_ID,
    (CK_CHAR_PTR)ARG_KEYTYPE,
    (CK_CHAR_PTR)ARG_KEYSIZE,
    (CK_CHAR_PTR)ARG_KEYCLASS,
@@ -737,6 +792,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)ARG_KDF_COUNTER,
    (CK_CHAR_PTR)ARG_KDF_LABEL,
    (CK_CHAR_PTR)ARG_KDF_CONTEXT,
+   (CK_CHAR_PTR)ARG_KDF_DATA,
    (CK_CHAR_PTR)ARG_KCV_METHOD,
    (CK_CHAR_PTR)ARG_CU,
    (CK_CHAR_PTR)ARG_KCV_COMP,
