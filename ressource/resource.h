@@ -14,5 +14,9 @@
 #endif
 #endif
 
-#define PRODUCT_VERSION                "1.0.3.e"
-
+#define PRODUCT_VERSION                "1.0.4.a"
+#define PRODUCT_VERSION_COMMA          1,0,4,1
+#define CLI_VERSION                    PRODUCT_VERSION
+#define CLI_VERSION_COMMA              PRODUCT_VERSION_COMMA
+#define GUI_VERSION                    PRODUCT_VERSION
+#define GUI_VERSION_COMMA              PRODUCT_VERSION_COMMA

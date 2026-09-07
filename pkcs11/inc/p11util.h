@@ -75,8 +75,51 @@ extern "C" {
    _EXT  void                          P11Util_DisplaySupportedLMSOTSType();
    _EXT  CK_LMS_TYPE                   P11Util_GetLMSType(CK_CHAR_PTR uLMStypeName);
    _EXT  CK_LMOTS_TYPE                 P11Util_GetLMSOTSType(CK_CHAR_PTR uLMSOTtypeName);
-
+   _EXT  CK_ULONG                      P11Util_GetKeyTypeNameCount(CK_ULONG uFlag);
+   _EXT  CK_CHAR_PTR                   P11Util_GetKeyTypeNameAt(CK_ULONG uFlag, CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetEcCurveCount(CK_KEY_TYPE sKeyType);
+   _EXT  CK_CHAR_PTR                   P11Util_GetEcCurveNameAt(CK_KEY_TYPE sKeyType, CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetRSAGenMechCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetRSAGenMechNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetDHGenMechCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetDHGenMechNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetPublicExpCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetPublicExpNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetLMSTypeCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetLMSTypeNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetLMSOTSTypeCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetLMSOTSTypeNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetML_DSA_Count(void);
+   _EXT  P11_ML_DSA_KEY*               P11Util_GetML_DSA_At(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetML_KEM_Count(void);
+   _EXT  P11_ML_KEM_KEY*               P11Util_GetML_KEM_At(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetHashCount(CK_ULONG uFlag);
+   _EXT  CK_CHAR_PTR                   P11Util_GetHashNameAt(CK_ULONG uFlag, CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetKCVMethodCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetKCVMethodNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetCapMechCount(void);
+   _EXT  CK_BBOOL                      P11Util_GetCapMechAt(CK_ULONG uIndex, CK_CHAR_PTR* ppName,
+                                                            CK_KEY_TYPE* pType, CK_MECHANISM_TYPE* pMech);
+   _EXT  CK_ULONG                      P11Util_GetEncryptionCount(CK_ULONG uFlag);
+   _EXT  CK_CHAR_PTR                   P11Util_GetEncryptionNameAt(CK_ULONG uFlag, CK_ULONG uIndex);
+   _EXT  P11_SIGN_MECH*                P11Util_GetSignParam(CK_CHAR_PTR sParamName, CK_ULONG bKeyFlag);
+   _EXT  CK_ULONG                      P11Util_GetSignCount(CK_ULONG uFlag);
+   _EXT  CK_CHAR_PTR                   P11Util_GetSignNameAt(CK_ULONG uFlag, CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetDerivationCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetDerivationNameAt(CK_ULONG uIndex);
+   _EXT  CK_ULONG                      P11Util_GetKdfTypeCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetKdfTypeNameAt(CK_ULONG uIndex);
+   _EXT  CK_BBOOL                      P11Util_FindKdfType(CK_CHAR_PTR sName, CK_KDF_PRF_TYPE* pType);
+   _EXT  CK_ULONG                      P11Util_GetKdfSchemeCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetKdfSchemeNameAt(CK_ULONG uIndex);
+   _EXT  CK_BBOOL                      P11Util_FindKdfScheme(CK_CHAR_PTR sName, CK_KDF_PRF_ENCODING_SCHEME* pScheme);
+   _EXT  CK_ULONG                      P11Util_GetKeyClassCount(void);
+   _EXT  CK_CHAR_PTR                   P11Util_GetKeyClassNameAt(CK_ULONG uIndex);
 
 #undef _EXT
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _P11_STR_H_

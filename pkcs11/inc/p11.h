@@ -29,6 +29,24 @@ extern "C" {
 
 #include "cryptoki_v2.h"
 
+#ifndef OS_WIN32
+#ifndef BYTE
+   typedef unsigned char BYTE;
+#endif
+#ifndef byte
+   typedef unsigned char byte;
+#endif
+#ifndef MAX_PATH
+#define MAX_PATH 4096
+#endif
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+#endif
+
    typedef CK_CHAR  STRING_ARRAY[];
 
    typedef CK_BBOOL(*P_fCMD)(CK_BYTE);
@@ -72,6 +90,7 @@ extern "C" {
 #define KEY_TYPE_HASH               0x00000040
 #define KEY_TYPE_MZMK               0x00000080
 #define KEY_TYPE_DISPLAY_MEC        0x00000100
+#define KEY_TYPE_SIGN               0x00000200
 
 #define KCV_PKCS11                  0x01
 #define KCV_PCI                     0x02
@@ -173,6 +192,8 @@ extern "C" {
          P11_DES_PARAM   des_param;
          P11_AES_PARAM   aes_param;
          CK_MAC_GENERAL_PARAMS  macGeneralParams;
+         CK_RSA_PKCS_PSS_PARAMS rsa_pss_param;
+         CK_SIGN_ADDITIONAL_CONTEXT ml_dsa_param;
       };
    }P11_SIGN_MECH;
 
@@ -570,6 +591,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_EncryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pEncryptedData, CK_ULONG_PTR pEncryptedDataLength);
    _EXT  CK_BBOOL             P11_DecryptData(P11_ENCRYPT_TEMPLATE* sEncryptTemplate, CK_CHAR_PTR* pDecryptedData, CK_ULONG_PTR pDecryptedDataLength);
    _EXT  CK_BBOOL             P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSignauture, CK_ULONG_PTR pSignautureLength);
+   _EXT  CK_BBOOL             P11_VerifyData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR pSignature, CK_ULONG uSignatureLength, CK_RV* pRv);
    _EXT  CK_BBOOL             P11_DigestKey(P11_HASH_MECH* sHash, CK_OBJECT_HANDLE  hKey);
    _EXT  CK_BBOOL             P11_ComputeKCV(CK_BYTE bKCVMethod, CK_OBJECT_HANDLE  hKey, CK_CHAR_PTR * pKcvBuffer);
    _EXT  CK_BBOOL             P11_BuildCKEncMecanism(P11_ENCRYPTION_MECH* encryption_mech, CK_MECHANISM_PTR  sEncMech);

@@ -245,7 +245,7 @@ CK_ULONG str_StringtoByteArray(CK_CHAR_PTR sSource, CK_ULONG SourceSize)
       sTempString[1] = *sSource++;
 
       // write in destination buffer
-      *sDestination++ = (byte)strtol(sTempString, NULL, 16);
+      *sDestination++ = (CK_BYTE)strtol(sTempString, NULL, 16);
       destinationSize++;
    }
    return destinationSize;
@@ -388,7 +388,10 @@ CK_ULONG str_ComparePartialString(CK_CHAR_PTR sString1, CK_CHAR_PTR sString2)
    CK_ULONG uOffset = 0;
 
    // get the minimum length of the 2 strings
-   uString1Len = min(uString1Len, uString2Len);
+   if (uString2Len < uString1Len)
+   {
+      uString1Len = uString2Len;
+   }
 
    // Loop on string 
    for (CK_ULONG uLoop = 0; uLoop < uString1Len; uLoop++)
@@ -489,7 +492,26 @@ CK_BBOOL str_PathRemoveFile(CK_CHAR_PTR ByteArray, CK_ULONG uLength)
 #ifdef OS_WIN32
    return PathRemoveFileSpecA(ByteArray);
 #else
-   return CK_FALSE;
+   CK_CHAR_PTR pSlash;
+
+   (void)uLength;
+   if (ByteArray == NULL)
+   {
+      return CK_FALSE;
+   }
+
+   pSlash = strrchr((char*)ByteArray, '/');
+   if (pSlash == NULL)
+   {
+      pSlash = strrchr((char*)ByteArray, '\\');
+   }
+   if (pSlash == NULL)
+   {
+      ByteArray[0] = 0;
+      return CK_TRUE;
+   }
+   *pSlash = 0;
+   return CK_TRUE;
 #endif
 }
 
@@ -502,7 +524,20 @@ CK_BBOOL str_PathAppendFile(CK_CHAR_PTR sPath, CK_CHAR_PTR sFile)
 #pragma warning(disable : 4995)
    return PathAppend(sPath, sFile);
 #else
-   return CK_FALSE;
+   size_t nLen;
+
+   if ((sPath == NULL) || (sFile == NULL))
+   {
+      return CK_FALSE;
+   }
+
+   nLen = strlen((char*)sPath);
+   if ((nLen > 0) && (sPath[nLen - 1] != '/') && (sPath[nLen - 1] != '\\'))
+   {
+      strcat((char*)sPath, "/");
+   }
+   strcat((char*)sPath, (char*)sFile);
+   return CK_TRUE;
 #endif
 }
 
