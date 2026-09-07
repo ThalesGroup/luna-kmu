@@ -17,6 +17,7 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#include <unistd.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +51,9 @@ const STRING_ARRAY CMD_LIST = "list";
 const STRING_ARRAY CMD_LIST_HELP = "This command lists all the keys in the selected slot";
 
 const STRING_ARRAY CMD_LIST_SLOT = "listslot";
+const STRING_ARRAY CMD_LIST_SLOTS = "listslots";
 const STRING_ARRAY CMD_LIST_SLOT_HELP = "This command lists all PKCS11 slot";
+const STRING_ARRAY CMD_LIST_SLOTS_HELP = "This command lists all PKCS11 slot (alias of listslot)";
 
 const STRING_ARRAY CMD_GENERATE_KEY = "generatekey";
 const STRING_ARRAY CMD_GENERATE_KEY_HELP = "This command generates a symmetric or asymmetric key";
@@ -131,7 +134,7 @@ const STRING_ARRAY ARG_HANDLE_WRAP_HELP = "Object handle value of the key to wra
 const STRING_ARRAY ARG_KEY_LABEL = "-key-label";
 const STRING_ARRAY ARG_KEY_LABEL_HELP = "Value of the attribute CKA_LABEL of the key.\n\t\t\t\t\t-Can be used with -key-id.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
 
-const STRING_ARRAY ARG_KEY_ID = "key-id";
+const STRING_ARRAY ARG_KEY_ID = "-key-id";
 const STRING_ARRAY ARG_KEY_ID_HELP = "Value of the attribute CKA_ID of the key.\n\t\t\t\t\t-Can be used with -key-label.\n\t\t\t\t\t-Ignored if argument -handle is not empty.";
 
 const STRING_ARRAY ARG_EXPORT_KEY_LABEL = "-key-export-label";
@@ -352,6 +355,9 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
 
 #define CMD_LIST_SLOT_VALUE         (const CK_CHAR_PTR)CMD_LIST_SLOT, (const P_fCMD)&cmd_kmu_list_SLot, (const CK_CHAR_PTR)CMD_LIST_SLOT_HELP, \
+                                    {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
+
+#define CMD_LIST_SLOTS_VALUE        (const CK_CHAR_PTR)CMD_LIST_SLOTS, (const P_fCMD)&cmd_kmu_list_SLot, (const CK_CHAR_PTR)CMD_LIST_SLOTS_HELP, \
                                     {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
 
 
@@ -657,6 +663,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
 const PARSER_COMMAND kmu_batchcmd_list[] =
 {
    CMD_HELP_VALUE,
+   CMD_LIST_SLOT_VALUE,
+   CMD_LIST_SLOTS_VALUE,
    CMD_LIST_VALUE,
    CMD_GET_CAPABILITIES_VALUE,
    CMD_GENERATEKEY_VALUE,
@@ -682,6 +690,7 @@ const PARSER_COMMAND kmu_console_list[] =
 {
    CMD_HELP_VALUE,
    CMD_LIST_SLOT_VALUE,
+   CMD_LIST_SLOTS_VALUE,
    CMD_LOGIN_VALUE,
    CMD_LOGOUT_VALUE,
    CMD_LIST_VALUE,
@@ -712,6 +721,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)CMD_LOGOUT,
    (CK_CHAR_PTR)CMD_LIST,
    (CK_CHAR_PTR)CMD_LIST_SLOT,
+   (CK_CHAR_PTR)CMD_LIST_SLOTS,
    (CK_CHAR_PTR)CMD_GENERATE_KEY,
    (CK_CHAR_PTR)CMD_CREATE_DO,
    (CK_CHAR_PTR)CMD_GET_ATTRIBUTE,
@@ -844,7 +854,18 @@ int main(int argc, // Number of strings in array argv
    char* argv[],      // Array of command-line argument strings
    char** envp)
 {
-   printf("Key Management Utility (64-bit) version %s. Copyright ©(c) 2025 Thales Group. All rights reserved.\n", PRODUCT_VERSION);
+#ifndef OS_WIN32
+   setvbuf(stdout, NULL, _IONBF, 0);
+   setvbuf(stderr, NULL, _IONBF, 0);
+#else
+   /* Piped stdin is not a console; keep output unbuffered so scripts see kmu:> promptly. */
+   if (GetFileType(GetStdHandle(STD_INPUT_HANDLE)) != FILE_TYPE_CHAR)
+   {
+      setvbuf(stdout, NULL, _IONBF, 0);
+      setvbuf(stderr, NULL, _IONBF, 0);
+   }
+#endif
+   printf("Key Management Utility (64-bit) version %s. Copyright ©(c) 2025 Thales Group. All rights reserved.\n", CLI_VERSION);
    printf("This tool is a cryptography key utility compatible with PKCS#11 device such as luna hsm and is only for test purposes and shall not be distributed.\n\n");
 
    // Init console
@@ -897,17 +918,24 @@ CK_BBOOL kmu_Batch(int argc, char* argv[])
       // Check if command Help. 
       if (parser_IsCommand((CK_CHAR_PTR)CMD_HELP) == CK_FALSE)
       {
-         // Login for all command except help
-         // init p11 library
-         if (P11_LoadLibrary() != CK_TRUE)
+         // convert is a local file tool; do not load PKCS#11 or log in
+         if (parser_IsCommand((CK_CHAR_PTR)CMD_CONVERT) == CK_FALSE)
          {
-            break;
-         }
+            if (P11_LoadLibrary() != CK_TRUE)
+            {
+               break;
+            }
 
-         // Login to slot
-         if (cmd_kmu_login(CK_FALSE) == CK_FALSE)
-         {
-            break;
+            // getcapabilities and listslot need PKCS#11, not a session
+            if ((parser_IsCommand((CK_CHAR_PTR)CMD_GET_CAPABILITIES) == CK_FALSE) &&
+                (parser_IsCommand((CK_CHAR_PTR)CMD_LIST_SLOT) == CK_FALSE) &&
+                (parser_IsCommand((CK_CHAR_PTR)CMD_LIST_SLOTS) == CK_FALSE))
+            {
+               if (cmd_kmu_login(CK_FALSE) == CK_FALSE)
+               {
+                  break;
+               }
+            }
          }
       }
 
@@ -947,11 +975,19 @@ CK_BBOOL kmu_Console()
    if (bAutoCompletion == CK_FALSE)
    {
       printf("Cannot set virtual terminal processing. Auto complete disabled\n");
-      P_ConsoleFunction pConsole_RequestString = &Console_RequestString;
+      pConsole_RequestString = &Console_RequestString;
+   }
+   /* ReadConsoleInput cannot consume a redirected pipe; use line input like Linux. */
+   if (GetFileType(GetStdHandle(STD_INPUT_HANDLE)) != FILE_TYPE_CHAR)
+   {
+      pConsole_RequestString = &Console_RequestString;
    }
 #else
-   // disable auto completion with linux
-   P_ConsoleFunction pConsole_RequestString = &Console_RequestString;
+   P_ConsoleFunction pConsole_RequestString = &Console_RequestStringWithAutoComplete;
+   if (isatty(STDIN_FILENO) == 0)
+   {
+      pConsole_RequestString = &Console_RequestString;
+   }
 #endif
 
    // Set the list of command for auto completion
@@ -1021,7 +1057,6 @@ CK_CHAR_PTR kmu_CheckArgAndGetNext(CK_CHAR_PTR sCurrentArg)
       // Get the next space in the string
       sNextSpace = strchr(sCurrentArg, strSpace);
 
-#ifdef OS_WIN32 // only for windows ? what is the behavior with linux ?
       // Search for first next quote
       sFirstNextQuote = strchr(sCurrentArg, strQuote);
 
@@ -1052,7 +1087,6 @@ CK_CHAR_PTR kmu_CheckArgAndGetNext(CK_CHAR_PTR sCurrentArg)
          }
       }
 
-#endif
       // if next is null, return
       if (sNextSpace == NULL)
       {

@@ -207,6 +207,16 @@ CK_BBOOL P11_GetLibrary()
    // gen ChrystokiConfigurationPath path
    pPath = getenv(p11_libvar);
 
+#ifndef OS_WIN32
+   /* Linux Luna client uses /etc/Chrystoki.conf. If the env var is unset,
+      dlopen("libCryptoki2_64.so") is enough when the .so is on the default path. */
+   if ((pPath == NULL) || (pPath[0] == 0))
+   {
+      memset(LibPath, 0, sizeof(LibPath));
+      strcpy(LibPath, p11_luna_library);
+      return CK_TRUE;
+   }
+#else
    if (pPath == NULL)
    {
       printf("Failed to get %s\n", p11_libvar);
@@ -217,6 +227,7 @@ CK_BBOOL P11_GetLibrary()
 
       return CK_FALSE;
    }
+#endif
 
    // copy string to LibPath
    memset(LibPath, 0, sizeof(LibPath));
@@ -261,7 +272,22 @@ CK_BBOOL P11_GetLibrary()
          strcat(&LibPath[0], (CK_CHAR_PTR)strBackSlashString);
       }
 #else
-      // to do
+      if (uLengh != 0)
+      {
+         CK_ULONG uLenghExtension = (CK_ULONG)strlen(p11_entension);
+         if (uLengh >= uLenghExtension)
+         {
+            if (strcmp(&LibPath[uLengh - uLenghExtension], p11_entension) == 0)
+            {
+               bConcatenate = CK_FALSE;
+               break;
+            }
+         }
+         if (LibPath[uLengh - 1] != '/')
+         {
+            strcat(LibPath, "/");
+         }
+      }
 #endif
 
    } while (FALSE);
@@ -330,6 +356,11 @@ CK_BBOOL P11_LoadFunctions()
       if (LibHandle)
       {
          C_GetFunctionList = (CK_C_GetFunctionList)dlsym(LibHandle, "C_GetFunctionList");
+      }
+      else
+      {
+         printf("dlopen failed: %s\n", dlerror());
+         break;
       }
 #endif
 
@@ -1118,6 +1149,9 @@ CK_OBJECT_HANDLE P11_FindKeyObjectByLabelOrId(CK_CHAR_PTR sLabel, CK_CHAR_PTR sI
       {
          break;
       }
+
+      bMatchLabel = (sLabel == NULL) ? CK_TRUE : CK_FALSE;
+      bMatchID = (sId == NULL) ? CK_TRUE : CK_FALSE;
 
       // Check Label
       if (sLabel != NULL)
@@ -3810,11 +3844,9 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    // Set enc mecansim value
    sEncMech->mechanism = sign_mech->ckMechType;
 
-   // check the unwrap mecanism type
    switch (sign_mech->ckMechType)
    {
    case CKM_AES_CMAC:
-      // Init the sIV buffer and size
       sEncMech->pParameter = sign_mech->aes_param.pIv;
       if (sEncMech->pParameter != NULL)
       {
@@ -3828,7 +3860,6 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
    case CKM_DES3_CMAC:
    case CKM_DES_MAC:
    case CKM_DES3_MAC:
-      // Init the sIV buffer and size
       sEncMech->pParameter = sign_mech->des_param.pIv;
       if (sEncMech->pParameter != NULL)
       {
@@ -3839,14 +3870,23 @@ CK_BBOOL P11_BuildCKSignMecanism(P11_SIGN_MECH* sign_mech, CK_MECHANISM_PTR  sEn
          sEncMech->usParameterLen = 0;
       }
       break;
-   case CKM_SHA256_HMAC:
+   case CKM_RSA_PKCS_PSS:
+   case CKM_SHA1_RSA_PKCS_PSS:
+   case CKM_SHA256_RSA_PKCS_PSS:
+   case CKM_SHA384_RSA_PKCS_PSS:
+   case CKM_SHA512_RSA_PKCS_PSS:
+      sEncMech->pParameter = &sign_mech->rsa_pss_param;
+      sEncMech->usParameterLen = sizeof(CK_RSA_PKCS_PSS_PARAMS);
+      break;
+   case CKM_ML_DSA:
+      sEncMech->pParameter = &sign_mech->ml_dsa_param;
+      sEncMech->usParameterLen = sizeof(CK_SIGN_ADDITIONAL_CONTEXT);
+      break;
+   default:
+      /* RSA PKCS, ECDSA, EdDSA, HMAC, HSS, and other no-parameter sign mechs. */
       sEncMech->pParameter = NULL;
       sEncMech->usParameterLen = 0;
       break;
-
-   default:
-      printf("P11_BuildCKSignMecanism : Invalid Mecanism : %i", sign_mech->ckMechType);
-      return CK_FALSE;
    };
 
    return CK_TRUE;
@@ -3923,6 +3963,61 @@ CK_BBOOL P11_SignData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR* pSigna
 }
 
 /*
+    FUNCTION:       CK_BBOOL P11_VerifyData(...)
+*/
+CK_BBOOL P11_VerifyData(P11_SIGNATURE_TEMPLATE* sSignTemplate, CK_CHAR_PTR pSignature, CK_ULONG uSignatureLength, CK_RV* pRv)
+{
+   CK_RV        retCode = CKR_DEVICE_ERROR;
+   CK_MECHANISM sEncMech = { 0 };
+
+   if (pRv != NULL)
+   {
+      *pRv = CKR_GENERAL_ERROR;
+   }
+
+   do
+   {
+      if ((sSignTemplate == NULL) || (sSignTemplate->sign_mech == NULL) ||
+         (pSignature == NULL) || (uSignatureLength == 0))
+      {
+         break;
+      }
+
+      if (P11_BuildCKSignMecanism(sSignTemplate->sign_mech, &sEncMech) == CK_FALSE)
+      {
+         break;
+      }
+
+      retCode = P11Functions->C_VerifyInit(hSession, &sEncMech, sSignTemplate->hSignatureKey);
+      if (retCode != CKR_OK)
+      {
+         break;
+      }
+
+      retCode = P11Functions->C_Verify(hSession, sSignTemplate->sInputData, sSignTemplate->sInputDataLength,
+         pSignature, uSignatureLength);
+      if (pRv != NULL)
+      {
+         *pRv = retCode;
+      }
+      if (retCode != CKR_OK)
+      {
+         break;
+      }
+
+      return CK_TRUE;
+
+   } while (FALSE);
+
+   if (pRv != NULL)
+   {
+      *pRv = retCode;
+   }
+   printf("C_Verify error code : %s \n", P11Util_DisplayErrorName(retCode));
+   return CK_FALSE;
+}
+
+/*
     FUNCTION:       CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
 */
 CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR hKey, CK_BBOOL bDisplay)
@@ -3987,7 +4082,7 @@ CK_BBOOL P11_DeriveKey(P11_DERIVETEMPLATE* sDeriveTemplate, CK_OBJECT_HANDLE_PTR
 
    case CKM_ECDH1_DERIVE:
       sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
-      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sEcdh1DeriveParams;
       sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
       break;
 
@@ -4102,7 +4197,7 @@ CK_BBOOL P11_DeriveKeyAndWrap(P11_DERIVETEMPLATE* sDeriveTemplate, P11_WRAPTEMPL
 
    case CKM_ECDH1_DERIVE:
       sDeriveMech.mechanism = sDeriveTemplate->sDeriveMech->ckMechType;
-      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sPrfKdfParams;
+      sDeriveMech.pParameter = &sDeriveTemplate->sDeriveMech->sEcdh1DeriveParams;
       sDeriveMech.usParameterLen = sizeof(CK_ECDH1_DERIVE_PARAMS);
       break;
 

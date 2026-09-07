@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kmu", "kmu.vcxproj", "{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kmu-gui", "kmu-gui.vcxproj", "{5E8A1C3D-9B47-4F2A-8D16-7C0E4A2B91F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Debug|x64.Build.0 = Debug|x64
 		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Release|x64.ActiveCfg = Release|x64
 		{F04B76B1-09FE-4F3C-A03F-78AD6F8B4CCB}.Release|x64.Build.0 = Release|x64
+		{5E8A1C3D-9B47-4F2A-8D16-7C0E4A2B91F3}.Debug|x64.ActiveCfg = Debug|x64
+		{5E8A1C3D-9B47-4F2A-8D16-7C0E4A2B91F3}.Debug|x64.Build.0 = Debug|x64
+		{5E8A1C3D-9B47-4F2A-8D16-7C0E4A2B91F3}.Release|x64.ActiveCfg = Release|x64
+		{5E8A1C3D-9B47-4F2A-8D16-7C0E4A2B91F3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

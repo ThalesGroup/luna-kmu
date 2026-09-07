@@ -33,6 +33,7 @@ KMU allows to:
 - Compute KCV on a symetric key (currently limited to 4 KCV methods: PCI DSS, PKCS#11, Global Platform and HMAC-SHA256).
 - Perform a remote MZMK setup with Thales TMD 
 - Get the HSM capabilities (limited rigth now to key generation mecanism)
+- Sign and verify a file (desktop GUI only; not a CLI command)
 
 These operations require to create partitions, register clients, initialize user roles... These tasks can be performed using:
 - The [Luna Universal Client](https://thalesdocs.com/gphsm/luna/7/docs/network/Content/Utilities/Preface.htm), and esp.
@@ -42,21 +43,26 @@ These operations require to create partitions, register clients, initialize user
 
 KMU supports the Luna HSM "Crypto User" role, with both password and PED authentication (if the CKF_PROTECTED_AUTHENTICATION_PATH "TokenInfo" flag is set to 1).
 
-KMU is available as a console and might be scriptable from a command line. The console supports auto completion for command and parameters.
+KMU is available as a console (`kmu.exe` on Windows, `kmu` on Linux) and a desktop GUI (`kmu-gui.exe`, Windows only). The console might be scriptable from a command line and supports auto completion for command and parameters.
 
 ## Requirements
 - Base OS:
   - Windows-10 or later.
   - Windows Server 2019 or later.
-- Redistribuable package:
+  - Linux x86_64 (CLI only; the desktop GUI is Windows).
+    - Tested on Ubuntu 24.04 LTS with Luna Universal Client 10.9.3.
+- Redistribuable package (Windows):
   - 2015 -2022 (refer to https://learn.microsoft.com/fr-fr/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022).
 - Thales Luna Universal Client:
   - 10.5.x or later.
     - Note. Client 10.9.1 or later is recommanded to use PQC features. 
-- Environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
+- PKCS#11 library:
+  - Windows: environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
   - This environment variable is set when you install luna client.
   - KMU searches for a "cryptoki.dll" in the path pointed at by this environment variable.
   - If this environment variable is already pointing at a PKCS#11 DLL, KMU will use this library.
+  - The GUI can also set this path in the window (default: `C:\Program Files\SafeNet\LunaClient`).
+  - Linux: `/etc/Chrystoki.conf` (`LibUNIX64`) is used. If `ChrystokiConfigurationPath` is unset, KMU `dlopen`s `libCryptoki2_64.so`. If it is set to a directory, KMU appends `libCryptoki2_64.so`; if it is set to a `.so` path, that library is used.
 
 ## Build
 - Requirements:
@@ -69,16 +75,26 @@ KMU is available as a console and might be scriptable from a command line. The c
       - 10.9.1 or later.
     - Environment variable “ChrystokiConfigurationPath” must refer to the folder that contains the Luna Universal Client PKCS#11 library ('cryptoki.dll').
 - Using Visual Studio:
-  - Open the "kmu.sln" solution file.
+  - Open the "kmu.sln" solution file (console and GUI projects).
   - Select the "release" configuration and build the solution.
     - Note. An error may happen during compilation in cryptoki_v2.h. If happens replace #include "RSA/pkcs11.h" by #include "pkcs11.h".
-- Once built, "kmu.exe" can be used immediately.
+- Once built, "kmu.exe" and "kmu-gui.exe" can be used immediately.
+
+- Linux CLI:
+  - Requires gcc, make, and Luna Universal Client SDK headers (default `/usr/safenet/lunaclient`).
+  - From the repository root: `make` (binary is `linux-build/kmu`).
+  - The desktop GUI is not built on Linux.
 
 Note:
-- A precompiled version is provided for Windows x64 platforms in the "x64/release" directory. 
+- A precompiled console binary is provided for Windows x64 platforms in the "x64/release" directory.
+- A precompiled Linux x86_64 console binary is provided as `linux-build/kmu`. 
 
 ## Run
-Refer to the usage documentation provided by the tool (running it without any parameter or using help command).
+Console: refer to the usage documentation provided by the tool (running it without any parameter or using help command).
+- Windows: `x64/Release/kmu.exe`
+- Linux: `linux-build/kmu` (Luna Universal Client must be installed)
+
+GUI: run `kmu-gui.exe` (Windows only), set ChrystokiConfigurationPath if needed, select a slot, and log in. The same operations as the CLI are on the main window and the More menu. Sign/verify is GUI-only.
 
 ```
 help                            Display this help

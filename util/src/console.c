@@ -19,6 +19,8 @@
 #else
 #include <dlfcn.h>
 #include <termios.h>
+#include <unistd.h>
+#include <sys/select.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,8 +102,10 @@ CK_BBOOL             bAutoCompleteState;
 CK_CHAR_PTR          pConsoleHistory[MAX_HISTORY_SIZE];
 CK_BYTE              bHistoryIndex;
 
+#ifdef OS_WIN32
 HANDLE hOutput;
 HANDLE hInput;
+#endif
 
 
 #define Console_TerminalCursorLeftN(x)       Console_TerminalCursorMove(DIRECTION_LEFT, x);
@@ -139,9 +143,11 @@ CK_BBOOL Console_Init()
       pConsoleHistory[uLoop] = NULL;
    }
 
+#ifdef OS_WIN32
    // Get Input and output handle
    hInput = GetStdHandle(STD_INPUT_HANDLE);
    hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+#endif
 
    // set insert flag to false
    bInsert = CK_FALSE;
@@ -333,7 +339,11 @@ CK_ULONG Console_RequestPassword()
          break;
       default:
          printf("%s", sChar);
+#ifdef OS_WIN32
          Sleep(50);
+#else
+         usleep(50000);
+#endif
          printf("\b");
          printf(" ");
          printf("\b");
@@ -356,6 +366,87 @@ CK_ULONG Console_RequestPassword()
 
    return -1;
 }
+
+#ifndef OS_WIN32
+static struct termios sOrigTermios;
+static int sTermiosSaved = 0;
+static int sTermiosDepth = 0;
+
+static void initTermios(int echo)
+{
+   struct termios newt;
+
+   if (sTermiosDepth > 0)
+   {
+      sTermiosDepth++;
+      return;
+   }
+
+   if (tcgetattr(STDIN_FILENO, &sOrigTermios) != 0)
+   {
+      return;
+   }
+   sTermiosSaved = 1;
+   sTermiosDepth = 1;
+   newt = sOrigTermios;
+   newt.c_lflag &= (tcflag_t)~(ICANON | ISIG);
+   if (echo == 0)
+   {
+      newt.c_lflag &= (tcflag_t)~ECHO;
+   }
+   newt.c_cc[VMIN] = 1;
+   newt.c_cc[VTIME] = 0;
+   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+}
+
+static void resetTermios(void)
+{
+   if (sTermiosDepth > 0)
+   {
+      sTermiosDepth--;
+   }
+   if ((sTermiosDepth == 0) && sTermiosSaved)
+   {
+      tcsetattr(STDIN_FILENO, TCSANOW, &sOrigTermios);
+      sTermiosSaved = 0;
+   }
+}
+
+/* timeout_ms < 0 blocks. Returns 0-255, or -1 on timeout/error. */
+static int linux_read_byte(int timeout_ms)
+{
+   unsigned char c;
+   fd_set rfds;
+   struct timeval tv;
+   int n;
+
+   if (timeout_ms >= 0)
+   {
+      FD_ZERO(&rfds);
+      FD_SET(STDIN_FILENO, &rfds);
+      tv.tv_sec = timeout_ms / 1000;
+      tv.tv_usec = (timeout_ms % 1000) * 1000;
+      n = select(STDIN_FILENO + 1, &rfds, NULL, NULL, &tv);
+      if (n <= 0)
+      {
+         return -1;
+      }
+   }
+
+   n = (int)read(STDIN_FILENO, &c, 1);
+   if (n != 1)
+   {
+      return -1;
+   }
+   return (int)c;
+}
+
+static void linux_set_extended(CK_CHAR scan)
+{
+   bExtendedKeyFlag = CK_TRUE;
+   bExtendedKey = scan;
+}
+#endif
 
 /*
     FUNCTION:        CK_CHAR Console_KeyBoardGetCharacter()
@@ -427,18 +518,122 @@ CK_CHAR Console_KeyBoardGetCharacter()
 
 #else
 {
-   char ch;
+   int ch;
+
+   if (bExtendedKeyFlag == CK_TRUE)
+   {
+      bExtendedKeyFlag = CK_FALSE;
+      return bExtendedKey;
+   }
+
    initTermios(0);
-   ch = getchar();
+   ch = linux_read_byte(-1);
+   if (ch < 0)
+   {
+      resetTermios();
+      return (CK_CHAR)EOF;
+   }
+
+   if ((ch == 0x7F) || (ch == CARACTER_BACK))
+   {
+      resetTermios();
+      return CARACTER_BACK;
+   }
+   if (ch == CARACTER_NEWLINE)
+   {
+      resetTermios();
+      return CARACTER_RETURN;
+   }
+   if (ch == CARACTER_ESC)
+   {
+      int n1 = linux_read_byte(50);
+      if (n1 < 0)
+      {
+         resetTermios();
+         return CARACTER_ESC;
+      }
+      if ((n1 == '[') || (n1 == 'O'))
+      {
+         int n2 = linux_read_byte(50);
+         if (n2 < 0)
+         {
+            resetTermios();
+            return CARACTER_ESC;
+         }
+         if ((n2 >= '0') && (n2 <= '9'))
+         {
+            int n3 = linux_read_byte(50);
+            while ((n3 >= 0) && (n3 != '~') && (n3 < 0x40))
+            {
+               n3 = linux_read_byte(50);
+            }
+            resetTermios();
+            switch (n2)
+            {
+            case '1':
+            case '7':
+               linux_set_extended(EXTENDED_CODE_BEGIN);
+               break;
+            case '4':
+            case '8':
+               linux_set_extended(EXTENDED_CODE_END);
+               break;
+            case '2':
+               linux_set_extended(EXTENDED_CODE_INSERT);
+               break;
+            case '3':
+               linux_set_extended(EXTENDED_CODE_DELETE);
+               break;
+            case '5':
+               linux_set_extended(EXTENDED_CODE_PAGE_UP);
+               break;
+            case '6':
+               linux_set_extended(EXTENDED_CODE_PAGE_DOWN);
+               break;
+            default:
+               return CARACTER_ESC;
+            }
+            return EXTENDED_CODE;
+         }
+         resetTermios();
+         switch (n2)
+         {
+         case 'A':
+            linux_set_extended(EXTENDED_CODE_ARROW_UP);
+            return EXTENDED_CODE;
+         case 'B':
+            linux_set_extended(EXTENDED_CODE_ARROW_DOWN);
+            return EXTENDED_CODE;
+         case 'C':
+            /* Match Windows VK_RIGHT scan code 0x4D. */
+            linux_set_extended(EXTENDED_CODE_ARROW_LEFT);
+            return EXTENDED_CODE;
+         case 'D':
+            /* Match Windows VK_LEFT scan code 0x4B. */
+            linux_set_extended(EXTENDED_CODE_ARROW_RIGTH);
+            return EXTENDED_CODE;
+         case 'H':
+            linux_set_extended(EXTENDED_CODE_BEGIN);
+            return EXTENDED_CODE;
+         case 'F':
+            linux_set_extended(EXTENDED_CODE_END);
+            return EXTENDED_CODE;
+         default:
+            return CARACTER_ESC;
+         }
+      }
+      resetTermios();
+      return CARACTER_ESC;
+   }
+
    resetTermios();
-   return ch;
+   return (CK_CHAR)ch;
 }
 
 #endif
 
 
 
-#ifdef OS_WIN32
 /*
     FUNCTION:        CK_LONG Console_RequestStringWithAutoComplete()
 */
@@ -449,6 +644,10 @@ CK_LONG Console_RequestStringWithAutoComplete()
    uCursorOffset = 0;
    uConsoleBufferLength = 0;
    pConsoleBuffer[0] = 0;
+
+#ifndef OS_WIN32
+   initTermios(0);
+#endif
 
 #ifdef _DEBUG
    // clear pConsoleArgList array
@@ -474,11 +673,17 @@ CK_LONG Console_RequestStringWithAutoComplete()
          uCursorOffset = 0;
          uConsoleBufferLength = 0;
          pConsoleBuffer[uCursorOffset] = 0;
+#ifndef OS_WIN32
+         resetTermios();
+#endif
          return -1;
 
          // return, stop the loop, and return the buffer
       case CARACTER_RETURN:
       case CARACTER_NEWLINE:
+#ifndef OS_WIN32
+         resetTermios();
+#endif
          return Console_KeyBoardReturn();
 
       case 0x00: // F0 : receive 00 + code
@@ -578,6 +783,9 @@ CK_LONG Console_RequestStringWithAutoComplete()
 
    pConsoleBuffer[uCursorOffset] = 0;
 
+#ifndef OS_WIN32
+   resetTermios();
+#endif
    return -1;
 }
 
@@ -742,7 +950,11 @@ CK_BBOOL Console_SetAutocompleteList(CK_CHAR_PTR* pList, CK_ULONG uListNumber)
    // get the max size of auto complete list argument
    for (CK_ULONG uLoop = 0; uLoop < uListNumber; uLoop++)
    {
-      uMaxLength = (CK_ULONG)max(uMaxLength, strlen(pList[uLoop]));
+      CK_ULONG uLen = (CK_ULONG)strlen(pList[uLoop]);
+      if (uLen > uMaxLength)
+      {
+         uMaxLength = uLen;
+      }
    }
    // add one
    uMaxLength++;
@@ -1548,26 +1760,23 @@ CK_BBOOL Console_TerminalCursorMove(CK_BBOOL bDirection, CK_ULONG sValue)
 }
 #else
 {
-
    if (sValue == 0)
    {
-      return;
+      return CK_FALSE;
    }
 
-   // check direction
-   if (bDirection == DIRECTION_BACKWARD)
+   /* Match Win32 movement: DIRECTION_RIGTH decreases X (ANSI back). */
+   if (bDirection == DIRECTION_RIGTH)
    {
-      // backward the cursor of sValue
-      printf("\033[%dD", sValue);
+      printf("\033[%dD", (int)sValue);
    }
    else
    {
-      // forward the cursor of sValue
-      printf("\033[%dC", sValue);
+      printf("\033[%dC", (int)sValue);
    }
+   fflush(stdout);
+   return CK_FALSE;
 }
-
-
 #endif
 
 /*
@@ -1641,6 +1850,8 @@ CK_BBOOL Console_TerminalCursorIsEndOfLine()
       }
    }
    return CK_FALSE;
+#else
+   return CK_FALSE;
 #endif
 }
 
@@ -1656,6 +1867,4 @@ void Console_Clear()
    system("clear");
 #endif
 }
-
-#endif
 

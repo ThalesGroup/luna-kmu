@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="gui\src\gui.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\wnd_main.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_listkeys.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_generate.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_createdo.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_digestkey.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_computekcv.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_capabilities.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_import.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_export.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_convert.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_crypt.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_sign.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_derive.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_mzmk.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\dlg_attributes.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="gui\src\gui_theme.c">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="pkcs11\src\p11.c">
+      <Filter>pkcs11</Filter>
+    </ClCompile>
+    <ClCompile Include="pkcs11\src\p11util.c">
+      <Filter>pkcs11</Filter>
+    </ClCompile>
+    <ClCompile Include="pkcs11\src\p11query.c">
+      <Filter>pkcs11</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\asn1.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\base64.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\pkcs8.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\file.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\str.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\tr31.c">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="util\src\tmd.c">
+      <Filter>util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gui\inc\gui.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\wnd_main.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_listkeys.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_generate.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_createdo.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_digestkey.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_computekcv.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_capabilities.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_import.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_export.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_convert.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_crypt.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_sign.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_derive.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_mzmk.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\dlg_attributes.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\inc\gui_theme.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="pkcs11\inc\p11.h">
+      <Filter>pkcs11</Filter>
+    </ClInclude>
+    <ClInclude Include="pkcs11\inc\p11util.h">
+      <Filter>pkcs11</Filter>
+    </ClInclude>
+    <ClInclude Include="pkcs11\inc\p11query.h">
+      <Filter>pkcs11</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\asn1.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\base64.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\pkcs8.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\file.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\str.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\tr31.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="util\inc\tmd.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="ressource\resource.h">
+      <Filter>ressource</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="gui">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pkcs11">
+      <UniqueIdentifier>{b2c3d4e5-f6a7-8901-bcde-f12345678901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{c3d4e5f6-a7b8-9012-cdef-123456789012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ressource">
+      <UniqueIdentifier>{d4e5f6a7-b8c9-0123-def0-234567890123}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ressource\gui.rc">
+      <Filter>ressource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
