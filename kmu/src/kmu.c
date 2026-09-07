@@ -51,7 +51,9 @@ const STRING_ARRAY CMD_LIST = "list";
 const STRING_ARRAY CMD_LIST_HELP = "This command lists all the keys in the selected slot";
 
 const STRING_ARRAY CMD_LIST_SLOT = "listslot";
+const STRING_ARRAY CMD_LIST_SLOTS = "listslots";
 const STRING_ARRAY CMD_LIST_SLOT_HELP = "This command lists all PKCS11 slot";
+const STRING_ARRAY CMD_LIST_SLOTS_HELP = "This command lists all PKCS11 slot (alias of listslot)";
 
 const STRING_ARRAY CMD_GENERATE_KEY = "generatekey";
 const STRING_ARRAY CMD_GENERATE_KEY_HELP = "This command generates a symmetric or asymmetric key";
@@ -353,6 +355,9 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
 
 #define CMD_LIST_SLOT_VALUE         (const CK_CHAR_PTR)CMD_LIST_SLOT, (const P_fCMD)&cmd_kmu_list_SLot, (const CK_CHAR_PTR)CMD_LIST_SLOT_HELP, \
+                                    {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
+
+#define CMD_LIST_SLOTS_VALUE        (const CK_CHAR_PTR)CMD_LIST_SLOTS, (const P_fCMD)&cmd_kmu_list_SLot, (const CK_CHAR_PTR)CMD_LIST_SLOTS_HELP, \
                                     {(const CK_CHAR_PTR)NULL, 0, (const CK_CHAR_PTR)NULL}
 
 
@@ -658,6 +663,8 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
 const PARSER_COMMAND kmu_batchcmd_list[] =
 {
    CMD_HELP_VALUE,
+   CMD_LIST_SLOT_VALUE,
+   CMD_LIST_SLOTS_VALUE,
    CMD_LIST_VALUE,
    CMD_GET_CAPABILITIES_VALUE,
    CMD_GENERATEKEY_VALUE,
@@ -683,6 +690,7 @@ const PARSER_COMMAND kmu_console_list[] =
 {
    CMD_HELP_VALUE,
    CMD_LIST_SLOT_VALUE,
+   CMD_LIST_SLOTS_VALUE,
    CMD_LOGIN_VALUE,
    CMD_LOGOUT_VALUE,
    CMD_LIST_VALUE,
@@ -713,6 +721,7 @@ const CK_CHAR_PTR  sAutocompletion[] =
    (CK_CHAR_PTR)CMD_LOGOUT,
    (CK_CHAR_PTR)CMD_LIST,
    (CK_CHAR_PTR)CMD_LIST_SLOT,
+   (CK_CHAR_PTR)CMD_LIST_SLOTS,
    (CK_CHAR_PTR)CMD_GENERATE_KEY,
    (CK_CHAR_PTR)CMD_CREATE_DO,
    (CK_CHAR_PTR)CMD_GET_ATTRIBUTE,
@@ -917,8 +926,10 @@ CK_BBOOL kmu_Batch(int argc, char* argv[])
                break;
             }
 
-            // getcapabilities needs a slot, not a session
-            if (parser_IsCommand((CK_CHAR_PTR)CMD_GET_CAPABILITIES) == CK_FALSE)
+            // getcapabilities and listslot need PKCS#11, not a session
+            if ((parser_IsCommand((CK_CHAR_PTR)CMD_GET_CAPABILITIES) == CK_FALSE) &&
+                (parser_IsCommand((CK_CHAR_PTR)CMD_LIST_SLOT) == CK_FALSE) &&
+                (parser_IsCommand((CK_CHAR_PTR)CMD_LIST_SLOTS) == CK_FALSE))
             {
                if (cmd_kmu_login(CK_FALSE) == CK_FALSE)
                {
