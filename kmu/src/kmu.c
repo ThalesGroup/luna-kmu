@@ -593,10 +593,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
                                     }
 
 #define CMD_CONVERT_VALUE           (const CK_CHAR_PTR)CMD_CONVERT, (const P_fCMD)&cmd_kmu_convert, (const CK_CHAR_PTR)CMD_CONVERT_HELP, \
-                                    {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
+                                    {(const CK_CHAR_PTR)ARG_INPUT_FILE, ARG_TYPE_FILE_INPUT, (const CK_CHAR_PTR)ARG_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_OUTPUT_FILE, ARG_TYPE_FILE_OUTPUT, (const CK_CHAR_PTR)ARG_OUTPUT_FILE_HELP ,\
                                     (const CK_CHAR_PTR)ARG_INFORMAT, ARG_TYPE_INFORM_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP,\
                                     (const CK_CHAR_PTR)ARG_OUTFORMAT, ARG_TYPE_OUTFORM_FILE, (const CK_CHAR_PTR)ARG_FORMAT_HELP,\
@@ -652,8 +649,7 @@ const STRING_ARRAY ARG_HSS_LEVEL_COMP_HELP = "Hierarchical Signature System (HSS
 
 #define CMD_GET_CAPABILITIES_VALUE  (const CK_CHAR_PTR)CMD_GET_CAPABILITIES, (const P_fCMD)&cmd_kmu_getcapabilities, (const CK_CHAR_PTR)CMD_GET_CAPABILITIES_HELP, \
                                     {(const CK_CHAR_PTR)ARG_SLOT_ID, ARG_TYPE_SLOT, (const CK_CHAR_PTR)ARG_SLOT_ID_HELP ,\
-                                    (const CK_CHAR_PTR)ARG_PASSWORD, ARG_TYPE_PASSWORD, (const CK_CHAR_PTR)ARG_PASSWORD_HELP,\
-                                    (const CK_CHAR_PTR)ARG_CU, ARG_TYPE_CRYPTO_USER, (const CK_CHAR_PTR)ARG_CU_HELP }
+                                    }
 
 
 
@@ -913,17 +909,22 @@ CK_BBOOL kmu_Batch(int argc, char* argv[])
       // Check if command Help. 
       if (parser_IsCommand((CK_CHAR_PTR)CMD_HELP) == CK_FALSE)
       {
-         // Login for all command except help
-         // init p11 library
-         if (P11_LoadLibrary() != CK_TRUE)
+         // convert is a local file tool; do not load PKCS#11 or log in
+         if (parser_IsCommand((CK_CHAR_PTR)CMD_CONVERT) == CK_FALSE)
          {
-            break;
-         }
+            if (P11_LoadLibrary() != CK_TRUE)
+            {
+               break;
+            }
 
-         // Login to slot
-         if (cmd_kmu_login(CK_FALSE) == CK_FALSE)
-         {
-            break;
+            // getcapabilities needs a slot, not a session
+            if (parser_IsCommand((CK_CHAR_PTR)CMD_GET_CAPABILITIES) == CK_FALSE)
+            {
+               if (cmd_kmu_login(CK_FALSE) == CK_FALSE)
+               {
+                  break;
+               }
+            }
          }
       }
 
