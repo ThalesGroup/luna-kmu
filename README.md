@@ -98,7 +98,8 @@ GUI: run `kmu-gui.exe` (Windows only), set ChrystokiConfigurationPath if needed,
 
 ```
 help                            Display this help
-listslot                        This command lists all PKCS#11 slot
+listslot                        List PKCS#11 slots (label, model, firmware, software, serial)
+listslots                       Alias of listslot
 login                           Login to selected slot
 logout                          Logout the current slot
 list                            This command lists all the keys in the selected slot
@@ -137,7 +138,9 @@ Two argument formats are supported for each command:
 Typical examples:
 | Command | -argument=value or -argument value |
 | ------- | ---------------------------------- | 
-| List all objects in a PKCS#11 | slot list -slot=0 -password=00000000 |
+| List PKCS#11 slots (table: slot, label, model, firmware, software, serial) | listslot |
+| List PKCS#11 slots (alias) | listslots |
+| List all objects in a PKCS#11 | list -slot=0 -password=00000000 |
 | List all objects in a PKCS#11 as crypto user | slot list -slot=0 -password=00000000 - cu=true|
 | Generate a AES key | generatekey -slot=0 -password=00000000 -keytype=aes -keysize 32 -label=key-aes-256 -extractable=1 -modifiable=true -wrap=0 -encrypt false -token=true -private=true -sensitive=true |
 | Generate a RSA key | generatekey -slot=0 -password=00000000 -keytype=rsa -keysize 4096 -labelpublic=key-rsa-public -labelprivate=key-rsa-private -publicexponent=65537 -extractable=1 -modifiable=true -mech=prime |
