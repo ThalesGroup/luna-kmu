@@ -44,6 +44,10 @@ extern "C" {
    {
       CK_SLOT_ID slotId;
       CK_CHAR    label[P11_SLOT_LABEL_MAX + 1];
+      CK_CHAR    model[P11_SLOT_MODEL_MAX + 1];
+      CK_CHAR    firmware[P11_SLOT_VERSION_MAX];
+      CK_CHAR    software[P11_SLOT_VERSION_MAX];
+      CK_CHAR    serial[P11_SLOT_SERIAL_MAX + 1];
       CK_BBOOL   bPasswordRequired; /* CK_FALSE when CKF_PROTECTED_AUTHENTICATION_PATH */
    } P11_SLOT_ROW;
 

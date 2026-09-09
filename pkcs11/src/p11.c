@@ -423,15 +423,271 @@ CK_BBOOL P11_LoadSfntExtensionFunctions()
    return CK_FALSE;
 }
 
+static void P11_CopyTokenField(CK_CHAR_PTR dest, CK_ULONG destMax, const CK_UTF8CHAR* src, CK_ULONG srcLen)
+{
+   CK_ULONG nCopy;
+   CK_ULONG nEnd;
+
+   if ((dest == NULL) || (destMax == 0))
+   {
+      return;
+   }
+
+   memset(dest, 0, destMax);
+   nCopy = srcLen;
+   if (nCopy >= destMax)
+   {
+      nCopy = destMax - 1;
+   }
+   if ((src != NULL) && (nCopy > 0))
+   {
+      memcpy(dest, src, nCopy);
+   }
+
+   nEnd = 0;
+   while ((nEnd < destMax) && (dest[nEnd] != 0))
+   {
+      nEnd++;
+   }
+   while ((nEnd > 0) && (dest[nEnd - 1] == 0x20))
+   {
+      nEnd--;
+      dest[nEnd] = 0;
+   }
+}
+
+static int P11_CharLower(int c)
+{
+   if ((c >= 'A') && (c <= 'Z'))
+   {
+      return c - 'A' + 'a';
+   }
+   return c;
+}
+
+static CK_BBOOL P11_ContainsI(const char* hay, const char* needle)
+{
+   size_t iLoop;
+   size_t iNeedle;
+
+   if ((hay == NULL) || (needle == NULL) || (needle[0] == 0))
+   {
+      return CK_FALSE;
+   }
+
+   for (iLoop = 0; hay[iLoop] != 0; iLoop++)
+   {
+      for (iNeedle = 0; needle[iNeedle] != 0; iNeedle++)
+      {
+         if (hay[iLoop + iNeedle] == 0)
+         {
+            return CK_FALSE;
+         }
+         if (P11_CharLower((unsigned char)hay[iLoop + iNeedle]) != P11_CharLower((unsigned char)needle[iNeedle]))
+         {
+            break;
+         }
+      }
+      if (needle[iNeedle] == 0)
+      {
+         return CK_TRUE;
+      }
+   }
+   return CK_FALSE;
+}
+
+static void P11_FormatVersion3(CK_CHAR_PTR dest, CK_ULONG destMax, CK_ULONG major, CK_ULONG minor, CK_ULONG subminor)
+{
+   if ((dest == NULL) || (destMax == 0))
+   {
+      return;
+   }
+#ifdef OS_WIN32
+   _snprintf((char*)dest, destMax - 1, "%lu.%lu.%lu", (unsigned long)major, (unsigned long)minor, (unsigned long)subminor);
+#else
+   snprintf((char*)dest, destMax, "%lu.%lu.%lu", (unsigned long)major, (unsigned long)minor, (unsigned long)subminor);
+#endif
+   dest[destMax - 1] = 0;
+}
+
+static void P11_SoftwareFromModel(const CK_CHAR* model, CK_CHAR_PTR dest, CK_ULONG destMax)
+{
+   const char* pEnd;
+   const char* pTok;
+   CK_ULONG nLen;
+   CK_BBOOL bDigit = CK_FALSE;
+   CK_BBOOL bDot = CK_FALSE;
+   const char* pScan;
+
+   if ((dest == NULL) || (destMax == 0))
+   {
+      return;
+   }
+   dest[0] = 0;
+   if ((model == NULL) || (model[0] == 0))
+   {
+      return;
+   }
+
+   pEnd = (const char*)model + strlen((const char*)model);
+   while ((pEnd > (const char*)model) && (pEnd[-1] == ' '))
+   {
+      pEnd--;
+   }
+   pTok = pEnd;
+   while ((pTok > (const char*)model) && (pTok[-1] != ' '))
+   {
+      pTok--;
+   }
+   if (pTok == (const char*)model)
+   {
+      return;
+   }
+
+   for (pScan = pTok; pScan < pEnd; pScan++)
+   {
+      if ((*pScan >= '0') && (*pScan <= '9'))
+      {
+         bDigit = CK_TRUE;
+      }
+      else if (*pScan == '.')
+      {
+         bDot = CK_TRUE;
+      }
+      else
+      {
+         return;
+      }
+   }
+   if ((bDigit == CK_FALSE) || (bDot == CK_FALSE))
+   {
+      return;
+   }
+
+   nLen = (CK_ULONG)(pEnd - pTok);
+   if (nLen >= destMax)
+   {
+      nLen = destMax - 1;
+   }
+   memcpy(dest, pTok, nLen);
+   dest[nLen] = 0;
+}
+
+/*
+    FUNCTION:        void P11_GetSlotIdentity(...)
+*/
+void P11_GetSlotIdentity(CK_SLOT_ID slotId, const CK_TOKEN_INFO* pTok,
+                         CK_CHAR_PTR model, CK_ULONG modelMax,
+                         CK_CHAR_PTR firmware, CK_ULONG firmwareMax,
+                         CK_CHAR_PTR software, CK_ULONG softwareMax,
+                         CK_CHAR_PTR serial, CK_ULONG serialMax)
+{
+   CK_RV retCode;
+   CK_ULONG fwMajor = 0;
+   CK_ULONG fwMinor = 0;
+   CK_ULONG fwSub = 0;
+
+   if (model != NULL && modelMax > 0)
+   {
+      model[0] = 0;
+   }
+   if (firmware != NULL && firmwareMax > 0)
+   {
+      firmware[0] = 0;
+   }
+   if (software != NULL && softwareMax > 0)
+   {
+      software[0] = 0;
+   }
+   if (serial != NULL && serialMax > 0)
+   {
+      serial[0] = 0;
+   }
+   if (pTok == NULL)
+   {
+      return;
+   }
+
+   P11_CopyTokenField(model, modelMax, pTok->model, sizeof(pTok->model));
+   P11_CopyTokenField(serial, serialMax, pTok->serialNumber, sizeof(pTok->serialNumber));
+
+   if ((SfntFunctions != NULL) && (SfntFunctions->CA_GetFirmwareVersion != NULL))
+   {
+      retCode = SfntFunctions->CA_GetFirmwareVersion(slotId, &fwMajor, &fwMinor, &fwSub);
+      if (retCode == CKR_OK)
+      {
+         P11_FormatVersion3(firmware, firmwareMax, fwMajor, fwMinor, fwSub);
+      }
+   }
+   if ((firmware != NULL) && (firmwareMax > 0) && (firmware[0] == 0))
+   {
+#ifdef OS_WIN32
+      _snprintf((char*)firmware, firmwareMax - 1, "%u.%u",
+         (unsigned int)pTok->firmwareVersion.major, (unsigned int)pTok->firmwareVersion.minor);
+#else
+      snprintf((char*)firmware, firmwareMax, "%u.%u",
+         (unsigned int)pTok->firmwareVersion.major, (unsigned int)pTok->firmwareVersion.minor);
+#endif
+      firmware[firmwareMax - 1] = 0;
+   }
+
+   /* DPoD / Cryptovisor has no appliance software version. */
+   if (P11_ContainsI((const char*)model, "cryptovisor") == CK_FALSE)
+   {
+      P11_SoftwareFromModel(model, software, softwareMax);
+   }
+}
+
+typedef struct
+{
+   CK_SLOT_ID slotId;
+   CK_CHAR    label[33];
+   CK_CHAR    model[P11_SLOT_MODEL_MAX + 1];
+   CK_CHAR    firmware[P11_SLOT_VERSION_MAX];
+   CK_CHAR    software[P11_SLOT_VERSION_MAX];
+   CK_CHAR    serial[P11_SLOT_SERIAL_MAX + 1];
+} P11_SLOT_LIST_ROW;
+
+static unsigned P11_Wider(unsigned current, const char* text)
+{
+   unsigned nLen;
+
+   if (text == NULL)
+   {
+      return current;
+   }
+   nLen = (unsigned)strlen(text);
+   return (nLen > current) ? nLen : current;
+}
+
+static unsigned P11_UlongWidth(unsigned long value)
+{
+   unsigned nLen = 1;
+
+   while (value >= 10UL)
+   {
+      value /= 10UL;
+      nLen++;
+   }
+   return nLen;
+}
+
 /*
     FUNCTION:        CK_SLOT_ID P11_ListStot()
 */
 CK_LONG P11_ListStot()
 {
    CK_RV retCode = CKR_OK;
-   unsigned char bloop;
+   CK_ULONG ulLoop;
    CK_TOKEN_INFO sTokenInfo = { 0 };
-   CK_SLOT_INFO sSlotInfo = { 0 };
+   P11_SLOT_LIST_ROW* pRows = NULL;
+   unsigned wSlot = 4;
+   unsigned wLabel = 5;
+   unsigned wModel = 5;
+   unsigned wFirmware = 8;
+   unsigned wSoftware = 8;
+   unsigned wSerial = 6;
+   char szSlot[16];
 
    do
    {
@@ -458,39 +714,73 @@ CK_LONG P11_ListStot()
       if (retCode != CKR_OK)
          break;
 
-      printf("Slot list : \n");
+      pRows = (P11_SLOT_LIST_ROW*)calloc(uSlotCount, sizeof(P11_SLOT_LIST_ROW));
+      if (pRows == NULL)
+         break;
 
-      CK_SLOT_ID_PTR pList = pSlotList;
-      // Loop all token info slot
-      for (bloop = 0; bloop < uSlotCount; bloop++)
+      for (ulLoop = 0; ulLoop < uSlotCount; ulLoop++)
       {
-
-         // get token info on the slot
-         retCode = P11Functions->C_GetTokenInfo(pList[0], &sTokenInfo);
-
-         // truncate string
-         str_TruncateString(sTokenInfo.label, sizeof(sTokenInfo.label));
-
-         // prinft the slot number in decimal
-         printf("[%d]", pList[0]);
-
-         // add space depending of slot size value for allignement in the console
-         if (pList[0] < 10)
+         pRows[ulLoop].slotId = pSlotList[ulLoop];
+         memset(&sTokenInfo, 0, sizeof(sTokenInfo));
+         retCode = P11Functions->C_GetTokenInfo(pSlotList[ulLoop], &sTokenInfo);
+         if (retCode != CKR_OK)
          {
-            printf("  ");
+            continue;
          }
-         else if (pList[0] < 100)
-         {
-            printf(" ");
-         }
-         // print label value
-         printf(": % s\n", sTokenInfo.label);
+         P11_CopyTokenField(pRows[ulLoop].label, sizeof(pRows[ulLoop].label),
+            sTokenInfo.label, sizeof(sTokenInfo.label));
+         P11_GetSlotIdentity(pSlotList[ulLoop], &sTokenInfo,
+            pRows[ulLoop].model, sizeof(pRows[ulLoop].model),
+            pRows[ulLoop].firmware, sizeof(pRows[ulLoop].firmware),
+            pRows[ulLoop].software, sizeof(pRows[ulLoop].software),
+            pRows[ulLoop].serial, sizeof(pRows[ulLoop].serial));
 
-         pList++;
+         {
+            unsigned wId = P11_UlongWidth((unsigned long)pRows[ulLoop].slotId);
+            if (wId > wSlot)
+            {
+               wSlot = wId;
+            }
+         }
+         wLabel = P11_Wider(wLabel, (const char*)pRows[ulLoop].label);
+         wModel = P11_Wider(wModel, (const char*)pRows[ulLoop].model);
+         wFirmware = P11_Wider(wFirmware, (const char*)pRows[ulLoop].firmware);
+         wSoftware = P11_Wider(wSoftware, (const char*)pRows[ulLoop].software);
+         wSerial = P11_Wider(wSerial, (const char*)pRows[ulLoop].serial);
       }
 
+      printf("Slot list :\n");
+      printf("%-*s  %-*s  %-*s  %-*s  %-*s  %-*s\n",
+         (int)wSlot, "Slot",
+         (int)wLabel, "Label",
+         (int)wModel, "Model",
+         (int)wFirmware, "Firmware",
+         (int)wSoftware, "Software",
+         (int)wSerial, "Serial");
+
+      for (ulLoop = 0; ulLoop < uSlotCount; ulLoop++)
+      {
+         memset(szSlot, 0, sizeof(szSlot));
+#ifdef OS_WIN32
+         _snprintf(szSlot, sizeof(szSlot) - 1, "%lu", (unsigned long)pRows[ulLoop].slotId);
+#else
+         snprintf(szSlot, sizeof(szSlot), "%lu", (unsigned long)pRows[ulLoop].slotId);
+#endif
+         printf("%-*s  %-*s  %-*s  %-*s  %-*s  %-*s\n",
+            (int)wSlot, szSlot,
+            (int)wLabel, (const char*)pRows[ulLoop].label,
+            (int)wModel, (const char*)pRows[ulLoop].model,
+            (int)wFirmware, (const char*)pRows[ulLoop].firmware,
+            (int)wSoftware, (const char*)pRows[ulLoop].software,
+            (int)wSerial, (const char*)pRows[ulLoop].serial);
+      }
 
    } while (FALSE);
+
+   if (pRows != NULL)
+   {
+      free(pRows);
+   }
 
    return uSlotCount;
 }

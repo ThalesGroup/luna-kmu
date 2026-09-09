@@ -3,24 +3,25 @@
 *.vsidx
 *.aps
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
+*.VC.db
+*.opendb
+*.sdf
+*.ilk
+Thumbs.db
+.DS_Store
 kmu-gui.vcxproj.user
 
+# Ship only the Release binaries (plus kmu.exe hash). Ignore obj, pdb, tlog, etc.
 /x64/Debug/
-/x64/Release/*.obj
-/x64/Release/*.pdb
-/x64/Release/*.iobj
-/x64/Release/*.ipdb
-/x64/Release/*.log
-/x64/Release/*.res
-/x64/Release/*.recipe
-/x64/Release/*.zip
-/x64/Release/*.FileListAbsolute.txt
-/x64/Release/kmu.tlog/
-/x64/Release/kmu-gui/
-/x64/Release/kmu.Build.CppClean.log
+/x64/Release/*
+!/x64/Release/kmu.exe
+!/x64/Release/kmu-gui.exe
+!/x64/Release/kmu.exe.sha256
 
+# Ship the Linux CLI binary only. Logs, test-out, and verify harnesses stay out.
 /linux-build/*
 !/linux-build/kmu
 

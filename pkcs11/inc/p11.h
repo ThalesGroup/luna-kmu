@@ -26,6 +26,9 @@ extern "C" {
 
 #define DIM(a) (sizeof(a)/sizeof(a[0]))
 #define MAX(x,y) ((x>y)?x:y)
+#define P11_SLOT_MODEL_MAX     16  /* CK_TOKEN_INFO.model */
+#define P11_SLOT_SERIAL_MAX    16  /* CK_TOKEN_INFO.serialNumber */
+#define P11_SLOT_VERSION_MAX   32
 
 #include "cryptoki_v2.h"
 
@@ -558,6 +561,13 @@ extern "C" {
    _EXT  CK_RV                P11_Logout();
    _EXT  CK_BBOOL             P11_IsLoggedIn();
    _EXT  CK_LONG              P11_ListStot();
+   /* model / firmware / software / serial from C_GetTokenInfo + CA_GetFirmwareVersion.
+      software is left empty for DPoD (Cryptovisor) slots. */
+   _EXT  void                 P11_GetSlotIdentity(CK_SLOT_ID slotId, const CK_TOKEN_INFO* pTok,
+                                                 CK_CHAR_PTR model, CK_ULONG modelMax,
+                                                 CK_CHAR_PTR firmware, CK_ULONG firmwareMax,
+                                                 CK_CHAR_PTR software, CK_ULONG softwareMax,
+                                                 CK_CHAR_PTR serial, CK_ULONG serialMax);
    _EXT  CK_BBOOL             p11_GetSlotInfo(CK_SLOT_ID u32_SlotID, CK_SLOT_INFO* slotInfo);
    _EXT  CK_BBOOL             p11_GetMecanismInfo(CK_SLOT_ID u32_SlotID, CK_MECHANISM_TYPE sMech, CK_MECHANISM_INFO* info);
    _EXT  CK_BBOOL             P11_IsLoginPasswordRequired(void);

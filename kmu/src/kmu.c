@@ -52,8 +52,8 @@ const STRING_ARRAY CMD_LIST_HELP = "This command lists all the keys in the selec
 
 const STRING_ARRAY CMD_LIST_SLOT = "listslot";
 const STRING_ARRAY CMD_LIST_SLOTS = "listslots";
-const STRING_ARRAY CMD_LIST_SLOT_HELP = "This command lists all PKCS11 slot";
-const STRING_ARRAY CMD_LIST_SLOTS_HELP = "This command lists all PKCS11 slot (alias of listslot)";
+const STRING_ARRAY CMD_LIST_SLOT_HELP = "This command lists all PKCS11 slots (label, model, firmware, software, serial)";
+const STRING_ARRAY CMD_LIST_SLOTS_HELP = "This command lists all PKCS11 slots (alias of listslot)";
 
 const STRING_ARRAY CMD_GENERATE_KEY = "generatekey";
 const STRING_ARRAY CMD_GENERATE_KEY_HELP = "This command generates a symmetric or asymmetric key";

@@ -50,7 +50,11 @@
 #define GUI_BTN_H                 26
 #define GUI_EDIT_H                24
 #define GUI_STATUS_H              22
-#define GUI_COL_SLOT_W            80
+#define GUI_COL_SLOT_W            64
+#define GUI_COL_MODEL_W           130
+#define GUI_COL_FW_W              80
+#define GUI_COL_SW_W              80
+#define GUI_COL_SERIAL_W          130
 #define GUI_PATH_LABEL_H          18
 
 static HWND      s_hWnd = NULL;
@@ -512,6 +516,10 @@ static void WndMain_FillSlots(const P11_SLOT_ROW* rows, CK_ULONG ulCount)
       item.lParam = (LPARAM)rows[ulLoop].slotId;
       SendMessageA(s_hList, LVM_INSERTITEMA, 0, (LPARAM)&item);
       ListView_SetItemText(s_hList, (int)ulLoop, 1, (LPSTR)rows[ulLoop].label);
+      ListView_SetItemText(s_hList, (int)ulLoop, 2, (LPSTR)rows[ulLoop].model);
+      ListView_SetItemText(s_hList, (int)ulLoop, 3, (LPSTR)rows[ulLoop].firmware);
+      ListView_SetItemText(s_hList, (int)ulLoop, 4, (LPSTR)rows[ulLoop].software);
+      ListView_SetItemText(s_hList, (int)ulLoop, 5, (LPSTR)rows[ulLoop].serial);
    }
 
    SendMessageA(s_hList, WM_SETREDRAW, TRUE, 0);
@@ -825,12 +833,18 @@ static void WndMain_Layout(int cx, int cy)
 
    MoveWindow(s_hList, GUI_MARGIN, listY, cx - (2 * GUI_MARGIN), listH, TRUE);
 
-   colLabelW = cx - (2 * GUI_MARGIN) - GUI_COL_SLOT_W - 24;
+   colLabelW = cx - (2 * GUI_MARGIN) - GUI_COL_SLOT_W - GUI_COL_MODEL_W
+      - GUI_COL_FW_W - GUI_COL_SW_W - GUI_COL_SERIAL_W - 24;
    if (colLabelW < 80)
    {
       colLabelW = 80;
    }
+   ListView_SetColumnWidth(s_hList, 0, GUI_COL_SLOT_W);
    ListView_SetColumnWidth(s_hList, 1, colLabelW);
+   ListView_SetColumnWidth(s_hList, 2, GUI_COL_MODEL_W);
+   ListView_SetColumnWidth(s_hList, 3, GUI_COL_FW_W);
+   ListView_SetColumnWidth(s_hList, 4, GUI_COL_SW_W);
+   ListView_SetColumnWidth(s_hList, 5, GUI_COL_SERIAL_W);
 
    if (P11_IsLoggedIn() == CK_TRUE)
    {
@@ -983,10 +997,30 @@ static void WndMain_CreateChildren(HWND hWnd)
    col.pszText = "Slot ID";
    SendMessageA(s_hList, LVM_INSERTCOLUMNA, 0, (LPARAM)&col);
 
-   col.cx = 280;
+   col.cx = 180;
    col.iSubItem = 1;
    col.pszText = "Label";
    SendMessageA(s_hList, LVM_INSERTCOLUMNA, 1, (LPARAM)&col);
+
+   col.cx = GUI_COL_MODEL_W;
+   col.iSubItem = 2;
+   col.pszText = "Model";
+   SendMessageA(s_hList, LVM_INSERTCOLUMNA, 2, (LPARAM)&col);
+
+   col.cx = GUI_COL_FW_W;
+   col.iSubItem = 3;
+   col.pszText = "Firmware";
+   SendMessageA(s_hList, LVM_INSERTCOLUMNA, 3, (LPARAM)&col);
+
+   col.cx = GUI_COL_SW_W;
+   col.iSubItem = 4;
+   col.pszText = "Software";
+   SendMessageA(s_hList, LVM_INSERTCOLUMNA, 4, (LPARAM)&col);
+
+   col.cx = GUI_COL_SERIAL_W;
+   col.iSubItem = 5;
+   col.pszText = "Serial";
+   SendMessageA(s_hList, LVM_INSERTCOLUMNA, 5, (LPARAM)&col);
 }
 
 static void WndMain_ShowMore(void)
@@ -1299,7 +1333,7 @@ HWND WndMain_Create(HINSTANCE hInstance, int nCmdShow)
 
    hWnd = CreateWindowExA(WS_EX_CONTROLPARENT, GUI_WND_CLASS, GUI_APP_TITLE,
       WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
-      CW_USEDEFAULT, CW_USEDEFAULT, 940, 400,
+      CW_USEDEFAULT, CW_USEDEFAULT, 1100, 420,
       NULL, NULL, hInstance, NULL);
 
    if (hWnd == NULL)

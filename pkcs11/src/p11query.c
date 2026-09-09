@@ -102,6 +102,11 @@ CK_BBOOL P11_QuerySlots(P11_SLOT_ROW* rows, CK_ULONG maxRows, CK_ULONG* pCount)
             {
                rows[ulFilled].bPasswordRequired = CK_FALSE;
             }
+            P11_GetSlotIdentity(pList[ulLoop], &sTokenInfo,
+               rows[ulFilled].model, sizeof(rows[ulFilled].model),
+               rows[ulFilled].firmware, sizeof(rows[ulFilled].firmware),
+               rows[ulFilled].software, sizeof(rows[ulFilled].software),
+               rows[ulFilled].serial, sizeof(rows[ulFilled].serial));
          }
 
          ulFilled++;
