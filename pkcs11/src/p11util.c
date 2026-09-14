@@ -654,12 +654,10 @@ const CK_CHAR ARG_PBKDF2_TYPE_HMAC_SHA512[] = "hmac-sha512";
 #define SIZE_PBKDF2_KDF_TYPE_TABLE     DIM(pbkdf2_kdf_type)
 const P11_PBKDF2_TYPE pbkdf2_kdf_type[] = {
    {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA1,             CKP_PKCS5_PBKD2_HMAC_SHA1},
-   /*
    {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA224,           CKP_PKCS5_PBKD2_HMAC_SHA224},
    {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA256,           CKP_PKCS5_PBKD2_HMAC_SHA256},
    {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA384,           CKP_PKCS5_PBKD2_HMAC_SHA384},
    {(CK_CHAR_PTR)&ARG_PBKDF2_TYPE_HMAC_SHA512,           CKP_PKCS5_PBKD2_HMAC_SHA512},
-   */
 };
 
 const CK_CHAR ARG_DERIVE_KDF_SCHEME_1[] = "scheme1";
@@ -1658,6 +1656,11 @@ CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sP
 {
    CK_BYTE u8Loop;
 
+   if ((sParamName == NULL) || (sParamName[0] == 0))
+   {
+      return 0;
+   }
+
    // loop on all curve structure
    for (u8Loop = 0; u8Loop < SIZE_PBKDF2_KDF_TYPE_TABLE; u8Loop++)
    {
@@ -1668,6 +1671,26 @@ CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE P11Util_GetPbkdf2_Type(CK_CHAR_PTR sP
       }
    };
    return 0;
+}
+
+/*
+    FUNCTION:        CK_ULONG P11Util_GetPbkdf2_TypeCount(void)
+*/
+CK_ULONG P11Util_GetPbkdf2_TypeCount(void)
+{
+   return SIZE_PBKDF2_KDF_TYPE_TABLE;
+}
+
+/*
+    FUNCTION:        CK_CHAR_PTR P11Util_GetPbkdf2_TypeNameAt(CK_ULONG uIndex)
+*/
+CK_CHAR_PTR P11Util_GetPbkdf2_TypeNameAt(CK_ULONG uIndex)
+{
+   if (uIndex >= SIZE_PBKDF2_KDF_TYPE_TABLE)
+   {
+      return NULL;
+   }
+   return pbkdf2_kdf_type[uIndex].sKdfMechType;
 }
 
 /*

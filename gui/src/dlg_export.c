@@ -73,6 +73,8 @@
 #define IDC_EXP_LBL_KEYID         3037
 #define IDC_EXP_LBL_WRAPLABEL     3038
 #define IDC_EXP_LBL_WRAPID        3039
+#define IDC_EXP_PRF               3040
+#define IDC_EXP_LBL_PRF           3041
 
 static HWND s_hDlg = NULL;
 static HWND s_hHandle = NULL;
@@ -89,6 +91,7 @@ static HWND s_hAad = NULL;
 static HWND s_hTag = NULL;
 static HWND s_hHash = NULL;
 static HWND s_hPassword = NULL;
+static HWND s_hPrf = NULL;
 static HWND s_hSalt = NULL;
 static HWND s_hIter = NULL;
 static HWND s_hStatus = NULL;
@@ -236,6 +239,29 @@ static void DlgExp_FillHash(void)
    DlgExp_SelectNamed(s_hHash, "sha256");
 }
 
+static void DlgExp_FillPrf(void)
+{
+   CK_ULONG uLoop;
+   CK_ULONG uCount = P11Util_GetPbkdf2_TypeCount();
+
+   SendMessageA(s_hPrf, CB_RESETCONTENT, 0, 0);
+   for (uLoop = 0; uLoop < uCount; uLoop++)
+   {
+      CK_CHAR_PTR pName = P11Util_GetPbkdf2_TypeNameAt(uLoop);
+      int iItem;
+      if (pName == NULL)
+      {
+         continue;
+      }
+      iItem = (int)SendMessageA(s_hPrf, CB_ADDSTRING, 0, (LPARAM)pName);
+      if (iItem >= 0)
+      {
+         SendMessageA(s_hPrf, CB_SETITEMDATA, (WPARAM)iItem, (LPARAM)pName);
+      }
+   }
+   DlgExp_SelectNamed(s_hPrf, "hmac-sha1");
+}
+
 static void DlgExp_FillFormat(CK_OBJECT_CLASS ckClass)
 {
    CK_BYTE cur = DlgExp_Format();
@@ -345,6 +371,7 @@ static void DlgExp_UpdateFields(void)
    DlgExp_Enable(s_hTag, bGcm);
    DlgExp_Enable(s_hHash, bOaep);
    DlgExp_Enable(s_hPassword, bPbe);
+   DlgExp_Enable(s_hPrf, bPbe);
    DlgExp_Enable(s_hSalt, bPbe);
    DlgExp_Enable(s_hIter, bPbe);
 }
@@ -392,6 +419,7 @@ static void DlgExp_DoExport(void)
    CK_LONG lIter = -1;
    const char* pAlgo;
    const char* pHash;
+   const char* pPrf;
    CK_OBJECT_HANDLE hKey;
    CK_OBJECT_CLASS ckClass;
 
@@ -443,6 +471,7 @@ static void DlgExp_DoExport(void)
    }
    pAlgo = DlgExp_ComboName(s_hAlgo);
    pHash = DlgExp_ComboName(s_hHash);
+   pPrf = DlgExp_ComboName(s_hPrf);
 
    if (ckClass == CKO_PUBLIC_KEY)
    {
@@ -450,7 +479,7 @@ static void DlgExp_DoExport(void)
    }
    else if ((ckClass == CKO_PRIVATE_KEY) && (fmt == P11_FILE_FORMAT_PKCS8))
    {
-      if (P11_QueryBuildPbeMech(pAlgo, s_szPassword, szSalt, lIter, szIv,
+      if (P11_QueryBuildPbeMech(pAlgo, s_szPassword, pPrf, szSalt, lIter, szIv,
          &s_mech, szErr, sizeof(szErr)) != CK_TRUE)
       {
          DlgExp_SetStatus(szErr[0] != 0 ? szErr : "Invalid PBE parameters.");
@@ -564,6 +593,10 @@ static void DlgExp_Layout(int cx, int cy)
    MoveWindow(s_hPassword, fieldX, y, 220, DLG_EDIT_H, TRUE);
 
    y += rowH;
+   MoveWindow(GetDlgItem(s_hDlg, IDC_EXP_LBL_PRF), DLG_MARGIN, y + 3, DLG_LABEL_W, 16, TRUE);
+   MoveWindow(s_hPrf, fieldX, y, 220, DLG_COMBO_DROP, TRUE);
+
+   y += rowH;
    MoveWindow(GetDlgItem(s_hDlg, IDC_EXP_LBL_SALT), DLG_MARGIN, y + 3, DLG_LABEL_W, 16, TRUE);
    MoveWindow(s_hSalt, fieldX, y, 220, DLG_EDIT_H, TRUE);
 
@@ -657,6 +690,10 @@ static LRESULT CALLBACK DlgExp_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
          s_hPassword = CreateWindowA("EDIT", "",
             WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | ES_PASSWORD | ES_AUTOHSCROLL,
             0, 0, 220, DLG_EDIT_H, hWnd, (HMENU)(INT_PTR)IDC_EXP_PASSWORD, NULL, NULL);
+         DlgExp_Label(hWnd, "PRF:", IDC_EXP_LBL_PRF);
+         s_hPrf = CreateWindowA("COMBOBOX", "",
+            WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST,
+            0, 0, 220, DLG_COMBO_DROP, hWnd, (HMENU)(INT_PTR)IDC_EXP_PRF, NULL, NULL);
          DlgExp_Label(hWnd, "Salt (hex):", IDC_EXP_LBL_SALT);
          s_hSalt = CreateWindowA("EDIT", "",
             WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL,
@@ -680,6 +717,7 @@ static LRESULT CALLBACK DlgExp_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
          DlgExp_FillFormat((CK_OBJECT_CLASS)-1);
          DlgExp_FillAlgos(KEY_TYPE_IMPORT_EXPORTKEY, "aes_cbc_pad");
          DlgExp_FillHash();
+         DlgExp_FillPrf();
          SetWindowTextA(s_hIter, "10000");
 
          hLast = GUI_GetLastObjectHandle();
@@ -696,7 +734,7 @@ static LRESULT CALLBACK DlgExp_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
          }
          GUI_ThemeMarkStatus(s_hStatus);
          DlgExp_UpdateFields();
-         DlgExp_SetStatus("Handle, or label and/or CKA_ID. PKCS#8 private keys use pbkdf2_* and a password.");
+         DlgExp_SetStatus("Handle, or label and/or CKA_ID. PKCS#8 private keys use pbkdf2_*, a password, and PRF.");
       }
       return 0;
 
@@ -719,7 +757,7 @@ static LRESULT CALLBACK DlgExp_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
       {
          MINMAXINFO* pMin = (MINMAXINFO*)lParam;
          pMin->ptMinTrackSize.x = 620;
-         pMin->ptMinTrackSize.y = 520;
+         pMin->ptMinTrackSize.y = 550;
       }
       return 0;
 
@@ -784,6 +822,7 @@ static LRESULT CALLBACK DlgExp_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
       s_hTag = NULL;
       s_hHash = NULL;
       s_hPassword = NULL;
+      s_hPrf = NULL;
       s_hSalt = NULL;
       s_hIter = NULL;
       s_hStatus = NULL;
@@ -826,7 +865,7 @@ void DlgExport_Show(HWND hwndParent)
    hDlg = CreateWindowExA(WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT, DLG_EXP_CLASS,
       "Export key",
       WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_CLIPCHILDREN,
-      rc.left + 28, rc.top + 28, 640, 560,
+      rc.left + 28, rc.top + 28, 640, 590,
       hwndParent, NULL, wc.hInstance, NULL);
    if (hDlg == NULL)
    {

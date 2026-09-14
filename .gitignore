@@ -25,6 +25,14 @@ kmu-gui.vcxproj.user
 /linux-build/*
 !/linux-build/kmu
 
+# Local verify scripts
+linux-verify-cli.py
+win-verify-cli.ps1
+win-verify-gui.ps1
+win-live-test.ps1
+dpod-session-test.py
+run-linux-tests.sh
+
 Sonarqube
 /des_clear.txt
 /des_wrap.txt
@@ -89,6 +97,9 @@ Sonarqube
 /private_rsa_2k_pkkdf2_aes128.pem
 /private_rsa_2k_pkkdf2_aes192.pem
 /private_rsa_2k_pkkdf2_aes256.pem
+/private_rsa_2k_pkkdf2_aes256_sha256.pem
+/private_rsa_2k_pkkdf2_aes256_sha384.pem
+/private_rsa_2k_pkkdf2_aes256_sha512.pem
 /Initial-IK.encrypt.txt
 /Initial-IK.txt
 /NexoAESD128TestKey.encrypt.txt

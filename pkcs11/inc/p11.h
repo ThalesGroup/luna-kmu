@@ -562,7 +562,7 @@ extern "C" {
    _EXT  CK_BBOOL             P11_IsLoggedIn();
    _EXT  CK_LONG              P11_ListStot();
    /* model / firmware / software / serial from C_GetTokenInfo + CA_GetFirmwareVersion.
-      software is left empty for DPoD (Cryptovisor) slots. */
+      software is "DPoD" for Cryptovisor slots (no appliance version). */
    _EXT  void                 P11_GetSlotIdentity(CK_SLOT_ID slotId, const CK_TOKEN_INFO* pTok,
                                                  CK_CHAR_PTR model, CK_ULONG modelMax,
                                                  CK_CHAR_PTR firmware, CK_ULONG firmwareMax,

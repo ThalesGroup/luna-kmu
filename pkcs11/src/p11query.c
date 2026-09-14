@@ -1216,10 +1216,11 @@ CK_BBOOL P11_QueryBuildWrapMech(const char* algoName, CK_ULONG uFlag,
     FUNCTION:        CK_BBOOL P11_QueryBuildPbeMech(...)
 */
 CK_BBOOL P11_QueryBuildPbeMech(const char* algoName, const char* password,
-   const char* saltHex, CK_LONG iterations, const char* ivHex,
+   const char* prfName, const char* saltHex, CK_LONG iterations, const char* ivHex,
    P11_ENCRYPTION_MECH* pMech, char* err, CK_ULONG errMax)
 {
    P11_ENCRYPTION_MECH* pSrc;
+   CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE prf;
    CK_ULONG uLen;
 
    QuerySetError(err, errMax, "");
@@ -1247,8 +1248,22 @@ CK_BBOOL P11_QueryBuildPbeMech(const char* algoName, const char* password,
    pMech->pbe_param.ckEncMechType = pSrc->pbe_param.ckEncMechType;
    pMech->pbe_param.sEnckeyType = pSrc->pbe_param.sEnckeyType;
    pMech->pbe_param.sEnckeySize = pSrc->pbe_param.sEnckeySize;
-   pMech->pbe_param.pbkdf2.pbfkd2_param.prf = pSrc->pbe_param.pbkdf2.pbfkd2_param.prf;
    pMech->pbe_param.ulIvLen = pSrc->pbe_param.ulIvLen;
+
+   if ((prfName == NULL) || (prfName[0] == 0))
+   {
+      prf = CKP_PKCS5_PBKD2_HMAC_SHA1;
+   }
+   else
+   {
+      prf = P11Util_GetPbkdf2_Type((CK_CHAR_PTR)prfName);
+      if ((prf == 0) || (prf == (CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE)CK_NULL_ELEMENT))
+      {
+         QuerySetError(err, errMax, "Unknown PRF.");
+         return CK_FALSE;
+      }
+   }
+   pMech->pbe_param.pbkdf2.pbfkd2_param.prf = prf;
 
    if (iterations < 0)
    {

@@ -632,7 +632,19 @@ void P11_GetSlotIdentity(CK_SLOT_ID slotId, const CK_TOKEN_INFO* pTok,
    }
 
    /* DPoD / Cryptovisor has no appliance software version. */
-   if (P11_ContainsI((const char*)model, "cryptovisor") == CK_FALSE)
+   if (P11_ContainsI((const char*)model, "cryptovisor") == CK_TRUE)
+   {
+      if ((software != NULL) && (softwareMax > 0))
+      {
+#ifdef OS_WIN32
+         _snprintf((char*)software, softwareMax - 1, "DPoD");
+#else
+         snprintf((char*)software, softwareMax, "DPoD");
+#endif
+         software[softwareMax - 1] = 0;
+      }
+   }
+   else
    {
       P11_SoftwareFromModel(model, software, softwareMax);
    }

@@ -101,8 +101,9 @@ extern "C" {
                                         CK_BYTE* aadBuf, CK_ULONG aadBufMax,
                                         char* err, CK_ULONG errMax);
    _EXT  CK_BBOOL P11_QueryBuildPbeMech(const char* algoName, const char* password,
-                                       const char* saltHex, CK_LONG iterations, const char* ivHex,
-                                       P11_ENCRYPTION_MECH* pMech, char* err, CK_ULONG errMax);
+                                       const char* prfName, const char* saltHex, CK_LONG iterations,
+                                       const char* ivHex, P11_ENCRYPTION_MECH* pMech,
+                                       char* err, CK_ULONG errMax);
 
    _EXT  CK_BBOOL P11_QueryExportKey(P11_WRAPTEMPLATE* pTpl, const char* path, CK_BYTE format,
                                     CK_ULONG* pWritten, char* err, CK_ULONG errMax);

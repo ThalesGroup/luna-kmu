@@ -264,7 +264,11 @@ static void WndMain_PrefillClientPath(void)
    char szPath[GUI_PATH_MAX];
 
    memset(szPath, 0, sizeof(szPath));
-   GUI_SuggestDefaultChrystokiPath(szPath, sizeof(szPath));
+   GUI_GetChrystokiPath(szPath, sizeof(szPath));
+   if (szPath[0] == 0)
+   {
+      GUI_SuggestDefaultChrystokiPath(szPath, sizeof(szPath));
+   }
    if (s_hPath != NULL)
    {
       SetWindowTextA(s_hPath, szPath);

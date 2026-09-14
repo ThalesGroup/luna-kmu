@@ -65,6 +65,10 @@ const CK_CHAR OID_HMAC_SHA512_256[] = { 0x06, 0x08, 0x2A, 0x86, 0x48, 0x86, 0xF7
 const CK_CHAR OID_PKCS5_PBKDF2[] = { 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x05, 0x0C };
 const CK_CHAR OID_PKCS5_PBES2[] = { 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x05, 0x0D };
 
+#define PKCS8_CURRENT_OID_IS(oid) \
+   ((asn1_Check_GetCurrentTlvLen() == (CK_ULONG)sizeof(oid)) && \
+    (memcmp(asn1_Check_GetCurrentTagBuffer(), (oid), sizeof(oid)) == 0))
+
 const CK_CHAR OID_ML_DSA_44[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03, 0x11 };
 const CK_CHAR OID_ML_DSA_65[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03, 0x12 };
 const CK_CHAR OID_ML_DSA_87[] = { 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03, 0x13 };
@@ -2128,47 +2132,86 @@ CK_BBOOL pkcs8_Check_EncryptedPrivateKeyInfoPbe(P11_PBE_ENC_PARAMS* sPbe, CK_CHA
             }
 
 
-            // check no other tlv after
-            if (asn1_Check_NoNextTlv() == CK_TRUE)
+            sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1;
+
+            if (asn1_Check_NoNextTlv() != CK_TRUE)
             {
-               sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1;
+               // optional keyLength
+               if (asn1_Check_Next(TAG_INTEGER) == CK_TRUE)
+               {
+               }
+
+               if (asn1_Check_NoNextTlv() != CK_TRUE)
+               {
+                  if (asn1_Check_Next(TAG_SEQUENCE) == CK_FALSE)
+                  {
+                     break;
+                  }
+                  if (asn1_Check_StepIn() == CK_FALSE)
+                  {
+                     break;
+                  }
+                  if (asn1_Check_t(TAG_OID) == CK_FALSE)
+                  {
+                     break;
+                  }
+
+                  if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA1))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA1;
+                  }
+                  else if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA224))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA224;
+                  }
+                  else if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA256))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA256;
+                  }
+                  else if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA384))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA384;
+                  }
+                  else if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA512))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA512;
+                  }
+                  else if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA512_224))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA512_224;
+                  }
+                  else if (PKCS8_CURRENT_OID_IS(OID_HMAC_SHA512_256))
+                  {
+                     sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA512_256;
+                  }
+                  else
+                  {
+                     break;
+                  }
+
+                  // optional NULL
+                  if (asn1_Check_NoNextTlv() != CK_TRUE)
+                  {
+                     if (asn1_Check_Next(TAG_NULL) == CK_FALSE)
+                     {
+                        break;
+                     }
+                     if (asn1_Check_NoNextTlv() == CK_FALSE)
+                     {
+                        break;
+                     }
+                  }
+                  if (asn1_Check_StepOut() == CK_FALSE)
+                  {
+                     break;
+                  }
+               }
             }
-            else
+
+            // check no other tlv after
+            if (asn1_Check_NoNextTlv() == CK_FALSE)
             {
-               // Check tag NULL
-               if (asn1_Check_Next(TAG_NULL) == CK_FALSE)
-               {
-                  break;
-               }
-
-               // Check tag OID
-               if (asn1_Check_Next(TAG_OID) == CK_FALSE)
-               {
-                  break;
-               }
-
-               if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_HMAC_SHA224, asn1_Check_GetCurrentTlvLen()) == 0)
-               {
-                  sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA224;
-               }
-               else if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_HMAC_SHA256, asn1_Check_GetCurrentTlvLen()) == 0)
-               {
-                  sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA256;
-               }
-               else if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_HMAC_SHA384, asn1_Check_GetCurrentTlvLen()) == 0)
-               {
-                  sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA384;
-               }
-               else if (memcmp(asn1_Check_GetCurrentTagBuffer(), OID_HMAC_SHA512, asn1_Check_GetCurrentTlvLen()) == 0)
-               {
-                  sPbe->pbkdf2.pbfkd2_param.prf = CKP_PKCS5_PBKD2_HMAC_SHA512;
-               }
-
-               // check no other tlv after
-               if (asn1_Check_NoNextTlv() == CK_FALSE)
-               {
-                  break;
-               }
+               break;
             }
 
             // step out

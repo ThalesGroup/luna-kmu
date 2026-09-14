@@ -1535,9 +1535,12 @@ CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE cmdarg_GetpbKdf2Type()
          sString = arg->s_argPart2;
       }
 
-      // Uppercase to lowercase
-      sString = str_tolower(sString);
+      if ((sString == NULL) || (sString[0] == 0))
+      {
+         return CKP_PKCS5_PBKD2_HMAC_SHA1;
+      }
 
+      sString = str_tolower(sString);
       return P11Util_GetPbkdf2_Type(sString);
    } while (FALSE);
 
@@ -1595,9 +1598,13 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
             sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.iterations = (CK_ULONG)lIteration;
          }
 
-         // Set default prf (only hmac-sha1 supported by hsm)
          sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf = cmdarg_GetpbKdf2Type();
-            
+         if ((sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf == 0) ||
+            (sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.prf == (CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE)CK_NULL_ELEMENT))
+         {
+            printf("wrong argument : -prf \n");
+            break;
+         }
 
          // Set the salt
          sSalt = cmdarg_ArgGetSalt();
@@ -1619,6 +1626,11 @@ P11_ENCRYPTION_MECH* cmdarg_GetPBEMecansim()
 
          // get password
          sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword = cmdarg_GetKeyPassword();
+         if (sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword == NULL)
+         {
+            printf("wrong or missing argument : -keypassword \n");
+            break;
+         }
          sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.usPasswordLen = (CK_ULONG)strlen((CK_BYTE_PTR)sCustomEncryption_mech.pbe_param.pbkdf2.pbfkd2_param.pPassword);
 
          // get IV
@@ -2068,8 +2080,10 @@ CK_CHAR_PTR cmdarg_GetKeyPassword()
          sString = arg->s_argPart2;
       }
 
-      // Uppercase to lowercase
-      sString = str_tolower(sString);
+      if ((sString == NULL) || (sString[0] == 0))
+      {
+         break;
+      }
 
       return sString;
    } while (FALSE);

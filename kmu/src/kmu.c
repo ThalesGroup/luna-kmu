@@ -327,7 +327,7 @@ const STRING_ARRAY ARG_ITERATION_COMP = "-iteration";
 const STRING_ARRAY ARG_ITERATION_COMP_HELP = "number if iteration value for PBKDF2 key generation. \n\t\t\t\t\t-Optional. If empty, the number of iteration is 10000 ";
 
 const STRING_ARRAY ARG_PRF_COMP = "-prf";
-const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password based encryption function. \n\t\t\t\t\t-Optional. hmac-sha1, If empty, the default prf algo is hmac-sha1 ";
+const STRING_ARRAY ARG_PRF_COMP_HELP = "pseudo random function for password based encryption function. \n\t\t\t\t\t-Optional. hmac-sha1, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512. If empty, the default prf algo is hmac-sha1 ";
 
 const STRING_ARRAY ARG_LMS_TYPE_COMP = "-lms-type";
 const STRING_ARRAY ARG_LMS_TYPE_COMP_HELP = "Leighton-Micali Signature(LMS) type, mandatory for LMS or HSS keys. \n\t\t\t\t\t-Supported value: sha256_m24_h5, sha256_m24_h10, sha256_m24_h15, sha256_m24_h20\n\t\t\t\t\t-Supported value: sha256_m32_h5, sha256_m32_h10, sha256_m32_h15, sha256_m32_h20";
