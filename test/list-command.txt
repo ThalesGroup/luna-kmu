@@ -132,6 +132,10 @@ import -slot=1 -password 00000000 -keyclass=public -keytype=ml-kem -inputfile=ml
 import -slot=1 -password 00000000 -keyclass=public -keytype=hss -inputfile=lms-m24_h5-n24_w1.pem -format=PKCS8 -label=importlms-m24_h5-n24_w1
 // import encrypted pkcs8 with password
 import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k.pem -format=pkcs8 -label=importersa2kpem -modifiable=true -extractable=true -keypassword=000000000
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k_pkkdf2_aes256.pem -format=pkcs8 -label=importersa2kpem-sha1 -modifiable=true -extractable=true -keypassword=000000000
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k_pkkdf2_aes256_sha256.pem -format=pkcs8 -label=importersa2kpem-sha256 -modifiable=true -extractable=true -keypassword=000000000
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k_pkkdf2_aes256_sha384.pem -format=pkcs8 -label=importersa2kpem-sha384 -modifiable=true -extractable=true -keypassword=000000000
+import -slot=1 -password 00000000 -keyclass=private -keytype=rsa -inputfile=private_rsa_2k_pkkdf2_aes256_sha512.pem -format=pkcs8 -label=importersa2kpem-sha512 -modifiable=true -extractable=true -keypassword=000000000
 
 # export key
 // export rsa with aes key wrap
@@ -202,6 +206,9 @@ export -slot=1 -password 00000000 -handle=1398 -outputfile=mlkem1024privatekey.t
 export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes256.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -prf=hmac-sha1
 export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes128.pem -format=PKCS8 -algo=pbkdf2_aes128_cbc -keypassword=000000000 -prf=hmac-sha1
 export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes192.pem -format=PKCS8 -algo=pbkdf2_aes192_cbc -keypassword=000000000 -prf=hmac-sha1
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes256_sha256.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -prf=hmac-sha256
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes256_sha384.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -prf=hmac-sha384
+export -password 00000000 -handle=377 -outputfile=private_rsa_2k_pkkdf2_aes256_sha512.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -prf=hmac-sha512
 export -password 00000000 -handle=377 -outputfile=private_rsa1.pem -format=PKCS8 -algo=pbkdf2_aes256_cbc -keypassword=000000000 -salt=1FF67AACE3050E93500A2A311D2DF428 -iteration=20000 -iv=CD51A6C198D5721FE0811DAF8B26D265 -prf=hmac-sha1
 
 # encrypt a file

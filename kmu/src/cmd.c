@@ -2425,6 +2425,11 @@ CK_BBOOL cmd_UnwrapPrivateSecretkey(P11_UNWRAPTEMPLATE* sUnwrapTemplate,  CK_CHA
 
             // get password
             wrapalgo.pbe_param.pbkdf2.pbfkd2_param.pPassword = cmdarg_GetKeyPassword();
+            if (wrapalgo.pbe_param.pbkdf2.pbfkd2_param.pPassword == NULL)
+            {
+               printf("wrong or missing argument : -keypassword \n");
+               break;
+            }
             wrapalgo.pbe_param.pbkdf2.pbfkd2_param.usPasswordLen = (CK_ULONG)strlen((CK_BYTE_PTR)wrapalgo.pbe_param.pbkdf2.pbfkd2_param.pPassword);
 
             sKeyGenTemplate.sClass = wrapalgo.pbe_param.sEncClass;
